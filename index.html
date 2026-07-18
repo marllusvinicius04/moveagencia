@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Move Agência</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="login" class="login"><div class="login-card"><div class="brand">MOVE <b>AGÊNCIA</b></div><p class="muted">Painel interno da equipe</p><input id="password" type="password" placeholder="Senha da agência"><button class="primary" onclick="login()">Entrar</button></div></div>
+
+<div id="app" class="app hidden">
+<aside id="sidebar" class="sidebar"><div class="brand">MOVE <b>AGÊNCIA</b></div><div class="nav">
+<button class="active" data-section="dashboard">Dashboard</button>
+<button data-section="empresas">Empresas</button>
+<button data-section="campanhas">Campanhas</button>
+<button data-section="calendario">Calendário</button>
+</div></aside>
+
+<main class="main">
+<div class="topbar"><div><button class="secondary mobile-menu" onclick="sidebar.classList.toggle('open')">☰</button><h1 id="pageTitle">Dashboard</h1></div><button id="refreshBtn" class="secondary" onclick="loadAll()">Atualizar</button></div>
+
+<section id="dashboard" class="section active"><div class="grid" id="metrics"></div><div class="card" style="margin-top:14px"><h3>Progresso mensal</h3><div class="progress"><span id="progressBar" style="width:0%"></span></div><p id="progressText" class="muted"></p></div></section>
+
+<section id="empresas" class="section"><div class="section-head"><div class="toolbar"><input id="companySearch" placeholder="Pesquisar empresa" oninput="renderEmpresas()"></div><button class="primary" onclick="openEmpresa()">+ Adicionar empresa</button></div><div id="companyCards" class="cards"></div></section>
+
+<section id="campanhas" class="section"><div class="section-head"><div class="toolbar"><select id="campaignCompanyFilter" onchange="renderCampanhas()"></select></div><button class="primary" onclick="openCampanha()">+ Criar campanha</button></div><div id="campaignCards" class="cards"></div></section>
+
+
+<section id="calendario" class="section"><div class="section-head"><div></div><button class="primary" onclick="openEvento()">+ Novo evento</button></div><div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Empresa</th><th>Evento</th><th>Tipo</th><th>Ações</th></tr></thead><tbody id="calendarRows"></tbody></table></div></section>
+</main></div>
+
+<div id="modal" class="modal hidden"><div class="modal-card"><div class="section-head"><h2 id="modalTitle"></h2><button class="secondary" onclick="closeModal()">Fechar</button></div><div id="modalBody"></div></div></div>
+<div id="toast" class="toast hidden"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
