@@ -32,7 +32,70 @@ function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
     +`<div style="margin-top:18px">${head('Demandas mensais','Cálculo por empresa usando o volume semanal x4 e as tarefas abertas.')}</div>`
     +`<div class="grid companies">${demandCards||empty('Cadastre empresas para calcular as demandas.')}</div>`;
 }
-function empresas(){document.getElementById('p-empresas').innerHTML=head('Empresas','Cadastre clientes e volume semanal.',`<button class="btn primary" onclick="company()">+ Nova empresa</button>`)+`<div class="grid companies">${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`<div class="card company"><div class="avatar">${ini(c.nome)}</div><h3>${e(c.nome)}</h3><div class="meta">${e(c.responsavel||'—')} • ${e(c.telefone||'')}</div><div class="stats"><div class="mini"><b>${c.reels||0}</b><span>REELS</span></div><div class="mini"><b>${c.posts||0}</b><span>POSTS</span></div><div class="mini"><b>${c.stories||0}</b><span>STORIES</span></div></div><div class="actions"><button class="btn light sm" onclick="company('${c.id}')">Editar</button><button class="btn dark sm" onclick="board('${c.id}')">Quadro</button></div></div>`).join('')||empty('Nenhuma empresa.')}</div>`}function company(x=''){let c=D.companies.find(a=>a.id===x)||{};modal('Empresa',`<form id="f" class="fg"><div class="field"><label>Nome *</label><input name="nome" value="${e(c.nome||'')}"></div><div class="field"><label>Responsável</label><input name="responsavel" value="${e(c.responsavel||'')}"></div><div class="field"><label>Telefone</label><input name="telefone" value="${e(c.telefone||'')}"></div><div class="field"><label>E-mail</label><input name="email" value="${e(c.email||'')}"></div>${multiSelectField('objetivos','Objetivos',OBJETIVOS_OPCOES,c.objetivos||'')}${multiSelectField('linhas','Linhas de conteúdo',LINHAS_CONTEUDO_OPCOES,c.linhas||'')}<div class="field"><label>Reels/semana</label><input type="number" name="reels" value="${c.reels||0}"></div><div class="field"><label>Posts/semana</label><input type="number" name="posts" value="${c.posts||0}"></div><div class="field"><label>Stories/semana</label><input type="number" name="stories" value="${c.stories||0}"></div><div class="field"><label>Captações/semana</label><input type="number" name="captacoes" value="${c.captacoes||0}"></div></form>`,()=>{let q=objMulti(document.getElementById('f'));if(!q.nome)return toast('Informe o nome.');['reels','posts','stories','captacoes'].forEach(k=>q[k]=Number(q[k]||0));if(c.id)Object.assign(c,q);else D.companies.push({...q,id:id()});closeM();save()})}function quadro(){document.getElementById('p-quadro').innerHTML=head('Quadro Criativo','Planejamento mensal e exportação por semana.')+`<div class="grid companies">${D.companies.map(c=>`<div class="card company"><div class="avatar">${ini(c.nome)}</div><h3>${e(c.nome)}</h3><div class="meta">${D.contents.filter(x=>x.companyId===c.id).length} conteúdos planejados</div><button class="btn primary" style="margin-top:12px" onclick="board('${c.id}')">Abrir quadro</button></div>`).join('')||empty('Cadastre uma empresa.')}</div>`}function board(cid){CID=cid;R='quadro';let c=D.companies.find(x=>x.id===cid),ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>a.numero-b.numero);document.getElementById('p-quadro').innerHTML=head(c.nome,'Semanas, conteúdos, roteiros e HTML para compartilhar.',`<button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`)+`<div class="card section"><div class="board">${ws.map(w=>`<div class="week"><div style="display:flex;justify-content:space-between"><div><h4>Semana ${w.numero}</h4><div class="meta">${date(w.inicio)} — ${date(w.fim)}</div></div><div style="display:flex;gap:5px"><button class="btn dark sm" onclick="weekHTML('${w.id}')" title="Baixar planejamento"><i class="fa fa-download"></i></button><button class="btn danger sm" onclick="deleteWeek('${w.id}')" title="Excluir quadro/semana"><i class="fa fa-trash"></i></button></div></div><div class="meta" style="margin:8px 0"><b>Objetivo:</b> ${e(w.objetivo||'—')}<br><b>Linha:</b> ${e(w.linha||'—')}</div>${D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>a.ordem-b.ordem).map(ct=>`<div class="chip"><span>${e(ct.tipo)}</span><strong>${e(ct.titulo)}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><div class="actions"><button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">Editar</button><button class="btn danger sm" onclick="deleteContent('${ct.id}')" title="Excluir conteúdo"><i class="fa fa-trash"></i> Excluir</button></div></div>`).join('')||empty('Sem conteúdo')}<button class="btn primary sm" style="width:100%;margin-top:8px" onclick="content('${cid}','${w.id}')">+ Conteúdo</button><button class="btn light sm" style="width:100%;margin-top:6px" onclick="weekHTML('${w.id}')">Baixar planejamento HTML</button></div>`).join('')||empty('Crie as semanas.')}</div></div>`}
+function empresas(){
+  document.getElementById('p-empresas').innerHTML=
+    head('Empresas','Cadastre clientes e volume semanal.',`<button class="btn primary" onclick="company()">+ Nova empresa</button>`)
+    +`<div class="grid companies">${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`
+      <div class="card company">
+        <div class="avatar">${ini(c.nome)}</div>
+        <h3>${e(c.nome)}</h3>
+        <div class="meta">${e(c.responsavel||'—')} • ${e(c.telefone||'')}</div>
+        <div class="stats">
+          <div class="mini"><b>${c.reels||0}</b><span>REELS</span></div>
+          <div class="mini"><b>${c.posts||0}</b><span>POSTS</span></div>
+          <div class="mini"><b>${c.stories||0}</b><span>STORIES</span></div>
+        </div>
+        <div class="actions">
+          <button class="btn light sm" onclick="company('${c.id}')"><i class="fa fa-pen"></i> Editar</button>
+          <button class="btn dark sm" onclick="board('${c.id}')"><i class="fa fa-table-columns"></i> Quadro</button>
+          <button class="btn danger sm" onclick="deleteCompany('${c.id}')"><i class="fa fa-trash"></i> Excluir</button>
+        </div>
+      </div>`).join('')||empty('Nenhuma empresa.')}</div>`;
+}
+function deleteCompany(companyId){
+  const c=D.companies.find(x=>x.id===companyId);
+  if(!c)return;
+  const weeks=D.weeks.filter(x=>x.companyId===companyId);
+  const contents=D.contents.filter(x=>x.companyId===companyId);
+  const tasks=D.tasks.filter(x=>x.companyId===companyId);
+  const scheduled=D.scheduled.filter(x=>x.companyId===companyId);
+  const finance=D.finance.filter(x=>x.companyId===companyId);
+  const contracts=D.contracts.filter(x=>x.companyId===companyId);
+  const refs=D.curadoria.filter(x=>x.companyId===companyId);
+
+  const msg=`Excluir a empresa "${c.nome}"?
+
+Isso também removerá os dados vinculados:
+• ${weeks.length} semana(s)
+• ${contents.length} conteúdo(s)
+• ${tasks.length} tarefa(s)
+• ${scheduled.length} material(is) agendado(s)
+• ${finance.length} registro(s) financeiro(s)
+• ${contracts.length} contrato(s)
+• ${refs.length} referência(s) de curadoria
+
+Essa ação não pode ser desfeita.`;
+
+  if(!confirm(msg))return;
+
+  const contentIds=new Set(contents.map(x=>x.id));
+  const mediaIds=scheduled.map(x=>x.mediaId).filter(Boolean);
+
+  D.companies=D.companies.filter(x=>x.id!==companyId);
+  D.weeks=D.weeks.filter(x=>x.companyId!==companyId);
+  D.contents=D.contents.filter(x=>x.companyId!==companyId);
+  D.tasks=D.tasks.filter(x=>x.companyId!==companyId);
+  D.scheduled=D.scheduled.filter(x=>x.companyId!==companyId);
+  D.finance=D.finance.filter(x=>x.companyId!==companyId);
+  D.contracts=D.contracts.filter(x=>x.companyId!==companyId);
+  D.curadoria=D.curadoria.filter(x=>x.companyId!==companyId);
+
+  if(CID===companyId)CID='';
+  save();
+  empresas();
+  toast('Empresa excluída.');
+}
+function company(x=''){let c=D.companies.find(a=>a.id===x)||{};modal('Empresa',`<form id="f" class="fg"><div class="field"><label>Nome *</label><input name="nome" value="${e(c.nome||'')}"></div><div class="field"><label>Responsável</label><input name="responsavel" value="${e(c.responsavel||'')}"></div><div class="field"><label>Telefone</label><input name="telefone" value="${e(c.telefone||'')}"></div><div class="field"><label>E-mail</label><input name="email" value="${e(c.email||'')}"></div>${multiSelectField('objetivos','Objetivos',OBJETIVOS_OPCOES,c.objetivos||'')}${multiSelectField('linhas','Linhas de conteúdo',LINHAS_CONTEUDO_OPCOES,c.linhas||'')}<div class="field"><label>Reels/semana</label><input type="number" name="reels" value="${c.reels||0}"></div><div class="field"><label>Posts/semana</label><input type="number" name="posts" value="${c.posts||0}"></div><div class="field"><label>Stories/semana</label><input type="number" name="stories" value="${c.stories||0}"></div><div class="field"><label>Captações/semana</label><input type="number" name="captacoes" value="${c.captacoes||0}"></div></form>`,()=>{let q=objMulti(document.getElementById('f'));if(!q.nome)return toast('Informe o nome.');['reels','posts','stories','captacoes'].forEach(k=>q[k]=Number(q[k]||0));if(c.id)Object.assign(c,q);else D.companies.push({...q,id:id()});closeM();save()})}function quadro(){document.getElementById('p-quadro').innerHTML=head('Quadro Criativo','Planejamento mensal e exportação por semana.')+`<div class="grid companies">${D.companies.map(c=>`<div class="card company"><div class="avatar">${ini(c.nome)}</div><h3>${e(c.nome)}</h3><div class="meta">${D.contents.filter(x=>x.companyId===c.id).length} conteúdos planejados</div><button class="btn primary" style="margin-top:12px" onclick="board('${c.id}')">Abrir quadro</button></div>`).join('')||empty('Cadastre uma empresa.')}</div>`}function board(cid){CID=cid;R='quadro';let c=D.companies.find(x=>x.id===cid),ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>a.numero-b.numero);document.getElementById('p-quadro').innerHTML=head(c.nome,'Semanas, conteúdos, roteiros e HTML para compartilhar.',`<button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`)+`<div class="card section"><div class="board">${ws.map(w=>`<div class="week"><div style="display:flex;justify-content:space-between"><div><h4>Semana ${w.numero}</h4><div class="meta">${date(w.inicio)} — ${date(w.fim)}</div></div><div style="display:flex;gap:5px"><button class="btn dark sm" onclick="weekHTML('${w.id}')" title="Baixar planejamento"><i class="fa fa-download"></i></button><button class="btn danger sm" onclick="deleteWeek('${w.id}')" title="Excluir quadro/semana"><i class="fa fa-trash"></i></button></div></div><div class="meta" style="margin:8px 0"><b>Objetivo:</b> ${e(w.objetivo||'—')}<br><b>Linha:</b> ${e(w.linha||'—')}</div>${D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>a.ordem-b.ordem).map(ct=>`<div class="chip"><span>${e(ct.tipo)}</span><strong>${e(ct.titulo)}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><div class="actions"><button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">Editar</button><button class="btn danger sm" onclick="deleteContent('${ct.id}')" title="Excluir conteúdo"><i class="fa fa-trash"></i> Excluir</button></div></div>`).join('')||empty('Sem conteúdo')}<button class="btn primary sm" style="width:100%;margin-top:8px" onclick="content('${cid}','${w.id}')">+ Conteúdo</button><button class="btn light sm" style="width:100%;margin-top:6px" onclick="weekHTML('${w.id}')">Baixar planejamento HTML</button></div>`).join('')||empty('Crie as semanas.')}</div></div>`}
 
 function deleteContent(contentId){
   const ct=D.contents.find(x=>x.id===contentId);
