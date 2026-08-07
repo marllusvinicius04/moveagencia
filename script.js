@@ -52,12 +52,15 @@ function multiSelectField(name,label,options,current=''){
 
   return `<div class="field span">
     <label>${label}</label>
-    <select name="${name}" multiple size="7" style="min-height:160px">
-      ${options.map(v=>`<option value="${e(v)}" ${selected.includes(v)?'selected':''}>${e(v)}</option>`).join('')}
-    </select>
-    <small style="display:block;margin-top:6px;color:#888">
-      Selecione quantas quiser. Use Ctrl/Cmd para marcar várias opções.
-    </small>
+    <div class="move-check-grid" data-name="${name}">
+      ${options.map(v=>`
+        <label class="move-check-chip">
+          <input type="checkbox" name="${name}" value="${e(v)}" ${selected.includes(v)?'checked':''}>
+          <span>${e(v)}</span>
+        </label>
+      `).join('')}
+    </div>
+    <small class="move-check-help">Marque quantas opções quiser.</small>
   </div>`;
 }
 
@@ -65,11 +68,11 @@ function objMulti(f){
   let o=obj(f);
 
   ['objetivos','linhas','objetivo','linha'].forEach(k=>{
-    const el=f.elements[k];
-    if(el && el.multiple){
-      o[k]=Array.from(el.selectedOptions)
-        .map(x=>x.value)
-        .join(' | ');
+    const checked=[...f.querySelectorAll(`input[name="${k}"]:checked`)];
+    if(checked.length){
+      o[k]=checked.map(x=>x.value).join(' | ');
+    }else if(f.querySelector(`input[name="${k}"]`)){
+      o[k]='';
     }
   });
 
@@ -363,4 +366,76 @@ async function approval(cid){let c=D.companies.find(x=>x.id===cid),it=D.schedule
 function backup(){dl(JSON.stringify(D,null,2),'MOVE_Backup_'+new Date().toISOString().slice(0,10)+'.json','application/json')}function restorePick(){const r=document.getElementById('restore');if(r)r.click()}const restoreEl=document.getElementById('restore');if(restoreEl)restoreEl.onchange=async()=>{try{const file=restoreEl.files&&restoreEl.files[0];if(!file)return;D=Object.assign(blank(),JSON.parse(await file.text()));save();toast('Backup restaurado.')}catch(err){toast('Backup inválido.')}}
 function mediaDB(){return new Promise((ok,no)=>{let r=indexedDB.open('MOVE_MEDIA',1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('m'))r.result.createObjectStore('m')};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}async function mediaPut(k,v){let db=await mediaDB();return new Promise((ok,no)=>{let t=db.transaction('m','readwrite');t.objectStore('m').put(v,k);t.oncomplete=ok;t.onerror=()=>no(t.error)})}async function mediaGet(k){if(!k)return null;let db=await mediaDB();return new Promise((ok,no)=>{let r=db.transaction('m').objectStore('m').get(k);r.onsuccess=()=>ok(r.result||null);r.onerror=()=>no(r.error)})}async function mediaURL(k){let b=await mediaGet(k);return b?URL.createObjectURL(b):''}async function mediaData(k){let b=await mediaGet(k);if(!b)return'';return new Promise((ok,no)=>{let r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(b)})}
 
-try{nav();render('home');}catch(err){console.error(err);document.getElementById('toast').textContent='Erro ao iniciar painel: '+err.message;document.getElementById('toast').style.display='block';}
+
+function injectMoveMultiCSS(){
+  if(document.getElementById('move-multi-css'))return;
+  const st=document.createElement('style');
+  st.id='move-multi-css';
+  st.textContent=`
+    .move-check-grid{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:8px;
+    }
+    .move-check-chip{
+      position:relative;
+      cursor:pointer;
+      user-select:none;
+    }
+    .move-check-chip input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+    .move-check-chip span{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:36px;
+      padding:8px 12px;
+      border:1px solid #e6e6e6;
+      border-radius:999px;
+      background:#fff;
+      color:#333;
+      font-size:12px;
+      font-weight:700;
+      transition:.18s ease;
+    }
+    .move-check-chip span:hover{
+      transform:translateY(-1px);
+      border-color:#cfcfcf;
+      box-shadow:0 5px 14px rgba(0,0,0,.06);
+    }
+    .move-check-chip input:checked + span{
+      background:#111;
+      color:#fff;
+      border-color:#111;
+      box-shadow:0 5px 14px rgba(0,0,0,.12);
+    }
+    .move-check-chip input:checked + span::before{
+      content:'✓';
+      margin-right:6px;
+      font-weight:900;
+    }
+    .move-check-help{
+      display:block;
+      margin-top:8px;
+      color:#888;
+      font-size:11px;
+    }
+    @media(max-width:600px){
+      .move-check-grid{
+        gap:6px;
+      }
+      .move-check-chip span{
+        min-height:34px;
+        padding:7px 10px;
+        font-size:11px;
+      }
+    }
+  `;
+  document.head.appendChild(st);
+}
+
+try{injectMoveMultiCSS();nav();render('home');}catch(err){console.error(err);document.getElementById('toast').textContent='Erro ao iniciar painel: '+err.message;document.getElementById('toast').style.display='block';}
