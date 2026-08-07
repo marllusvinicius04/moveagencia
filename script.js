@@ -3,6 +3,79 @@ const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['empresas',
 const EL={saved:document.getElementById('saved'),title:document.getElementById('title'),restore:document.getElementById('restore'),nav:document.getElementById('nav'),modal:document.getElementById('modal')};
 
 function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],finance:[],contracts:[],tasks:[],texts:[],agenda:[],curadoria:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,pendencias,textos,agenda,tarefas,agendamento,curadoria,financeiro}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
+
+const OBJETIVOS_OPCOES=[
+  'Vender mais',
+  'Gerar leads',
+  'Atrair novos clientes',
+  'Aumentar reconhecimento da marca',
+  'Fortalecer autoridade',
+  'Gerar engajamento',
+  'Criar conexão com o público',
+  'Fidelizar clientes',
+  'Divulgar produtos/serviços',
+  'Aumentar visitas ao perfil',
+  'Aumentar alcance',
+  'Gerar desejo',
+  'Impulsionar matrículas/agendamentos',
+  'Educar o público'
+];
+
+const LINHAS_CONTEUDO_OPCOES=[
+  'Educacional',
+  'Conexão',
+  'Oferta',
+  'Autoridade',
+  'Entretenimento',
+  'Institucional',
+  'Bastidores',
+  'Prova social',
+  'Dicas',
+  'Curiosidades',
+  'Produto/Serviço',
+  'Vendas',
+  'Relacionamento',
+  'Engajamento',
+  'Tendências',
+  'Datas comemorativas',
+  'FAQ/Dúvidas',
+  'Antes e depois',
+  'Depoimentos',
+  'Rotina'
+];
+
+function multiSelectField(name,label,options,current=''){
+  const selected=String(current||'')
+    .split('|')
+    .map(v=>v.trim())
+    .filter(Boolean);
+
+  return `<div class="field span">
+    <label>${label}</label>
+    <select name="${name}" multiple size="7" style="min-height:160px">
+      ${options.map(v=>`<option value="${e(v)}" ${selected.includes(v)?'selected':''}>${e(v)}</option>`).join('')}
+    </select>
+    <small style="display:block;margin-top:6px;color:#888">
+      Selecione quantas quiser. Use Ctrl/Cmd para marcar várias opções.
+    </small>
+  </div>`;
+}
+
+function objMulti(f){
+  let o=obj(f);
+
+  ['objetivos','linhas','objetivo','linha'].forEach(k=>{
+    const el=f.elements[k];
+    if(el && el.multiple){
+      o[k]=Array.from(el.selectedOptions)
+        .map(x=>x.value)
+        .join(' | ');
+    }
+  });
+
+  return o;
+}
+
 function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
   const demandCards=[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>{
     const weekly=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0)+Number(c.captacoes||0);
@@ -95,7 +168,7 @@ Essa ação não pode ser desfeita.`;
   empresas();
   toast('Empresa excluída.');
 }
-function company(x=''){let c=D.companies.find(a=>a.id===x)||{};modal('Empresa',`<form id="f" class="fg"><div class="field"><label>Nome *</label><input name="nome" value="${e(c.nome||'')}"></div><div class="field"><label>Responsável</label><input name="responsavel" value="${e(c.responsavel||'')}"></div><div class="field"><label>Telefone</label><input name="telefone" value="${e(c.telefone||'')}"></div><div class="field"><label>E-mail</label><input name="email" value="${e(c.email||'')}"></div>${multiSelectField('objetivos','Objetivos',OBJETIVOS_OPCOES,c.objetivos||'')}${multiSelectField('linhas','Linhas de conteúdo',LINHAS_CONTEUDO_OPCOES,c.linhas||'')}<div class="field"><label>Reels/semana</label><input type="number" name="reels" value="${c.reels||0}"></div><div class="field"><label>Posts/semana</label><input type="number" name="posts" value="${c.posts||0}"></div><div class="field"><label>Stories/semana</label><input type="number" name="stories" value="${c.stories||0}"></div><div class="field"><label>Captações/semana</label><input type="number" name="captacoes" value="${c.captacoes||0}"></div></form>`,()=>{let q=objMulti(document.getElementById('f'));if(!q.nome)return toast('Informe o nome.');['reels','posts','stories','captacoes'].forEach(k=>q[k]=Number(q[k]||0));if(c.id)Object.assign(c,q);else D.companies.push({...q,id:id()});closeM();save()})}function quadro(){document.getElementById('p-quadro').innerHTML=head('Quadro Criativo','Planejamento mensal e exportação por semana.')+`<div class="grid companies">${D.companies.map(c=>`<div class="card company"><div class="avatar">${ini(c.nome)}</div><h3>${e(c.nome)}</h3><div class="meta">${D.contents.filter(x=>x.companyId===c.id).length} conteúdos planejados</div><button class="btn primary" style="margin-top:12px" onclick="board('${c.id}')">Abrir quadro</button></div>`).join('')||empty('Cadastre uma empresa.')}</div>`}function board(cid){CID=cid;R='quadro';let c=D.companies.find(x=>x.id===cid),ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>a.numero-b.numero);document.getElementById('p-quadro').innerHTML=head(c.nome,'Semanas, conteúdos, roteiros e HTML para compartilhar.',`<button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`)+`<div class="card section"><div class="board">${ws.map(w=>`<div class="week"><div style="display:flex;justify-content:space-between"><div><h4>Semana ${w.numero}</h4><div class="meta">${date(w.inicio)} — ${date(w.fim)}</div></div><div style="display:flex;gap:5px"><button class="btn dark sm" onclick="weekHTML('${w.id}')" title="Baixar planejamento"><i class="fa fa-download"></i></button><button class="btn danger sm" onclick="deleteWeek('${w.id}')" title="Excluir quadro/semana"><i class="fa fa-trash"></i></button></div></div><div class="meta" style="margin:8px 0"><b>Objetivo:</b> ${e(w.objetivo||'—')}<br><b>Linha:</b> ${e(w.linha||'—')}</div>${D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>a.ordem-b.ordem).map(ct=>`<div class="chip"><span>${e(ct.tipo)}</span><strong>${e(ct.titulo)}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><div class="actions"><button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">Editar</button><button class="btn danger sm" onclick="deleteContent('${ct.id}')" title="Excluir conteúdo"><i class="fa fa-trash"></i> Excluir</button></div></div>`).join('')||empty('Sem conteúdo')}<button class="btn primary sm" style="width:100%;margin-top:8px" onclick="content('${cid}','${w.id}')">+ Conteúdo</button><button class="btn light sm" style="width:100%;margin-top:6px" onclick="weekHTML('${w.id}')">Baixar planejamento HTML</button></div>`).join('')||empty('Crie as semanas.')}</div></div>`}
+function company(x=''){let c=D.companies.find(a=>a.id===x)||{};modal('Empresa',`<form id="f" class="fg"><div class="field"><label>Nome *</label><input name="nome" value="${e(c.nome||'')}" required></div><div class="field"><label>Responsável</label><input name="responsavel" value="${e(c.responsavel||'')}"></div><div class="field"><label>Telefone</label><input name="telefone" value="${e(c.telefone||'')}"></div><div class="field"><label>E-mail</label><input name="email" value="${e(c.email||'')}"></div>${multiSelectField('objetivos','Objetivos',OBJETIVOS_OPCOES,c.objetivos||'')}${multiSelectField('linhas','Linhas de conteúdo',LINHAS_CONTEUDO_OPCOES,c.linhas||'')}<div class="field"><label>Reels/semana</label><input type="number" name="reels" value="${c.reels||0}"></div><div class="field"><label>Posts/semana</label><input type="number" name="posts" value="${c.posts||0}"></div><div class="field"><label>Stories/semana</label><input type="number" name="stories" value="${c.stories||0}"></div><div class="field"><label>Captações/semana</label><input type="number" name="captacoes" value="${c.captacoes||0}"></div></form>`,()=>{let q=objMulti(document.getElementById('f'));if(!q.nome)return toast('Informe o nome.');['reels','posts','stories','captacoes'].forEach(k=>q[k]=Number(q[k]||0));if(c.id)Object.assign(c,q);else D.companies.push({...q,id:id()});closeM();save()})}function quadro(){document.getElementById('p-quadro').innerHTML=head('Quadro Criativo','Planejamento mensal e exportação por semana.')+`<div class="grid companies">${D.companies.map(c=>`<div class="card company"><div class="avatar">${ini(c.nome)}</div><h3>${e(c.nome)}</h3><div class="meta">${D.contents.filter(x=>x.companyId===c.id).length} conteúdos planejados</div><button class="btn primary" style="margin-top:12px" onclick="board('${c.id}')">Abrir quadro</button></div>`).join('')||empty('Cadastre uma empresa.')}</div>`}function board(cid){CID=cid;R='quadro';let c=D.companies.find(x=>x.id===cid),ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>a.numero-b.numero);document.getElementById('p-quadro').innerHTML=head(c.nome,'Semanas, conteúdos, roteiros e HTML para compartilhar.',`<button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`)+`<div class="card section"><div class="board">${ws.map(w=>`<div class="week"><div style="display:flex;justify-content:space-between"><div><h4>Semana ${w.numero}</h4><div class="meta">${date(w.inicio)} — ${date(w.fim)}</div></div><div style="display:flex;gap:5px"><button class="btn dark sm" onclick="weekHTML('${w.id}')" title="Baixar planejamento"><i class="fa fa-download"></i></button><button class="btn danger sm" onclick="deleteWeek('${w.id}')" title="Excluir quadro/semana"><i class="fa fa-trash"></i></button></div></div><div class="meta" style="margin:8px 0"><b>Objetivo:</b> ${e(w.objetivo||'—')}<br><b>Linha:</b> ${e(w.linha||'—')}</div>${D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>a.ordem-b.ordem).map(ct=>`<div class="chip"><span>${e(ct.tipo)}</span><strong>${e(ct.titulo)}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><div class="actions"><button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">Editar</button><button class="btn danger sm" onclick="deleteContent('${ct.id}')" title="Excluir conteúdo"><i class="fa fa-trash"></i> Excluir</button></div></div>`).join('')||empty('Sem conteúdo')}<button class="btn primary sm" style="width:100%;margin-top:8px" onclick="content('${cid}','${w.id}')">+ Conteúdo</button><button class="btn light sm" style="width:100%;margin-top:6px" onclick="weekHTML('${w.id}')">Baixar planejamento HTML</button></div>`).join('')||empty('Crie as semanas.')}</div></div>`}
 
 function deleteContent(contentId){
   const ct=D.contents.find(x=>x.id===contentId);
