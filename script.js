@@ -250,7 +250,127 @@ function company(x=''){
     save();
   })
 }
-function quadro(){document.getElementById('p-quadro').innerHTML=head('Quadro Criativo','Planejamento mensal e exportação por semana.')+`<div class="grid companies">${D.companies.map(c=>`<div class="card company"><div class="avatar">${ini(c.nome)}</div><h3>${e(c.nome)}</h3><div class="meta">${D.contents.filter(x=>x.companyId===c.id).length} conteúdos planejados</div><button class="btn primary" style="margin-top:12px" onclick="board('${c.id}')">Abrir quadro</button></div>`).join('')||empty('Cadastre uma empresa.')}</div>`}function board(cid){CID=cid;R='quadro';let c=D.companies.find(x=>x.id===cid),ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>a.numero-b.numero);document.getElementById('p-quadro').innerHTML=head(c.nome,'Semanas, conteúdos, roteiros e HTML para compartilhar.',`<button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn dark" onclick="copyCompanyData('${cid}')"><i class="fa fa-copy"></i> Copiar dados da empresa</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`)+`<div class="card section"><div class="board">${ws.map(w=>`<div class="week"><div style="display:flex;justify-content:space-between"><div><h4>Semana ${w.numero}</h4><div class="meta">${date(w.inicio)} — ${date(w.fim)}</div></div><div style="display:flex;gap:5px"><button class="btn dark sm" onclick="weekHTML('${w.id}')" title="Baixar planejamento"><i class="fa fa-download"></i></button><button class="btn danger sm" onclick="deleteWeek('${w.id}')" title="Excluir quadro/semana"><i class="fa fa-trash"></i></button></div></div><div class="meta" style="margin:8px 0"><b>Objetivo:</b> ${e(w.objetivo||'—')}<br><b>Linha:</b> ${e(w.linha||'—')}</div>${D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>a.ordem-b.ordem).map(ct=>`<div class="chip"><span>${e(ct.tipo)}</span><strong>${e(ct.titulo)}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><div class="actions"><button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">Editar</button><button class="btn danger sm" onclick="deleteContent('${ct.id}')" title="Excluir conteúdo"><i class="fa fa-trash"></i> Excluir</button></div></div>`).join('')||empty('Sem conteúdo')}<button class="btn primary sm" style="width:100%;margin-top:8px" onclick="content('${cid}','${w.id}')">+ Conteúdo</button><button class="btn light sm" style="width:100%;margin-top:6px" onclick="weekHTML('${w.id}')">Baixar planejamento HTML</button></div>`).join('')||empty('Crie as semanas.')}</div></div>`}
+function weeklyExpected(c){
+  return Number(c?.reels||0)+Number(c?.posts||0)+Number(c?.stories||0);
+}
+
+function weekProgress(w,c){
+  const expected=weeklyExpected(c);
+  const created=D.contents.filter(x=>x.weekId===w.id).length;
+  return {
+    expected,
+    created,
+    complete: expected>0 && created>=expected
+  };
+}
+
+function completedWeeksCount(cid){
+  const c=D.companies.find(x=>x.id===cid);
+  if(!c)return 0;
+  return D.weeks
+    .filter(w=>w.companyId===cid)
+    .filter(w=>weekProgress(w,c).complete)
+    .length;
+}
+
+function celebrateWeek(wid){
+  const w=D.weeks.find(x=>x.id===wid);
+  if(!w)return;
+  toast(`🎉 Semana ${w.numero} concluída!`);
+  launchConfetti();
+}
+
+function launchConfetti(){
+  injectMoveCelebrationCSS();
+  const layer=document.createElement('div');
+  layer.className='move-confetti-layer';
+  const icons=['●','■','▲','★'];
+  for(let i=0;i<90;i++){
+    const piece=document.createElement('i');
+    piece.className='move-confetti-piece';
+    piece.textContent=icons[Math.floor(Math.random()*icons.length)];
+    piece.style.left=(Math.random()*100)+'vw';
+    piece.style.animationDelay=(Math.random()*.55)+'s';
+    piece.style.animationDuration=(2.2+Math.random()*1.8)+'s';
+    piece.style.setProperty('--drift',((Math.random()-.5)*220)+'px');
+    piece.style.transform=`rotate(${Math.random()*360}deg)`;
+    layer.appendChild(piece);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(),4600);
+}
+
+function quadro(){
+  document.getElementById('p-quadro').innerHTML=
+    head('Quadro Criativo','Planejamento mensal e exportação por semana.')
+    +`<div class="grid companies">${D.companies.map(c=>{
+      const done=completedWeeksCount(c.id);
+      return `<div class="card company">
+        <div class="avatar">${ini(c.nome)}</div>
+        <h3>${e(c.nome)}</h3>
+        <div class="meta">${D.contents.filter(x=>x.companyId===c.id).length} conteúdos planejados</div>
+        <div class="move-company-progress ${done===4?'is-complete':''}">
+          <i class="fa fa-check"></i> ${done}/4 semanas concluídas
+        </div>
+        <button class="btn primary" style="margin-top:12px" onclick="board('${c.id}')">Abrir quadro</button>
+      </div>`;
+    }).join('')||empty('Cadastre uma empresa.')}</div>`;
+}
+
+function board(cid){
+  CID=cid;
+  R='quadro';
+  let c=D.companies.find(x=>x.id===cid),
+      ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>a.numero-b.numero),
+      done=completedWeeksCount(cid);
+
+  document.getElementById('p-quadro').innerHTML=
+    head(
+      c.nome,
+      'Semanas, conteúdos, roteiros e HTML para compartilhar.',
+      `<span class="move-board-progress ${done===4?'is-complete':''}"><i class="fa fa-check"></i> ${done}/4 semanas concluídas</span> <button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn dark" onclick="copyCompanyData('${cid}')"><i class="fa fa-copy"></i> Copiar dados da empresa</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`
+    )
+    +`<div class="card section"><div class="board">${ws.map(w=>{
+      const progress=weekProgress(w,c);
+      const contents=D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>a.ordem-b.ordem);
+
+      return `<div class="week ${progress.complete?'move-week-complete':''}">
+        <div style="display:flex;justify-content:space-between;gap:10px">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <h4 style="margin:0">Semana ${w.numero}</h4>
+              ${progress.complete?`<span class="move-week-done"><i class="fa fa-check"></i> Concluída</span>`:''}
+            </div>
+            <div class="meta">${date(w.inicio)} — ${date(w.fim)}</div>
+            <div class="move-content-progress ${progress.complete?'is-complete':''}">
+              <i class="fa fa-check"></i> ${progress.created}/${progress.expected} conteúdos
+            </div>
+          </div>
+          <div style="display:flex;gap:5px;align-items:flex-start">
+            <button class="btn dark sm" onclick="weekHTML('${w.id}')" title="Baixar planejamento"><i class="fa fa-download"></i></button>
+            <button class="btn danger sm" onclick="deleteWeek('${w.id}')" title="Excluir quadro/semana"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>
+
+        <div class="meta" style="margin:8px 0"><b>Objetivo:</b> ${e(w.objetivo||'—')}<br><b>Linha:</b> ${e(w.linha||'—')}</div>
+
+        ${contents.map(ct=>`<div class="chip move-content-chip">
+          <span>${e(ct.tipo)}</span>
+          <strong>${e(ct.titulo)}</strong>
+          <small>${date(ct.postDate)} ${e(ct.postTime||'')}</small>
+          <i class="fa fa-check move-content-check" title="Conteúdo criado"></i>
+          <div class="actions">
+            <button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">Editar</button>
+            <button class="btn danger sm" onclick="deleteContent('${ct.id}')" title="Excluir conteúdo"><i class="fa fa-trash"></i> Excluir</button>
+          </div>
+        </div>`).join('')||empty('Sem conteúdo')}
+
+        <button class="btn primary sm" style="width:100%;margin-top:8px" onclick="content('${cid}','${w.id}')">+ Conteúdo</button>
+        <button class="btn light sm" style="width:100%;margin-top:6px" onclick="weekHTML('${w.id}')">Baixar planejamento HTML</button>
+      </div>`;
+    }).join('')||empty('Crie as semanas.')}</div></div>`;
+}
+
 
 
 function copyCompanyData(cid){
@@ -330,7 +450,32 @@ function deleteWeek(weekId){
 }
 
 function week(cid,x=''){let w=D.weeks.find(a=>a.id===x)||{},n=w.numero||Math.min(4,D.weeks.filter(a=>a.companyId===cid).length+1);modal('Semana',`<form id="f" class="fg"><div class="field"><label>Número</label><select name="numero">${[1,2,3,4].map(i=>`<option ${i==n?'selected':''}>${i}</option>`).join('')}</select></div><div></div><div class="field"><label>Início</label><input type="date" name="inicio" value="${w.inicio||''}"></div><div class="field"><label>Fim</label><input type="date" name="fim" value="${w.fim||''}"></div>${multiSelectField('objetivo','Objetivo',OBJETIVOS_OPCOES,w.objetivo||'')}${multiSelectField('linha','Linha estratégica',LINHAS_CONTEUDO_OPCOES,w.linha||'')}</form>`,()=>{let q=objMulti(document.getElementById('f'));q.numero=Number(q.numero);if(w.id)Object.assign(w,q);else D.weeks.push({...q,id:id(),companyId:cid});closeM();save();board(cid)})}
-function content(cid,wid,x=''){let c=D.contents.find(a=>a.id===x)||{},n=c.ordem||D.contents.filter(a=>a.weekId===wid).length+1;modal('Conteúdo',`<form id="f" class="fg"><div class="field"><label>Ordem</label><input type="number" name="ordem" value="${n}"></div><div class="field"><label>Tipo</label><select name="tipo">${['Reels','Post','Stories'].map(t=>`<option ${c.tipo===t?'selected':''}>${t}</option>`).join('')}</select></div><div class="field span"><label>Título *</label><input name="titulo" value="${e(c.titulo||'')}"></div><div class="field span"><label>Descrição</label><textarea name="descricao">${e(c.descricao||'')}</textarea></div><div class="field span"><label>Roteiro / desenvolvimento</label><textarea name="roteiro" style="min-height:180px">${e(c.roteiro||'')}</textarea></div><div class="field"><label>Data postagem</label><input type="date" name="postDate" value="${c.postDate||''}"></div><div class="field"><label>Hora</label><input type="time" name="postTime" value="${e(c.postTime||'')}"></div></form>`,()=>{let q=obj(document.getElementById('f'));if(!q.titulo)return toast('Informe o título.');q.ordem=Number(q.ordem);if(c.id)Object.assign(c,q);else D.contents.push({...q,id:id(),companyId:cid,weekId:wid});closeM();save();board(cid)})}
+function content(cid,wid,x=''){
+  let c=D.contents.find(a=>a.id===x)||{},
+      n=c.ordem||D.contents.filter(a=>a.weekId===wid).length+1,
+      company=D.companies.find(a=>a.id===cid),
+      wasComplete=company?weekProgress(D.weeks.find(w=>w.id===wid),company).complete:false;
+
+  modal('Conteúdo',`<form id="f" class="fg"><div class="field"><label>Ordem</label><input type="number" name="ordem" value="${n}"></div><div class="field"><label>Tipo</label><select name="tipo">${['Reels','Post','Stories'].map(t=>`<option ${c.tipo===t?'selected':''}>${t}</option>`).join('')}</select></div><div class="field span"><label>Título *</label><input name="titulo" value="${e(c.titulo||'')}"></div><div class="field span"><label>Descrição</label><textarea name="descricao">${e(c.descricao||'')}</textarea></div><div class="field span"><label>Roteiro / desenvolvimento</label><textarea name="roteiro" style="min-height:180px">${e(c.roteiro||'')}</textarea></div><div class="field"><label>Data postagem</label><input type="date" name="postDate" value="${c.postDate||''}"></div><div class="field"><label>Hora</label><input type="time" name="postTime" value="${e(c.postTime||'')}"></div></form>`,()=>{
+    let q=obj(document.getElementById('f'));
+    if(!q.titulo)return toast('Informe o título.');
+    q.ordem=Number(q.ordem);
+
+    if(c.id)Object.assign(c,q);
+    else D.contents.push({...q,id:id(),companyId:cid,weekId:wid});
+
+    const w=D.weeks.find(z=>z.id===wid);
+    const nowComplete=company&&w?weekProgress(w,company).complete:false;
+
+    closeM();
+    save();
+    board(cid);
+
+    if(!wasComplete&&nowComplete){
+      setTimeout(()=>celebrateWeek(wid),120);
+    }
+  });
+}
 function pend(){let a=[];D.companies.forEach(c=>{let ws=D.weeks.filter(w=>w.companyId===c.id);for(let i=1;i<=4;i++){let w=ws.find(z=>z.numero===i);if(!w)a.push({company:c.nome,title:'Semana '+i+' não criada',detail:'O mês precisa de 4 semanas planejadas.',type:'planejamento'});else{let exp=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0),got=D.contents.filter(x=>x.weekId===w.id).length;if(got<exp)a.push({company:c.nome,title:'Semana '+i+' incompleta',detail:got+'/'+exp+' conteúdos.',type:'conteúdo'})}}});D.finance.filter(x=>x.statusMes!=='Pago').forEach(f=>{let c=D.companies.find(x=>x.id===f.companyId);if(c)a.push({company:c.nome,title:'Pagamento pendente',detail:money(f.valorTotal),type:'financeiro'})});return a}function pendencias(){document.getElementById('p-pendencias').innerHTML=head('Pendências','Planejamento e financeiro sob controle.')+`<div class="card section"><div class="list">${pend().map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge ${x.type==='financeiro'?'red':'warn'}">${x.type}</span></div>`).join('')||empty('Nenhuma pendência.')}</div></div>`}
 function textos(){document.getElementById('p-textos').innerHTML=head('Meus Textos','Prompts, legendas e modelos.',`<button class="btn primary" onclick="text()">+ Texto</button>`)+`<div class="grid companies">${D.texts.map(t=>`<div class="card section"><span class="badge">${e(t.categoria||'Texto')}</span><h3>${e(t.titulo)}</h3><p class="meta" style="white-space:pre-wrap">${e(t.conteudo)}</p><div class="actions"><button class="btn light sm" onclick='navigator.clipboard.writeText(${JSON.stringify(t.conteudo||"")});toast("Copiado")'>Copiar</button><button class="btn light sm" onclick="text('${t.id}')">Editar</button></div></div>`).join('')||empty('Nenhum texto.')}</div>`}function text(x=''){let t=D.texts.find(a=>a.id===x)||{};modal('Texto',`<form id="f"><div class="field"><label>Título</label><input name="titulo" value="${e(t.titulo||'')}"></div><div class="field"><label>Categoria</label><input name="categoria" value="${e(t.categoria||'')}"></div><div class="field"><label>Conteúdo</label><textarea name="conteudo" style="min-height:260px">${e(t.conteudo||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(t.id)Object.assign(t,q);else D.texts.push({...q,id:id()});closeM();save()})}
 function tarefas(){
@@ -569,4 +714,108 @@ function injectMoveMultiCSS(){
   document.head.appendChild(st);
 }
 
-try{injectMoveMultiCSS();nav();render('home');}catch(err){console.error(err);document.getElementById('toast').textContent='Erro ao iniciar painel: '+err.message;document.getElementById('toast').style.display='block';}
+
+function injectMoveCelebrationCSS(){
+  if(document.getElementById('move-celebration-css'))return;
+  const st=document.createElement('style');
+  st.id='move-celebration-css';
+  st.textContent=`
+    .move-company-progress,
+    .move-board-progress,
+    .move-content-progress,
+    .move-week-done{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+    }
+    .move-company-progress{
+      margin-top:10px;
+      padding:7px 10px;
+      background:#f3f4f6;
+      color:#777;
+    }
+    .move-board-progress{
+      padding:9px 12px;
+      margin-right:5px;
+      background:#f3f4f6;
+      color:#666;
+      vertical-align:middle;
+    }
+    .move-content-progress{
+      margin-top:7px;
+      padding:5px 8px;
+      background:#f5f5f5;
+      color:#777;
+    }
+    .move-company-progress.is-complete,
+    .move-board-progress.is-complete,
+    .move-content-progress.is-complete,
+    .move-week-done{
+      background:#eaf8ef;
+      color:#16813b;
+    }
+    .move-week-done{
+      padding:5px 8px;
+    }
+    .move-week-complete{
+      border-color:#bfe8cb !important;
+      box-shadow:0 0 0 2px rgba(34,197,94,.07);
+    }
+    .move-content-chip{
+      position:relative;
+      padding-right:38px !important;
+    }
+    .move-content-check{
+      position:absolute;
+      top:10px;
+      right:10px;
+      width:22px;
+      height:22px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:#eaf8ef;
+      color:#16813b;
+      font-size:11px;
+    }
+    .move-confetti-layer{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index:999999;
+    }
+    .move-confetti-piece{
+      position:absolute;
+      top:-10vh;
+      font-style:normal;
+      font-size:12px;
+      color:hsl(calc(var(--i,0) * 41deg),80%,55%);
+      animation:moveConfettiFall linear forwards;
+      will-change:transform,top,opacity;
+    }
+    .move-confetti-piece:nth-child(5n+1){color:#22c55e}
+    .move-confetti-piece:nth-child(5n+2){color:#fca311}
+    .move-confetti-piece:nth-child(5n+3){color:#3b82f6}
+    .move-confetti-piece:nth-child(5n+4){color:#ef4444}
+    .move-confetti-piece:nth-child(5n){color:#a855f7}
+    @keyframes moveConfettiFall{
+      0%{top:-10vh;transform:translateX(0) rotate(0deg);opacity:1}
+      85%{opacity:1}
+      100%{top:110vh;transform:translateX(var(--drift)) rotate(820deg);opacity:0}
+    }
+    @media(max-width:700px){
+      .move-board-progress{
+        width:100%;
+        justify-content:center;
+        margin:0 0 8px;
+      }
+    }
+  `;
+  document.head.appendChild(st);
+}
+
+try{injectMoveMultiCSS();injectMoveCelebrationCSS();nav();render('home');}catch(err){console.error(err);document.getElementById('toast').textContent='Erro ao iniciar painel: '+err.message;document.getElementById('toast').style.display='block';}
