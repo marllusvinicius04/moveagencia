@@ -730,3 +730,734 @@ input,select,textarea{outline:none}
   .move-week-calendar{grid-template-columns:repeat(7,minmax(180px,1fr))}
   .curadoria{grid-template-columns:1fr!important}
 }
+/* =========================================================
+   MOVE — RESPONSIVE & PROFESSIONAL ENHANCEMENTS
+   Apenas CSS: não altera HTML ou JavaScript
+   ========================================================= */
+
+:root{
+  --content-max:1640px;
+  --sidebar-w:252px;
+  --header-h:72px;
+}
+
+/* Global polish */
+body{
+  overflow-x:hidden;
+}
+img,video{
+  max-width:100%;
+}
+button,.btn,input,select,textarea{
+  -webkit-tap-highlight-color:transparent;
+}
+button:focus-visible,.btn:focus-visible,
+input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid rgba(252,163,17,.55);
+  outline-offset:2px;
+}
+::selection{
+  background:rgba(252,163,17,.28);
+  color:#111;
+}
+
+/* Better content sizing */
+.main{
+  width:calc(100% - var(--sidebar-w));
+  margin-left:var(--sidebar-w);
+}
+.wrap{
+  width:min(100%,var(--content-max));
+  margin-inline:auto;
+}
+.page{
+  min-width:0;
+}
+
+/* Header responsiveness */
+.top{
+  min-height:var(--header-h);
+  height:auto;
+  gap:16px;
+}
+.top>div:first-child{
+  min-width:0;
+}
+.top h1{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.top-actions{
+  flex:0 0 auto;
+}
+
+/* Sidebar refinements */
+.side{
+  width:var(--sidebar-w);
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#2b2b2b transparent;
+}
+.side::-webkit-scrollbar{width:5px}
+.side::-webkit-scrollbar-thumb{
+  background:#2b2b2b;
+  border-radius:999px;
+}
+.nav button{
+  min-width:0;
+}
+.nav button{
+  text-overflow:ellipsis;
+  overflow:hidden;
+}
+
+/* Head blocks */
+.head>div:first-child{
+  min-width:0;
+}
+.head>div:last-child,
+.head>button{
+  flex:0 0 auto;
+}
+.head .btn{
+  max-width:100%;
+}
+
+/* Fluid grid system */
+.grid{
+  min-width:0;
+}
+.kpis{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+.companies{
+  grid-template-columns:repeat(3,minmax(240px,1fr));
+}
+.media{
+  grid-template-columns:repeat(3,minmax(240px,1fr));
+}
+.card,
+.company,
+.kpi,
+.section{
+  min-width:0;
+}
+
+/* Prevent long text overflow */
+.company h3,
+.campaign-card h3,
+.move-board-media-info h4,
+.task-content-pro h4,
+.move-team-card>strong{
+  overflow-wrap:anywhere;
+}
+.meta,
+.caption,
+.campaign-idea,
+.task-content-pro p{
+  overflow-wrap:anywhere;
+}
+
+/* Better buttons on compact spaces */
+.actions{
+  align-items:center;
+}
+.actions .btn{
+  max-width:100%;
+}
+.btn{
+  line-height:1.15;
+}
+
+/* Modal improvements */
+.modal{
+  width:min(820px,calc(100vw - 32px));
+  max-height:min(92vh,900px);
+  overscroll-behavior:contain;
+}
+.mb{
+  overflow-x:hidden;
+}
+.mh b{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.fg{
+  align-items:start;
+}
+
+/* Fields */
+.field input,
+.field select,
+.field textarea{
+  min-width:0;
+}
+.field input[type="file"]{
+  padding:8px;
+}
+.field input[type="file"]::file-selector-button{
+  border:0;
+  border-radius:8px;
+  background:#111;
+  color:#fff;
+  padding:8px 10px;
+  margin-right:8px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+/* Cards density */
+.kpi,
+.company,
+.section{
+  height:100%;
+}
+.company{
+  display:flex;
+  flex-direction:column;
+}
+.company .actions{
+  margin-top:auto;
+  padding-top:12px;
+}
+
+/* Better campaign card layout */
+.campaign-card{
+  min-height:100%;
+}
+.campaign-card .stats{
+  margin-top:auto;
+}
+
+/* Calendar ergonomics */
+.move-board-calendar-wrap{
+  min-width:0;
+}
+.move-calendar-week{
+  min-width:0;
+  overflow:hidden;
+}
+.move-week-calendar{
+  width:100%;
+  scroll-snap-type:x proximity;
+  scrollbar-width:thin;
+}
+.move-week-calendar::-webkit-scrollbar{
+  height:7px;
+}
+.move-week-calendar::-webkit-scrollbar-thumb{
+  background:#d9dde2;
+  border-radius:999px;
+}
+.move-day{
+  scroll-snap-align:start;
+}
+.move-week-top>div:first-child{
+  min-width:0;
+}
+.move-week-top .actions{
+  justify-content:flex-end;
+}
+.move-calendar-content .actions .btn{
+  flex:0 0 auto;
+}
+.move-undated{
+  overflow-x:auto;
+}
+
+/* Teams */
+.move-team-area{
+  align-items:start;
+}
+.move-team-column{
+  min-width:0;
+}
+.move-team-list{
+  min-width:0;
+}
+.move-team-card{
+  min-width:0;
+}
+
+/* Media and video */
+.move-board-media-card{
+  min-width:0;
+}
+.move-board-media{
+  width:100%;
+  aspect-ratio:auto;
+}
+.move-board-media img,
+.move-board-media video{
+  max-height:min(72vh,760px);
+  object-fit:contain;
+}
+.instagram-media-wrap img,
+.instagram-media-wrap video{
+  max-height:min(75vh,820px);
+}
+
+/* Tasks */
+.task-sector-grid{
+  align-items:stretch;
+}
+.task-sector-option{
+  width:100%;
+  min-width:0;
+}
+.task-sector-copy{
+  min-width:0;
+}
+.task-workspace{
+  min-width:0;
+}
+.task-card-pro{
+  min-width:0;
+}
+.task-content-pro{
+  overflow:hidden;
+}
+
+/* Curadoria */
+.curadoria{
+  align-items:start;
+}
+.reelbox{
+  width:100%;
+  overflow:hidden;
+}
+.reelbox iframe,
+.reelbox blockquote{
+  max-width:100%!important;
+  width:100%!important;
+}
+
+/* Better hover only where hover exists */
+@media (hover:hover){
+  .btn:hover{
+    box-shadow:0 6px 14px rgba(15,23,42,.08);
+  }
+  .task-sector-option:hover{
+    border-color:#d8b36d;
+  }
+}
+@media (hover:none){
+  .card:hover,
+  .btn:hover,
+  .task-sector-option:hover{
+    transform:none;
+  }
+}
+
+/* Large desktop */
+@media (min-width:1500px){
+  .wrap{
+    padding:32px 34px;
+  }
+  .companies{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .media{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .curadoria{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+}
+
+/* Notebook / standard desktop */
+@media (max-width:1280px){
+  :root{
+    --sidebar-w:232px;
+  }
+  .side{
+    width:var(--sidebar-w);
+  }
+  .main{
+    width:calc(100% - var(--sidebar-w));
+    margin-left:var(--sidebar-w);
+  }
+  .wrap{
+    padding:22px;
+  }
+  .companies,
+  .media{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .curadoria{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .move-week-calendar{
+    grid-template-columns:repeat(7,minmax(170px,1fr));
+  }
+}
+
+/* Tablet landscape */
+@media (max-width:1024px){
+  :root{
+    --sidebar-w:210px;
+  }
+  .side{
+    width:var(--sidebar-w);
+    padding-inline:11px;
+  }
+  .main{
+    width:calc(100% - var(--sidebar-w));
+    margin-left:var(--sidebar-w);
+  }
+  .nav button{
+    padding-inline:10px;
+    font-size:11px;
+  }
+  .brand{
+    font-size:22px;
+  }
+  .top{
+    padding-inline:20px;
+  }
+  .wrap{
+    padding:20px;
+  }
+  .kpis{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .move-team-area{
+    grid-template-columns:1fr;
+  }
+}
+
+/* Tablet portrait */
+@media (max-width:820px){
+  :root{
+    --sidebar-w:0px;
+  }
+
+  .side{
+    position:relative;
+    inset:auto;
+    width:100%;
+    height:auto;
+    max-height:none;
+    padding:12px;
+    border-right:0;
+    border-bottom:1px solid #202020;
+  }
+
+  .brand{
+    padding:5px 8px 12px;
+  }
+
+  .nav{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:5px;
+  }
+
+  .nav button{
+    justify-content:flex-start;
+    min-height:42px;
+    padding:8px 10px;
+    white-space:normal;
+    line-height:1.2;
+  }
+
+  .foot{
+    display:none;
+  }
+
+  .main{
+    width:100%;
+    margin-left:0;
+  }
+
+  .top{
+    position:sticky;
+    top:0;
+    padding:12px 15px;
+    min-height:66px;
+  }
+
+  .wrap{
+    padding:16px;
+  }
+
+  .head{
+    gap:12px;
+  }
+
+  .companies,
+  .media{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .task-sector-grid{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .move-board-media-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .modal{
+    width:min(94vw,760px);
+  }
+
+  .fg{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+/* Phones */
+@media (max-width:640px){
+  body{
+    background:#f5f6f8;
+  }
+
+  .side{
+    padding:10px;
+  }
+
+  .brand{
+    font-size:21px;
+    padding-bottom:10px;
+  }
+
+  .nav{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .nav button{
+    min-height:40px;
+    font-size:10px;
+  }
+
+  .top{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:9px;
+    padding:12px 14px;
+  }
+
+  .top>div:first-child{
+    width:100%;
+  }
+
+  .top h1{
+    font-size:17px;
+  }
+
+  .top-actions{
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+
+  .top-actions .btn{
+    width:100%;
+  }
+
+  .wrap{
+    padding:13px;
+  }
+
+  .head{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .head h2{
+    font-size:21px;
+  }
+
+  .head>button,
+  .head>div:last-child{
+    width:100%;
+  }
+
+  .head .btn{
+    width:100%;
+  }
+
+  .kpis,
+  .companies,
+  .media,
+  .task-sector-grid,
+  .move-board-media-grid,
+  .fg{
+    grid-template-columns:1fr;
+  }
+
+  .span{
+    grid-column:auto;
+  }
+
+  .card{
+    border-radius:14px;
+  }
+
+  .company,
+  .kpi,
+  .section{
+    padding:14px;
+  }
+
+  .stats{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+
+  .actions{
+    width:100%;
+  }
+
+  .actions .btn{
+    flex:1 1 auto;
+  }
+
+  .move-week-top{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .move-week-top .actions{
+    justify-content:flex-start;
+  }
+
+  .move-week-calendar{
+    grid-template-columns:repeat(7,minmax(176px,176px));
+  }
+
+  .move-calendar-week{
+    padding:12px;
+  }
+
+  .move-team-column{
+    padding:12px;
+  }
+
+  .task-workspace{
+    padding:13px;
+  }
+
+  .task-workspace-head{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .task-workspace-head .btn{
+    width:100%;
+  }
+
+  .task-card-pro{
+    grid-template-columns:auto minmax(0,1fr);
+  }
+
+  .task-actions-pro{
+    grid-column:2;
+    justify-content:flex-start;
+    margin-top:2px;
+  }
+
+  .task-sector-option{
+    min-height:76px;
+    padding:11px;
+  }
+
+  .task-sector-icon{
+    width:40px;
+    height:40px;
+  }
+
+  .modalbg{
+    align-items:end;
+    padding:0;
+  }
+
+  .modal{
+    width:100%;
+    max-width:none;
+    max-height:94vh;
+    border-radius:18px 18px 0 0;
+  }
+
+  .mh,.mf{
+    padding:13px 14px;
+  }
+
+  .mb{
+    padding:14px;
+  }
+
+  .mf .btn{
+    flex:1;
+  }
+
+  .campaign-editor-title{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .campaign-editor-title .btn{
+    width:100%;
+  }
+
+  .curadoria{
+    grid-template-columns:1fr!important;
+  }
+
+  .reelbox{
+    min-height:360px;
+  }
+
+  #toast{
+    left:12px;
+    right:12px;
+    bottom:12px;
+    max-width:none;
+    text-align:center;
+  }
+}
+
+/* Very small phones */
+@media (max-width:390px){
+  .nav{
+    grid-template-columns:1fr;
+  }
+
+  .top-actions{
+    grid-template-columns:1fr;
+  }
+
+  .stats{
+    grid-template-columns:1fr;
+  }
+
+  .task-sector-option{
+    grid-template-columns:auto 1fr;
+  }
+
+  .task-sector-number{
+    grid-column:2;
+    justify-self:start;
+  }
+
+  .move-week-calendar{
+    grid-template-columns:repeat(7,minmax(164px,164px));
+  }
+
+  .btn{
+    white-space:normal;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto!important;
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}
