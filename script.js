@@ -317,6 +317,25 @@ function quadro(){
     }).join('')||empty('Cadastre uma empresa.')}</div>`;
 }
 
+
+const MOVE_TEAM_STATUS={
+  estrategica:['Planejamento','Aguardando aprovação','Aprovado para produção'],
+  criativa:['Fila de produção','Em produção','Ajustes','Finalizado','Agendado','Publicado']
+};
+function contentTeam(ct){return MOVE_TEAM_STATUS.criativa.includes(ct?.workflowStatus||'Planejamento')?'criativa':'estrategica'}
+function workflowBadge(st){
+  const s=st||'Planejamento',cls=['Finalizado','Agendado','Publicado'].includes(s)?'ok':['Ajustes','Aguardando aprovação'].includes(s)?'warn':'';
+  return `<span class="badge ${cls}">${e(s)}</span>`;
+}
+function sendToProduction(contentId){
+  const ct=D.contents.find(x=>x.id===contentId);if(!ct)return toast('Conteúdo não encontrado.');
+  ct.workflowStatus='Fila de produção';save();if(CID)board(CID);toast('Enviado para a Equipe Criativa.');
+}
+function setWorkflowStatus(contentId,status){
+  const ct=D.contents.find(x=>x.id===contentId);if(!ct)return;
+  ct.workflowStatus=status;save();if(CID)board(CID);toast('Etapa atualizada.');
+}
+
 function boardDateKey(d){
   const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${day}`;
@@ -362,12 +381,15 @@ async function board(cid){
               return `<article class="move-calendar-content">
                 <div class="move-calendar-tags">
                   <span class="badge">${e(ct.tipo||'Conteúdo')}</span>
+                  <span class="badge ${contentTeam(ct)==='estrategica'?'move-team-strategic':'move-team-creative'}">${contentTeam(ct)==='estrategica'?'Estratégica':'Criativa'}</span>
+                  ${workflowBadge(ct.workflowStatus)}
                   ${media?`<span class="badge ok"><i class="fa fa-paperclip"></i> Mídia</span>`:''}
                 </div>
                 <strong>${e(ct.titulo||'Sem título')}</strong>
                 <small>${e(ct.postTime||'Sem horário')}</small>
                 <div class="actions">
                   <button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')"><i class="fa fa-pen"></i></button>
+                  ${contentTeam(ct)==='estrategica'?`<button class="btn primary sm" onclick="sendToProduction('${ct.id}')" title="Enviar para produção"><i class="fa fa-arrow-right"></i></button>`:''}
                   <button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')" title="Anexar imagem ou vídeo"><i class="fa fa-paperclip"></i></button>
                   <button class="btn danger sm" onclick="deleteContent('${ct.id}')"><i class="fa fa-trash"></i></button>
                 </div>
@@ -429,6 +451,16 @@ async function board(cid){
       `<span class="move-board-progress ${done===4?'is-complete':''}"><i class="fa fa-check"></i> ${done}/4 semanas concluídas</span> <button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn dark" onclick="copyCompanyData('${cid}')"><i class="fa fa-copy"></i> Copiar dados</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`
     )
     +`<div class="move-board-calendar-wrap">${weeksHTML}</div>`
+    +`<div class="move-team-area">
+      <section class="move-team-column">
+        <h3>Equipe Estratégica</h3><p class="meta">Planejamento, ideias, roteiros, calendário e aprovação.</p>
+        <div class="move-team-list">${D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='estrategica').map(ct=>`<article class="move-team-card"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo||'Conteúdo')}</span>${workflowBadge(ct.workflowStatus)}</div><strong>${e(ct.titulo||'Sem título')}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><div class="actions"><button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')">Editar</button><button class="btn primary sm" onclick="sendToProduction('${ct.id}')">Enviar para produção</button></div></article>`).join('')||empty('Nenhum conteúdo estratégico.')}</div>
+      </section>
+      <section class="move-team-column">
+        <h3>Equipe Criativa / Operacional</h3><p class="meta">Design, edição, captação, ajustes, finalização e agendamento.</p>
+        <div class="move-team-list">${D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='criativa').map(ct=>`<article class="move-team-card"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo||'Conteúdo')}</span>${workflowBadge(ct.workflowStatus)}</div><strong>${e(ct.titulo||'Sem título')}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><select class="move-status-select" onchange="setWorkflowStatus('${ct.id}',this.value)">${MOVE_TEAM_STATUS.criativa.map(s=>`<option ${((ct.workflowStatus||'Fila de produção')===s)?'selected':''}>${s}</option>`).join('')}</select><div class="actions"><button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')">Abrir</button><button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')">Upload</button></div></article>`).join('')||empty('Nenhum conteúdo em produção.')}</div>
+      </section>
+    </div>`
     +`<div class="move-board-schedule">
         ${head('Agendamento da empresa','As mídias anexadas aos conteúdos ficam aqui dentro do próprio Quadro Criativo.',`<button class="btn primary" onclick="upload('${cid}')"><i class="fa fa-plus"></i> Anexar material</button> <button class="btn dark" onclick="approval('${cid}')"><i class="fa fa-download"></i> Baixar aprovação</button>`)}
         <div class="move-board-media-grid">${materialsHTML||empty('Nenhuma mídia anexada ainda.')}</div>
@@ -569,6 +601,7 @@ function content(cid,wid,x='',prefillDate=''){
   modal('Conteúdo + Agendamento',`<form id="f" class="fg">
     <div class="field"><label>Ordem</label><input type="number" name="ordem" value="${n}"></div>
     <div class="field"><label>Tipo</label><select name="tipo">${['Reels','Post','Stories'].map(t=>`<option ${c.tipo===t?'selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="field"><label>Etapa / Equipe</label><select name="workflowStatus">${[...MOVE_TEAM_STATUS.estrategica,...MOVE_TEAM_STATUS.criativa].map(s=>`<option ${((c.workflowStatus||'Planejamento')===s)?'selected':''}>${s}</option>`).join('')}</select></div>
     <div class="field span"><label>Título *</label><input name="titulo" value="${e(c.titulo||'')}"></div>
     <div class="field span"><label>Descrição</label><textarea name="descricao">${e(c.descricao||'')}</textarea></div>
     <div class="field span"><label>Roteiro / desenvolvimento</label><textarea name="roteiro" style="min-height:180px">${e(c.roteiro||'')}</textarea></div>
@@ -584,6 +617,7 @@ function content(cid,wid,x='',prefillDate=''){
     delete q.mediaLegenda;delete q.mediaStatus;
     if(!q.titulo)return toast('Informe o título.');
     q.ordem=Number(q.ordem);
+    q.workflowStatus=q.workflowStatus||c.workflowStatus||'Planejamento';
     const fl=document.getElementById('contentFile')?.files?.[0];
     if(fl&&fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');
 
@@ -1009,6 +1043,13 @@ function injectMoveCalendarCSS(){
     .move-calendar-content .actions{margin-top:8px;gap:4px}
     .move-calendar-tags{display:flex;gap:4px;flex-wrap:wrap}
     .move-undated{margin-top:10px;padding:10px;border-radius:12px;background:#fff8e8;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:10px}
+    .move-team-area{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px}
+    .move-team-column{background:#f7f7f8;border:1px solid #e8e8e8;border-radius:18px;padding:14px}
+    .move-team-column>h3{margin:0 0 4px}.move-team-list{display:grid;gap:9px;margin-top:12px}
+    .move-team-card{background:#fff;border:1px solid #e8e8e8;border-radius:13px;padding:11px}
+    .move-team-card>strong{display:block;margin:8px 0 4px;font-size:12px}.move-team-card>small{display:block;color:#888;font-size:9px;margin-bottom:8px}
+    .move-status-select{width:100%;border:1px solid #ddd;border-radius:9px;padding:8px;background:#fff;font-size:10px;margin:5px 0}
+    .move-team-strategic{background:#eef3ff!important;color:#3156a3!important}.move-team-creative{background:#fff0d2!important;color:#805100!important}
     .move-board-schedule{margin-top:28px}
     .move-board-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
     .move-board-media-card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden}
@@ -1021,6 +1062,7 @@ function injectMoveCalendarCSS(){
       .move-week-calendar{grid-template-columns:repeat(7,minmax(180px,1fr))}
     }
     @media(max-width:650px){
+      .move-team-area{grid-template-columns:1fr}
       .move-week-top{flex-direction:column}
       .move-week-top>.actions{width:100%;flex-wrap:wrap}
       .move-calendar-week{padding:11px}
