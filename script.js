@@ -4,6 +4,108 @@ const MOVE_ACCESS_PASSWORD='DEUS2604';
 const MOVE_AUTH_KEY='move_local_auth_v1';
 
 
+// COLE AQUI A URL /exec GERADA AO IMPLANTAR O APPS SCRIPT COMO APLICATIVO DA WEB.
+const MOVE_API_URL='https://script.google.com/macros/s/AKfycbydd_YHx04s5iFhFXeNUXnptdztQJXv2L2Ut9bWSWrg_O_9TuTbRYa_i2Y57sxWMeiCHA/exec';
+
+let MOVE_SYNC_TIMER=null;
+let MOVE_SYNCING=false;
+let MOVE_SYNC_PENDING=false;
+
+function moveApiConfigured(){
+  return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/i.test(String(MOVE_API_URL||'').trim());
+}
+function moveSetSavedStatus(text){
+  if(EL?.saved) EL.saved.textContent=text;
+}
+function moveEnsureLoading(){
+  if(document.getElementById('moveCloudLoading'))return;
+  const d=document.createElement('div');
+  d.id='moveCloudLoading';
+  d.style.cssText='position:fixed;inset:0;z-index:1000000;background:rgba(255,255,255,.96);display:none;align-items:center;justify-content:center;font-family:Inter,Arial,sans-serif';
+  d.innerHTML=`<div style="text-align:center;max-width:360px;padding:30px">
+    <div style="width:48px;height:48px;border:4px solid #ececec;border-top-color:#111;border-radius:50%;margin:0 auto 18px;animation:moveCloudSpin .8s linear infinite"></div>
+    <div style="font-size:20px;font-weight:800;color:#111">Carregando seu painel</div>
+    <div id="moveCloudLoadingText" style="margin-top:8px;color:#777;font-size:13px">Sincronizando dados com a planilha...</div>
+  </div>`;
+  document.body.appendChild(d);
+  if(!document.getElementById('moveCloudSpinStyle')){
+    const st=document.createElement('style');st.id='moveCloudSpinStyle';
+    st.textContent='@keyframes moveCloudSpin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(st);
+  }
+}
+function moveShowLoading(text='Sincronizando dados com a planilha...'){
+  moveEnsureLoading();
+  const d=document.getElementById('moveCloudLoading');
+  const t=document.getElementById('moveCloudLoadingText');
+  if(t)t.textContent=text;
+  if(d)d.style.display='flex';
+}
+function moveHideLoading(){const d=document.getElementById('moveCloudLoading');if(d)d.style.display='none'}
+function moveSleep(ms){return new Promise(r=>setTimeout(r,ms))}
+async function moveFetchCloud(){
+  if(!moveApiConfigured())return null;
+  const r=await fetch(MOVE_API_URL+'?action=load&_='+Date.now(),{method:'GET',cache:'no-store',redirect:'follow'});
+  if(!r.ok)throw new Error('Falha ao carregar banco: HTTP '+r.status);
+  const out=await r.json();
+  if(!out?.ok)throw new Error(out?.error||'Falha ao carregar banco');
+  return out.data||null;
+}
+async function movePushCloudNow(){
+  if(!moveApiConfigured())return false;
+  if(MOVE_SYNCING){MOVE_SYNC_PENDING=true;return false}
+  MOVE_SYNCING=true;
+  MOVE_SYNC_PENDING=false;
+  moveSetSavedStatus('Salvando na nuvem...');
+  try{
+    const payload=JSON.stringify(D);
+    const body=new URLSearchParams();
+    body.set('action','save');
+    body.set('payload',payload);
+    const r=await fetch(MOVE_API_URL,{method:'POST',body,redirect:'follow'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const out=await r.json();
+    if(!out?.ok)throw new Error(out?.error||'Erro ao salvar');
+    moveSetSavedStatus('Nuvem ✓ • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+    return true;
+  }catch(err){
+    console.error('MOVE sync:',err);
+    moveSetSavedStatus('Salvo neste aparelho • nuvem pendente');
+    return false;
+  }finally{
+    MOVE_SYNCING=false;
+    if(MOVE_SYNC_PENDING)moveScheduleSync(80);
+  }
+}
+function moveScheduleSync(delay=350){
+  if(!moveApiConfigured())return;
+  clearTimeout(MOVE_SYNC_TIMER);
+  MOVE_SYNC_TIMER=setTimeout(movePushCloudNow,delay);
+}
+async function moveLoadAfterLogin(){
+  const started=Date.now();
+  moveShowLoading(moveApiConfigured()?'Sincronizando dados com a planilha...':'Preparando seu painel...');
+  try{
+    if(moveApiConfigured()){
+      const cloud=await moveFetchCloud();
+      if(cloud && Object.values(cloud).some(v=>Array.isArray(v)&&v.length)){
+        D=Object.assign(blank(),cloud);
+        localStorage.setItem(KEY,JSON.stringify(D));
+      }else{
+        await movePushCloudNow();
+      }
+    }
+  }catch(err){
+    console.error('MOVE load cloud:',err);
+    toast('Sem conexão com a planilha. Abrindo dados salvos neste aparelho.');
+  }
+  const rest=Math.max(0,3000-(Date.now()-started));
+  if(rest)await moveSleep(rest);
+  moveHideLoading();
+  try{nav();render(R||'home')}catch(err){console.error(err)}
+}
+
+
 function ensureLogoutButton(){
   const topActions=document.querySelector('.top-actions')||document.querySelector('.top>div:last-child');
   if(!topActions||document.getElementById('logoutAccessBtn'))return;
@@ -26,6 +128,10 @@ function applyAuthState(){
     login.classList.add('is-hidden');
     app.classList.remove('auth-hidden');
     ensureLogoutButton();
+    if(!window.__MOVE_CLOUD_BOOTED){
+      window.__MOVE_CLOUD_BOOTED=true;
+      setTimeout(()=>moveLoadAfterLogin(),0);
+    }
   }else{
     login.classList.remove('is-hidden');
     app.classList.add('auth-hidden');
@@ -40,10 +146,11 @@ function loginAccess(ev){
 
   if(value===MOVE_ACCESS_PASSWORD){
     sessionStorage.setItem(MOVE_AUTH_KEY,'1');
+    window.__MOVE_CLOUD_BOOTED=true;
     if(err)err.textContent='';
     if(input)input.value='';
     applyAuthState();
-    toast('Acesso liberado.');
+    moveLoadAfterLogin();
   }else{
     if(err)err.textContent='Senha incorreta.';
     if(input){
@@ -63,6 +170,7 @@ function toggleLoginPassword(){
 }
 function logoutAccess(){
   sessionStorage.removeItem(MOVE_AUTH_KEY);
+  window.__MOVE_CLOUD_BOOTED=false;
   applyAuthState();
 }
 
@@ -71,7 +179,7 @@ if(D.finance)delete D.finance;if(D.contracts)delete D.contracts;
 
 const EL={saved:document.getElementById('saved'),title:document.getElementById('title'),restore:document.getElementById('restore'),nav:document.getElementById('nav'),modal:document.getElementById('modal')};
 
-function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,campanhas,pendencias,textos,agenda,tarefas,agendamento,curadoria}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
+function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));moveSetSavedStatus('Salvo local • sincronizando...');render(R);moveScheduleSync()}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,campanhas,pendencias,textos,agenda,tarefas,agendamento,curadoria}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
 
 const OBJETIVOS_OPCOES=[
   'Vender mais',
