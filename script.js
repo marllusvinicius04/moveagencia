@@ -405,7 +405,7 @@ async function board(cid){
     const ct=D.contents.find(x=>x.id===s.contentId)||{};
     const u=await mediaURL(s.mediaId);
     const preview=s.mime?.startsWith('image/')?`<img src="${u}" alt="${e(ct.titulo||s.fileName||'Material')}">`
-      :s.mime?.startsWith('video/')?`<video controls preload="metadata" src="${u}"></video>`
+      :s.mime?.startsWith('video/')?`<video class="move-video-player" controls playsinline preload="metadata" src="${u}" onloadedmetadata="moveVideoCheck(this)"></video>`
       :`<div class="move-file-placeholder"><i class="fa fa-file"></i></div>`;
     materialsHTML+=`<article class="move-board-media-card">
       <div class="move-board-media">${preview}</div>
@@ -505,8 +505,8 @@ Existe ${linked.length} upload/material vinculado. Clique em OK para excluir o c
     try{
       const db=await mediaDB();
       await new Promise((resolve,reject)=>{
-        const tx=db.transaction('media','readwrite');
-        const st=tx.objectStore('media');
+        const tx=db.transaction('m','readwrite');
+        const st=tx.objectStore('m');
         mids.forEach(mid=>st.delete(mid));
         tx.oncomplete=()=>resolve();
         tx.onerror=()=>reject(tx.error);
@@ -542,8 +542,8 @@ Essa ação não pode ser desfeita.`;
     try{
       const db=await mediaDB();
       await new Promise((resolve,reject)=>{
-        const tx=db.transaction('media','readwrite');
-        const st=tx.objectStore('media');
+        const tx=db.transaction('m','readwrite');
+        const st=tx.objectStore('m');
         mids.forEach(mid=>st.delete(mid));
         tx.oncomplete=()=>resolve();
         tx.onerror=()=>reject(tx.error);
@@ -724,7 +724,7 @@ function agendamento(){document.getElementById('p-agendamento').innerHTML=head('
   for(let s of it){
     let u=await mediaURL(s.mediaId),ct=D.contents.find(x=>x.id===s.contentId)||{};
     let media=s.mime?.startsWith('image/')?`<img src="${u}" alt="${e(ct.titulo||s.fileName||'Material')}">`
-      :s.mime?.startsWith('video/')?`<video controls preload="metadata" src="${u}"></video>`
+      :s.mime?.startsWith('video/')?`<video class="move-video-player" controls playsinline preload="metadata" src="${u}" onloadedmetadata="moveVideoCheck(this)"></video>`
       :'<i class="fa fa-file fa-2x"></i>';
     cards+=`<article class="instagram-card">
       <div class="instagram-media-wrap">${media}</div>
@@ -760,8 +760,8 @@ async function deleteScheduled(scheduledId,cid=''){
     try{
       const db=await mediaDB();
       await new Promise((resolve,reject)=>{
-        const tx=db.transaction('media','readwrite');
-        tx.objectStore('media').delete(mid);
+        const tx=db.transaction('m','readwrite');
+        tx.objectStore('m').delete(mid);
         tx.oncomplete=()=>resolve();
         tx.onerror=()=>reject(tx.error);
         tx.onabort=()=>reject(tx.error);
@@ -860,7 +860,7 @@ async function weekHTML(wid){
     if(s?.mediaId){
       const data=await mediaData(s.mediaId);
       if(s.mime?.startsWith('image/'))media=`<div class="media"><img src="${data}" alt="${e(x.titulo||s.fileName||'Imagem')}"></div>`;
-      else if(s.mime?.startsWith('video/'))media=`<div class="media video"><video controls preload="metadata" playsinline src="${data}"></video><small>Vídeo/Reels em proporção original</small></div>`;
+      else if(s.mime?.startsWith('video/'))media=`<div class="media video"><video controls preload="metadata" playsinline src="${data}" onloadedmetadata="if(!this.videoWidth){this.insertAdjacentHTML(\'afterend\',\'<div class=&quot;video-warning&quot;>O áudio foi carregado, mas o navegador não suporta o codec de vídeo deste arquivo. Use MP4 H.264 para compatibilidade total.</div>\')}</video><small>Vídeo/Reels sem corte e em proporção original</small></div>`;
     }
     cards+=`<article>
       <div class="top"><span>${e(x.tipo)}</span><small>CONTEÚDO ${i+1}</small></div>
@@ -874,12 +874,12 @@ async function weekHTML(wid){
     </article>`;
   }
   const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(c.nome)} — Semana ${w.numero}</title><style>
-    *{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;background:#f5f6f8;color:#171717}.hero{background:#111;color:#fff;padding:38px 5vw}.hero b{color:#fca311}.hero h1{margin:8px 0}.wrap{max-width:1000px;margin:auto;padding:24px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}.meta div,article{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:18px;margin-bottom:14px}.meta span,.top small{font-size:9px;color:#888;text-transform:uppercase}.top{display:flex;justify-content:space-between;align-items:center}.top>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:bold}.when{font-size:11px;color:#777;margin:5px 0 14px}.media{width:100%;background:#111;border-radius:12px;padding:10px;margin:12px 0;display:flex;flex-direction:column;align-items:center;overflow:auto}.media img,.media video{display:block;width:auto;height:auto;max-width:100%;object-fit:contain;object-position:center}.media video{max-height:none;aspect-ratio:auto}.media small{color:#bbb;margin-top:7px;font-size:9px}section{background:#f7f7f7;padding:12px;border-radius:10px;margin-top:10px}section b{font-size:9px;text-transform:uppercase;color:#777}section p{font-size:12px;line-height:1.6}.script{border-left:3px solid #fca311}footer{border-top:1px solid #eee;margin-top:12px;padding-top:10px;font-size:11px}@media(max-width:650px){.meta{grid-template-columns:1fr}.wrap{padding:14px}.hero{padding:28px 18px}}
+    *{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;background:#f5f6f8;color:#171717}.hero{background:#111;color:#fff;padding:38px 5vw}.hero b{color:#fca311}.hero h1{margin:8px 0}.wrap{max-width:1000px;margin:auto;padding:24px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}.meta div,article{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:18px;margin-bottom:14px}.meta span,.top small{font-size:9px;color:#888;text-transform:uppercase}.top{display:flex;justify-content:space-between;align-items:center}.top>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:bold}.when{font-size:11px;color:#777;margin:5px 0 14px}.media{width:100%;background:#111;border-radius:12px;padding:10px;margin:12px 0;display:flex;flex-direction:column;align-items:center;overflow:auto}.media img{display:block;width:auto;height:auto;max-width:100%;object-fit:contain;object-position:center}.media video{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:auto;object-fit:contain;object-position:center;background:#000}.video-warning{margin-top:8px;padding:10px;border-radius:8px;background:#fff3cd;color:#664d03;font-size:11px;line-height:1.4}.media small{color:#bbb;margin-top:7px;font-size:9px}section{background:#f7f7f7;padding:12px;border-radius:10px;margin-top:10px}section b{font-size:9px;text-transform:uppercase;color:#777}section p{font-size:12px;line-height:1.6}.script{border-left:3px solid #fca311}footer{border-top:1px solid #eee;margin-top:12px;padding-top:10px;font-size:11px}@media(max-width:650px){.meta{grid-template-columns:1fr}.wrap{padding:14px}.hero{padding:28px 18px}}
   </style></head><body><div class="hero"><b>MOVE AGÊNCIA</b><h1>${e(c.nome)} — Semana ${w.numero}</h1><p>${date(w.inicio)} — ${date(w.fim)}</p></div><div class="wrap"><div class="meta"><div><span>OBJETIVO</span><h3>${e(w.objetivo||'—')}</h3></div><div><span>LINHA ESTRATÉGICA</span><h3>${e(w.linha||'—')}</h3></div></div>${cards||'<article>Sem conteúdos.</article>'}</div></body></html>`;
   dl(html,`MOVE_${safe(c.nome)}_Semana_${w.numero}.html`);
   toast('Planejamento com mídias baixado.');
 }
-async function approval(cid){let c=D.companies.find(x=>x.id===cid),it=D.scheduled.filter(x=>x.companyId===cid),cards='';for(let s of it){let data=await mediaData(s.mediaId),ct=D.contents.find(x=>x.id===s.contentId)||{};cards+=`<article><div class="pv">${s.mime?.startsWith('image/')?`<img src="${data}">`:s.mime?.startsWith('video/')?`<video controls src="${data}"></video>`:'ARQUIVO'}</div><div class="info"><span>${e(ct.tipo||'Material')}</span><small>${e(s.status)}</small><h2>${e(ct.titulo||s.fileName||'Material')}</h2><p>${date(s.data)} ${e(s.hora||'')}</p>${s.legenda?`<section><b>Legenda proposta</b><p>${e(s.legenda).replace(/\n/g,'<br>')}</p></section>`:''}</div></article>`}dl(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${e(c.nome)} — Aprovação</title><style>body{font-family:Arial;margin:0;background:#f5f6f8}.hero{background:#111;color:#fff;padding:42px}.hero b{color:#fca311}.wrap{max-width:1100px;margin:auto;padding:24px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}article{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.05)}.pv{background:#111;display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto}.pv img,.pv video{display:block;max-width:100%;width:auto;height:auto;object-fit:contain;object-position:center}.pv video{max-height:none;aspect-ratio:auto}.info{padding:14px}.info>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:bold}.info>small{float:right;color:#888}.info h2{font-size:15px}.info>p{font-size:10px;color:#888}section{background:#f7f7f7;border-radius:9px;padding:10px}section b{font-size:9px;color:#777}section p{font-size:11px;line-height:1.5}@media(max-width:850px){.grid{grid-template-columns:1fr}}
+async function approval(cid){let c=D.companies.find(x=>x.id===cid),it=D.scheduled.filter(x=>x.companyId===cid),cards='';for(let s of it){let data=await mediaData(s.mediaId),ct=D.contents.find(x=>x.id===s.contentId)||{};cards+=`<article><div class="pv">${s.mime?.startsWith('image/')?`<img src="${data}">`:s.mime?.startsWith('video/')?`<video controls playsinline preload="metadata" src="${data}" onloadedmetadata="if(!this.videoWidth){this.insertAdjacentHTML(\'afterend\',\'<div class=&quot;video-warning&quot;>O navegador conseguiu ler o áudio, mas não o codec de vídeo deste arquivo. Converta para MP4 H.264 para visualizar em qualquer navegador.</div>\')}</video>`:'ARQUIVO'}</div><div class="info"><span>${e(ct.tipo||'Material')}</span><small>${e(s.status)}</small><h2>${e(ct.titulo||s.fileName||'Material')}</h2><p>${date(s.data)} ${e(s.hora||'')}</p>${s.legenda?`<section><b>Legenda proposta</b><p>${e(s.legenda).replace(/\n/g,'<br>')}</p></section>`:''}</div></article>`}dl(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${e(c.nome)} — Aprovação</title><style>body{font-family:Arial;margin:0;background:#f5f6f8}.hero{background:#111;color:#fff;padding:42px}.hero b{color:#fca311}.wrap{max-width:1100px;margin:auto;padding:24px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}article{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.05)}.pv{background:#111;display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto}.pv img{display:block;max-width:100%;width:auto;height:auto;object-fit:contain;object-position:center}.pv video{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:auto;object-fit:contain;object-position:center;background:#000}.video-warning{padding:10px;margin:8px;background:#fff3cd;color:#664d03;border-radius:8px;font-size:11px;line-height:1.4}.info{padding:14px}.info>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:bold}.info>small{float:right;color:#888}.info h2{font-size:15px}.info>p{font-size:10px;color:#888}section{background:#f7f7f7;border-radius:9px;padding:10px}section b{font-size:9px;color:#777}section p{font-size:11px;line-height:1.5}@media(max-width:850px){.grid{grid-template-columns:1fr}}
 
 </style></head><body><div class="hero"><b>MOVE AGÊNCIA</b><h1>${e(c.nome)}</h1><p>Materiais para visualização e aprovação</p></div><div class="wrap"><div class="grid">${cards||'<article><div class="info">Nenhum material.</div></article>'}</div></div></body></html>`,`MOVE_${safe(c.nome)}_Aprovacao.html`);toast('HTML de aprovação baixado.')}
 function backup(){dl(JSON.stringify(D,null,2),'MOVE_Backup_'+new Date().toISOString().slice(0,10)+'.json','application/json')}function restorePick(){const r=document.getElementById('restore');if(r)r.click()}const restoreEl=document.getElementById('restore');if(restoreEl)restoreEl.onchange=async()=>{try{const file=restoreEl.files&&restoreEl.files[0];if(!file)return;D=Object.assign(blank(),JSON.parse(await file.text()));save();toast('Backup restaurado.')}catch(err){toast('Backup inválido.')}}
@@ -959,6 +959,31 @@ function injectMoveMultiCSS(){
 
 
 
+
+function moveVideoCheck(v){
+  if(!v)return;
+  v.style.width='100%';
+  v.style.height='auto';
+  v.style.maxWidth='100%';
+  v.style.objectFit='contain';
+  v.style.objectPosition='center';
+  v.style.background='#000';
+
+  const old=v.parentElement?.querySelector('.move-video-warning');
+  if(old)old.remove();
+
+  if(v.videoWidth>0&&v.videoHeight>0){
+    v.dataset.videoOk='1';
+    return;
+  }
+
+  const warn=document.createElement('div');
+  warn.className='move-video-warning';
+  warn.style.cssText='padding:10px;margin:8px;background:#fff3cd;color:#664d03;border-radius:8px;font-size:11px;line-height:1.4';
+  warn.innerHTML='<b>O áudio abriu, mas a imagem do vídeo não.</b><br>Isso indica codec de vídeo incompatível com este navegador. Para funcionar em Chrome/Edge/Android e no HTML baixado, use MP4 com vídeo H.264 + áudio AAC.';
+  v.insertAdjacentElement('afterend',warn);
+}
+
 function injectMoveCalendarCSS(){
   if(document.getElementById('move-calendar-css'))return;
   const st=document.createElement('style');
@@ -987,8 +1012,8 @@ function injectMoveCalendarCSS(){
     .move-board-schedule{margin-top:28px}
     .move-board-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
     .move-board-media-card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden}
-    .move-board-media{background:#111;min-height:170px;display:flex;align-items:center;justify-content:center;overflow:auto}
-    .move-board-media img,.move-board-media video{display:block;width:auto;height:auto;max-width:100%;max-height:420px;object-fit:contain}
+    .move-board-media{background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0}
+    .move-board-media img,.move-board-media video{display:block;width:100%;height:auto;max-width:100%;object-fit:contain;object-position:center;background:#000}
     .move-board-media-info{padding:12px}
     .move-board-media-info h4{margin:9px 0 5px}
     .move-file-placeholder{font-size:32px;color:#aaa}
