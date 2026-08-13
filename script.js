@@ -1,8 +1,10 @@
-const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['empresas','fa-building','Empresas'],['quadro','fa-lightbulb','Quadro Criativo'],['campanhas','fa-bullhorn','Campanhas'],['pendencias','fa-triangle-exclamation','Pendências'],['textos','fa-file-lines','Meus Textos'],['agenda','fa-calendar-days','Agenda'],['tarefas','fa-list-check','Minhas Tarefas'],['curadoria','fa-icons','Curadoria'],['financeiro','fa-wallet','Financeiro']];let D=load(),R='home',CID='',cal=new Date(),CUR='all';
+const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['empresas','fa-building','Empresas'],['quadro','fa-lightbulb','Quadro Criativo'],['campanhas','fa-bullhorn','Campanhas'],['pendencias','fa-triangle-exclamation','Pendências'],['textos','fa-file-lines','Meus Textos'],['agenda','fa-calendar-days','Agenda'],['tarefas','fa-list-check','Minhas Tarefas'],['curadoria','fa-icons','Curadoria']];let D=load(),R='home',CID='',cal=new Date(),CUR='all';
+
+if(D.finance)delete D.finance;if(D.contracts)delete D.contracts;
 
 const EL={saved:document.getElementById('saved'),title:document.getElementById('title'),restore:document.getElementById('restore'),nav:document.getElementById('nav'),modal:document.getElementById('modal')};
 
-function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],finance:[],contracts:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,campanhas,pendencias,textos,agenda,tarefas,agendamento,curadoria}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
+function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,campanhas,pendencias,textos,agenda,tarefas,agendamento,curadoria}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
 
 const OBJETIVOS_OPCOES=[
   'Vender mais',
@@ -152,7 +154,7 @@ function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
   document.getElementById('p-home').innerHTML=
     head('Visão geral','Tudo salvo localmente e abrindo instantaneamente.')
     +`<div class="grid kpis"><div class="card kpi"><i class="fa fa-building"></i><b>${D.companies.length}</b><span>empresas</span></div><div class="card kpi"><i class="fa fa-lightbulb"></i><b>${p}</b><span>planejamentos</span></div><div class="card kpi"><i class="fa fa-photo-film"></i><b>${m}</b><span>materiais produzidos</span></div><div class="card kpi"><i class="fa fa-triangle-exclamation"></i><b>${pe}</b><span>pendências</span></div></div>`
-    +`<div class="card section" style="margin-top:14px"><div class="list">${pend().slice(0,8).map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge ${x.type==='financeiro'?'red':'warn'}">${x.type}</span></div>`).join('')||empty('Tudo em dia.')}</div></div>`
+    +`<div class="card section" style="margin-top:14px"><div class="list">${pend().slice(0,8).map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge warn">${x.type}</span></div>`).join('')||empty('Tudo em dia.')}</div></div>`
     +`<div style="margin-top:18px">${head('Demandas mensais','Cálculo por empresa usando o volume semanal x4 e as tarefas abertas.')}</div>`
     +`<div class="grid companies">${demandCards||empty('Cadastre empresas para calcular as demandas.')}</div>`;
 }
@@ -179,40 +181,35 @@ function empresas(){
 function deleteCompany(companyId){
   const c=D.companies.find(x=>x.id===companyId);
   if(!c)return;
+
   const weeks=D.weeks.filter(x=>x.companyId===companyId);
   const contents=D.contents.filter(x=>x.companyId===companyId);
   const tasks=D.tasks.filter(x=>x.companyId===companyId);
   const scheduled=D.scheduled.filter(x=>x.companyId===companyId);
-  const finance=D.finance.filter(x=>x.companyId===companyId);
-  const contracts=D.contracts.filter(x=>x.companyId===companyId);
   const refs=D.curadoria.filter(x=>x.companyId===companyId);
+  const campaigns=D.campaigns.filter(x=>x.companyId===companyId);
 
   const msg=`Excluir a empresa "${c.nome}"?
 
-Isso também removerá os dados vinculados:
+Isso também removerá:
 • ${weeks.length} semana(s)
 • ${contents.length} conteúdo(s)
 • ${tasks.length} tarefa(s)
-• ${scheduled.length} material(is) agendado(s)
-• ${finance.length} registro(s) financeiro(s)
-• ${contracts.length} contrato(s)
+• ${scheduled.length} upload(s)/material(is)
 • ${refs.length} referência(s) de curadoria
+• ${campaigns.length} campanha(s)
 
 Essa ação não pode ser desfeita.`;
 
   if(!confirm(msg))return;
-
-  const contentIds=new Set(contents.map(x=>x.id));
-  const mediaIds=scheduled.map(x=>x.mediaId).filter(Boolean);
 
   D.companies=D.companies.filter(x=>x.id!==companyId);
   D.weeks=D.weeks.filter(x=>x.companyId!==companyId);
   D.contents=D.contents.filter(x=>x.companyId!==companyId);
   D.tasks=D.tasks.filter(x=>x.companyId!==companyId);
   D.scheduled=D.scheduled.filter(x=>x.companyId!==companyId);
-  D.finance=D.finance.filter(x=>x.companyId!==companyId);
-  D.contracts=D.contracts.filter(x=>x.companyId!==companyId);
   D.curadoria=D.curadoria.filter(x=>x.companyId!==companyId);
+  D.campaigns=D.campaigns.filter(x=>x.companyId!==companyId);
 
   if(CID===companyId)CID='';
   save();
@@ -885,82 +882,197 @@ function campaignDownload(x){
   toast('Proposta da campanha baixada.');
 }
 
-function pend(){let a=[];D.companies.forEach(c=>{let ws=D.weeks.filter(w=>w.companyId===c.id);for(let i=1;i<=4;i++){let w=ws.find(z=>z.numero===i);if(!w)a.push({company:c.nome,title:'Semana '+i+' não criada',detail:'O mês precisa de 4 semanas planejadas.',type:'planejamento'});else{let exp=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0),got=D.contents.filter(x=>x.weekId===w.id).length;if(got<exp)a.push({company:c.nome,title:'Semana '+i+' incompleta',detail:got+'/'+exp+' conteúdos.',type:'conteúdo'})}}});D.finance.filter(x=>x.statusMes!=='Pago').forEach(f=>{let c=D.companies.find(x=>x.id===f.companyId);if(c)a.push({company:c.nome,title:'Pagamento pendente',detail:money(f.valorTotal),type:'financeiro'})});return a}function pendencias(){document.getElementById('p-pendencias').innerHTML=head('Pendências','Planejamento e financeiro sob controle.')+`<div class="card section"><div class="list">${pend().map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge ${x.type==='financeiro'?'red':'warn'}">${x.type}</span></div>`).join('')||empty('Nenhuma pendência.')}</div></div>`}
+function pend(){
+  let a=[];
+  D.companies.forEach(c=>{
+    let ws=D.weeks.filter(w=>w.companyId===c.id);
+    for(let i=1;i<=4;i++){
+      let w=ws.find(z=>z.numero===i);
+      if(!w){
+        a.push({company:c.nome,title:'Semana '+i+' não criada',detail:'O mês precisa de 4 semanas planejadas.',type:'planejamento'});
+      }else{
+        let exp=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0),
+            got=D.contents.filter(x=>x.weekId===w.id).length;
+        if(got<exp)a.push({company:c.nome,title:'Semana '+i+' incompleta',detail:got+'/'+exp+' conteúdos.',type:'conteúdo'});
+      }
+    }
+  });
+  return a;
+}
+function pendencias(){
+  document.getElementById('p-pendencias').innerHTML=
+    head('Pendências','Acompanhe somente o que falta no planejamento e na produção.')
+    +`<div class="card section"><div class="list">${pend().map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge warn">${e(x.type)}</span></div>`).join('')||empty('Nenhuma pendência. Tudo em dia.')}</div></div>`;
+}
 function textos(){document.getElementById('p-textos').innerHTML=head('Meus Textos','Prompts, legendas e modelos.',`<button class="btn primary" onclick="text()">+ Texto</button>`)+`<div class="grid companies">${D.texts.map(t=>`<div class="card section"><span class="badge">${e(t.categoria||'Texto')}</span><h3>${e(t.titulo)}</h3><p class="meta" style="white-space:pre-wrap">${e(t.conteudo)}</p><div class="actions"><button class="btn light sm" onclick='navigator.clipboard.writeText(${JSON.stringify(t.conteudo||"")});toast("Copiado")'>Copiar</button><button class="btn light sm" onclick="text('${t.id}')">Editar</button></div></div>`).join('')||empty('Nenhum texto.')}</div>`}function text(x=''){let t=D.texts.find(a=>a.id===x)||{};modal('Texto',`<form id="f"><div class="field"><label>Título</label><input name="titulo" value="${e(t.titulo||'')}"></div><div class="field"><label>Categoria</label><input name="categoria" value="${e(t.categoria||'')}"></div><div class="field"><label>Conteúdo</label><textarea name="conteudo" style="min-height:260px">${e(t.conteudo||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(t.id)Object.assign(t,q);else D.texts.push({...q,id:id()});closeM();save()})}
 let TASK_SECTOR='planejamento';
 
+const TASK_SECTORS={
+  planejamento:{
+    title:'Planejamento',
+    subtitle:'Equipe Estratégica',
+    icon:'fa-lightbulb',
+    desc:'Planejamento, roteiros, campanhas, calendário, aprovações e organização estratégica.'
+  },
+  producao:{
+    title:'Produção',
+    subtitle:'Equipe Criativa / Operacional',
+    icon:'fa-clapperboard',
+    desc:'Design, edição, captação, ajustes, uploads, finalização e publicação.'
+  }
+};
+
+function taskNormalize(t){
+  if(!t.setor)t.setor='planejamento';
+  if(typeof t.feita!=='boolean')t.feita=(t.status==='Concluída');
+  if(!t.data&&t.prazo)t.data=t.prazo;
+  return t;
+}
+
 function tarefas(){
-  const sectors={
-    planejamento:{
-      title:'Planejamento',
-      icon:'fa-lightbulb',
-      desc:'Tarefas da Equipe Estratégica: planejamento, roteiros, campanhas, calendário, aprovações e organização.'
-    },
-    producao:{
-      title:'Produção',
-      icon:'fa-clapperboard',
-      desc:'Tarefas da Equipe Criativa / Operacional: design, edição, captação, ajustes, uploads, finalização e publicação.'
-    }
-  };
-  const s=sectors[TASK_SECTOR]||sectors.planejamento;
-  const list=D.tasks.filter(x=>(x.setor||'planejamento')===TASK_SECTOR).sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
+  D.tasks.forEach(taskNormalize);
+  const s=TASK_SECTORS[TASK_SECTOR]||TASK_SECTORS.planejamento;
+  const list=D.tasks
+    .filter(x=>x.setor===TASK_SECTOR)
+    .sort((a,b)=>{
+      if(!!a.feita!==!!b.feita)return a.feita?1:-1;
+      return String(a.data||'9999').localeCompare(String(b.data||'9999'))||String(a.hora||'').localeCompare(String(b.hora||''));
+    });
+
+  const pendingPlan=D.tasks.filter(x=>(x.setor||'planejamento')==='planejamento'&&!taskNormalize(x).feita).length;
+  const pendingProd=D.tasks.filter(x=>x.setor==='producao'&&!taskNormalize(x).feita).length;
 
   const cards=list.map(t=>{
     const c=D.companies.find(x=>x.id===t.companyId);
-    return `<article class="task sector-task ${t.feita?'done':''}">
-      <button class="check" onclick="toggleTask('${t.id}')"><i class="fa ${t.feita?'fa-check':'fa-circle'}"></i></button>
-      <div class="task-body">
-        <div class="move-calendar-tags">
-          <span class="badge ${TASK_SECTOR==='planejamento'?'move-team-strategic':'move-team-creative'}"><i class="fa ${s.icon}"></i> ${s.title}</span>
-          ${c?`<span class="badge">${e(c.nome)}</span>`:''}
-          ${t.prioridade?`<span class="badge ${t.prioridade==='Alta'?'warn':''}">${e(t.prioridade)}</span>`:''}
+    return `<article class="task-card-pro ${t.feita?'is-done':''}">
+      <button class="task-check-pro ${t.feita?'checked':''}" onclick="toggleTask('${t.id}')" title="${t.feita?'Reabrir tarefa':'Concluir tarefa'}">
+        <i class="fa ${t.feita?'fa-check':'fa-circle'}"></i>
+      </button>
+
+      <div class="task-content-pro">
+        <div class="task-tags-pro">
+          <span class="badge ${TASK_SECTOR==='planejamento'?'move-team-strategic':'move-team-creative'}">
+            <i class="fa ${s.icon}"></i> ${s.title}
+          </span>
+          ${c?`<span class="badge"><i class="fa fa-building"></i> ${e(c.nome)}</span>`:''}
+          ${t.prioridade==='Alta'?`<span class="badge red"><i class="fa fa-fire"></i> Alta prioridade</span>`:''}
         </div>
-        <b>${e(t.titulo)}</b>
-        <span>${date(t.data)} ${e(t.hora||'')}</span>
-        ${t.descricao?`<small>${e(t.descricao)}</small>`:''}
+
+        <h4>${e(t.titulo||'Sem título')}</h4>
+        ${t.descricao?`<p>${e(t.descricao)}</p>`:''}
+
+        <div class="task-meta-pro">
+          <span><i class="fa fa-calendar"></i> ${t.data?date(t.data):'Sem prazo'}</span>
+          ${t.hora?`<span><i class="fa fa-clock"></i> ${e(t.hora)}</span>`:''}
+        </div>
       </div>
-      <div class="actions">
-        <button class="btn light sm" onclick="task('${t.id}','${TASK_SECTOR}')"><i class="fa fa-pen"></i></button>
-        <button class="btn danger sm" onclick="deleteTask('${t.id}')"><i class="fa fa-trash"></i></button>
+
+      <div class="task-actions-pro">
+        <button class="btn light sm" onclick="task('${t.id}','${TASK_SECTOR}')" title="Editar"><i class="fa fa-pen"></i></button>
+        <button class="btn danger sm" onclick="deleteTask('${t.id}')" title="Excluir"><i class="fa fa-trash"></i></button>
       </div>
     </article>`;
   }).join('');
 
   document.getElementById('p-tarefas').innerHTML=
-    head('Minhas Tarefas','Planejamento e Produção possuem listas independentes. As tarefas de um setor não aparecem no outro.')
-    +`<div class="task-sector-choice">
-      <button class="task-sector-card ${TASK_SECTOR==='planejamento'?'active':''}" onclick="TASK_SECTOR='planejamento';tarefas()">
-        <div class="task-sector-icon"><i class="fa fa-lightbulb"></i></div>
-        <div><b>Planejamento</b><span>Equipe Estratégica</span></div>
-        <strong>${D.tasks.filter(x=>(x.setor||'planejamento')==='planejamento'&&!x.feita).length}</strong>
-      </button>
-      <button class="task-sector-card ${TASK_SECTOR==='producao'?'active':''}" onclick="TASK_SECTOR='producao';tarefas()">
-        <div class="task-sector-icon"><i class="fa fa-clapperboard"></i></div>
-        <div><b>Produção</b><span>Equipe Criativa / Operacional</span></div>
-        <strong>${D.tasks.filter(x=>x.setor==='producao'&&!x.feita).length}</strong>
-      </button>
-    </div>`
-    +`<div class="task-sector-head">
-      <div><span class="badge ${TASK_SECTOR==='planejamento'?'move-team-strategic':'move-team-creative'}"><i class="fa ${s.icon}"></i> Setor de ${s.title}</span><h3>${s.title}</h3><p class="meta">${s.desc}</p></div>
-      <button class="btn primary" onclick="task('','${TASK_SECTOR}')"><i class="fa fa-plus"></i> Nova tarefa de ${s.title}</button>
-    </div>`
-    +`<div class="tasks">${cards||empty(`Nenhuma tarefa no setor de ${s.title}.`)}</div>`;
+    head('Minhas Tarefas','Escolha o setor. Planejamento e Produção possuem filas completamente independentes.')
+    +`<div class="task-sector-grid">
+        <button class="task-sector-option ${TASK_SECTOR==='planejamento'?'active':''}" onclick="TASK_SECTOR='planejamento';tarefas()">
+          <span class="task-sector-icon strategic"><i class="fa fa-lightbulb"></i></span>
+          <span class="task-sector-copy"><b>Planejamento</b><small>Equipe Estratégica</small></span>
+          <span class="task-sector-number">${pendingPlan}</span>
+        </button>
+
+        <button class="task-sector-option ${TASK_SECTOR==='producao'?'active':''}" onclick="TASK_SECTOR='producao';tarefas()">
+          <span class="task-sector-icon production"><i class="fa fa-clapperboard"></i></span>
+          <span class="task-sector-copy"><b>Produção</b><small>Equipe Criativa / Operacional</small></span>
+          <span class="task-sector-number">${pendingProd}</span>
+        </button>
+      </div>`
+
+    +`<section class="task-workspace">
+        <div class="task-workspace-head">
+          <div>
+            <span class="eyebrow">SETOR ATUAL</span>
+            <h3><i class="fa ${s.icon}"></i> ${s.title}</h3>
+            <p>${s.desc}</p>
+          </div>
+          <button class="btn primary" onclick="task('','${TASK_SECTOR}')"><i class="fa fa-plus"></i> Nova tarefa</button>
+        </div>
+
+        <div class="task-list-pro">${cards||empty(`Nenhuma tarefa em ${s.title}.`)}</div>
+      </section>`;
 }
-function task(x=''){
+
+function task(x='',setor=TASK_SECTOR){
   let t=D.tasks.find(a=>a.id===x)||{};
-  modal('Tarefa',`<form id="f" class="fg">
-    <div class="field span"><label>Empresa</label><select name="companyId"><option value="">Sem empresa</option>${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`<option value="${c.id}" ${t.companyId===c.id?'selected':''}>${e(c.nome)}</option>`).join('')}</select></div>
-    <div class="field"><label>Lista</label><input name="lista" value="${e(t.lista||'Semana atual')}"></div>
-    <div class="field"><label>Prazo</label><input type="date" name="prazo" value="${t.prazo||''}"></div>
-    <div class="field span"><label>Título</label><input name="titulo" value="${e(t.titulo||'')}"></div>
-    <div class="field span"><label>Descrição</label><textarea name="descricao">${e(t.descricao||'')}</textarea></div>
-    <div class="field"><label>Status</label><select name="status">${['Pendente','Em andamento','Concluída'].map(s=>`<option ${t.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+  if(t.id)taskNormalize(t);
+  setor=t.setor||setor||'planejamento';
+  const s=TASK_SECTORS[setor]||TASK_SECTORS.planejamento;
+
+  modal(t.id?'Editar tarefa':`Nova tarefa — ${s.title}`,`<form id="f" class="fg">
+    <div class="field span">
+      <label>Setor</label>
+      <div class="task-sector-fixed">
+        <span class="task-sector-icon ${setor==='planejamento'?'strategic':'production'}"><i class="fa ${s.icon}"></i></span>
+        <div><b>${s.title}</b><small>${s.subtitle} • esta tarefa não será misturada com o outro setor.</small></div>
+      </div>
+      <input type="hidden" name="setor" value="${setor}">
+    </div>
+
+    <div class="field span"><label>Tarefa *</label><input name="titulo" value="${e(t.titulo||'')}" placeholder="Ex.: Finalizar roteiro da campanha"></div>
+
+    <div class="field span"><label>Empresa</label><select name="companyId">
+      <option value="">Sem empresa específica</option>
+      ${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`<option value="${c.id}" ${t.companyId===c.id?'selected':''}>${e(c.nome)}</option>`).join('')}
+    </select></div>
+
+    <div class="field"><label>Prazo</label><input type="date" name="data" value="${t.data||t.prazo||''}"></div>
+    <div class="field"><label>Horário</label><input type="time" name="hora" value="${e(t.hora||'')}"></div>
+
+    <div class="field"><label>Prioridade</label><select name="prioridade">
+      ${['Normal','Alta'].map(v=>`<option ${t.prioridade===v?'selected':''}>${v}</option>`).join('')}
+    </select></div>
+
+    <div class="field span"><label>Descrição / observações</label><textarea name="descricao" placeholder="Detalhes importantes para executar a tarefa.">${e(t.descricao||'')}</textarea></div>
   </form>`,()=>{
-    let q=obj(document.getElementById('f'));
-    if(t.id)Object.assign(t,q);else D.tasks.push({...q,id:id()});
-    closeM();save();tarefas();
-  })
+    const q=obj(document.getElementById('f'));
+    if(!q.titulo)return toast('Informe a tarefa.');
+    q.setor=setor;
+    q.feita=!!t.feita;
+
+    if(t.id)Object.assign(t,q);
+    else D.tasks.unshift({...q,id:id()});
+
+    closeM();
+    save();
+    TASK_SECTOR=setor;
+    tarefas();
+    toast('Tarefa salva em '+s.title+'.');
+  });
 }
+
+function toggleTask(taskId){
+  const t=D.tasks.find(x=>x.id===taskId);
+  if(!t)return;
+  taskNormalize(t);
+  t.feita=!t.feita;
+  t.status=t.feita?'Concluída':'Pendente';
+  save();
+  tarefas();
+  toast(t.feita?'Tarefa concluída.':'Tarefa reaberta.');
+}
+
+function deleteTask(taskId){
+  const t=D.tasks.find(x=>x.id===taskId);
+  if(!t)return;
+  if(!confirm(`Excluir a tarefa "${t.titulo||'Sem título'}"?`))return;
+  D.tasks=D.tasks.filter(x=>x.id!==taskId);
+  save();
+  tarefas();
+  toast('Tarefa excluída.');
+}
+
 function agenda(){let y=cal.getFullYear(),m=cal.getMonth(),s=new Date(y,m,1-new Date(y,m,1).getDay()),days=[];for(let i=0;i<42;i++){let z=new Date(s);z.setDate(s.getDate()+i);days.push(z)}document.getElementById('p-agenda').innerHTML=head('Agenda','Calendário local.',`<button class="btn primary" onclick="eventM()">+ Compromisso</button>`)+`<div class="card section"><div style="display:flex;justify-content:space-between;margin-bottom:10px"><button class="btn light sm" onclick="cal=new Date(${y},${m-1},1);agenda()">←</button><b>${cal.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</b><button class="btn light sm" onclick="cal=new Date(${y},${m+1},1);agenda()">→</button></div><div class="calendar">${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(x=>`<b style="font-size:9px;text-align:center">${x}</b>`).join('')}${days.map(d=>{let k=d.toISOString().slice(0,10),ev=D.agenda.filter(x=>x.data===k);return`<div class="day" onclick="eventM('','${k}')"><b>${d.getDate()}</b>${ev.map(v=>`<div class="event">${e(v.hora)} ${e(v.titulo)}</div>`).join('')}</div>`}).join('')}</div></div>`}function eventM(x='',dt=''){let a=D.agenda.find(v=>v.id===x)||{};modal('Compromisso',`<form id="f" class="fg"><div class="field span"><label>Título</label><input name="titulo" value="${e(a.titulo||'')}"></div><div class="field"><label>Data</label><input type="date" name="data" value="${a.data||dt}"></div><div class="field"><label>Hora</label><input type="time" name="hora" value="${a.hora||'08:00'}"></div><div class="field span"><label>Descrição</label><textarea name="descricao">${e(a.descricao||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(a.id)Object.assign(a,q);else D.agenda.push({...q,id:id()});closeM();save()})}
 function agendamento(){document.getElementById('p-agendamento').innerHTML=head('Agendamento e Aprovação','Artes, vídeos, legendas e HTML para o cliente.')+`<div class="notice">Os arquivos ficam neste navegador em IndexedDB. O HTML de aprovação incorpora as mídias para o cliente abrir sem painel.</div><div class="grid companies">${D.companies.map(c=>`<div class="card company"><div class="avatar">${ini(c.nome)}</div><h3>${e(c.nome)}</h3><div class="meta">${D.scheduled.filter(x=>x.companyId===c.id).length} materiais</div><div class="actions"><button class="btn dark sm" onclick="materials('${c.id}')">Abrir</button><button class="btn light sm" onclick="approval('${c.id}')">Baixar HTML aprovação</button></div></div>`).join('')||empty('Cadastre empresa.')}</div>`}async function materials(cid){
   let c=D.companies.find(x=>x.id===cid),it=D.scheduled.filter(x=>x.companyId===cid),cards='';
@@ -1056,40 +1168,6 @@ function copyCuradoriaLink(idRef){
 function curadoriaEdit(x=''){let a=D.curadoria.find(v=>v.id===x)||{};modal('Referência de Curadoria',`<form id="f" class="fg"><div class="field span"><label>Empresa</label><select name="companyId"><option value="">Selecione...</option>${D.companies.map(c=>`<option value="${c.id}" ${a.companyId===c.id?'selected':''}>${e(c.nome)}</option>`).join('')}</select></div><div class="field span"><label>Nome da referência</label><input name="titulo" value="${e(a.titulo||'')}" placeholder="Ex.: Gancho criativo / transição / campanha"></div><div class="field span"><label>Link do Instagram</label><input name="url" value="${e(a.url||'')}" placeholder="https://www.instagram.com/reel/..."></div><div class="field span"><label>Observação</label><textarea name="obs">${e(a.obs||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(!q.companyId)return toast('Selecione a empresa.');if(!q.url)return toast('Cole o link.');q.url=cleanInstagram(q.url);if(a.id)Object.assign(a,q);else D.curadoria.unshift({...q,id:id()});closeM();save();curadoria();toast('Referência salva.')})}
 function curadoriaDel(x){if(!confirm('Excluir referência?'))return;D.curadoria=D.curadoria.filter(v=>v.id!==x);save();curadoria()}
 
-function financeiro(){let mp=new Map(D.finance.map(f=>[f.companyId,f]));document.getElementById('p-financeiro').innerHTML=head('Financeiro','Controle de valores, status, contratos, cobranças e boleto HTML com PIX.')+`<div class="grid companies">${D.companies.map(c=>{let f=mp.get(c.id);return`<div class="card company"><div class="avatar">${ini(c.nome)}</div><h3>${e(c.nome)}</h3><div class="meta">${f?money(f.valorTotal)+' • '+e(f.statusMes):'Não configurado'}</div><div class="actions"><button class="btn primary sm" onclick="fin('${c.id}','${f?.id||''}')">${f?'Editar':'Configurar'}</button>${f?`<button class="btn dark sm" onclick="boleto('${c.id}','${f.id}')"><i class="fa fa-receipt"></i> Baixar boleto HTML</button><button class="btn light sm" onclick="charge('${c.id}','${f.id}')">Copiar cobrança</button><button class="btn light sm" onclick="chargeToday('${c.id}','${f.id}')">Cobrança do dia</button><button class="btn dark sm" onclick="paid('${f.id}')">${f.statusMes==='Pago'?'Pendente':'Pago'}</button>`:''}<button class="btn light sm" onclick="contract('${c.id}')">Contrato</button></div></div>`}).join('')||empty('Cadastre empresas.')}</div>`}function fin(cid,x=''){let f=D.finance.find(a=>a.id===x)||{},c=D.companies.find(a=>a.id===cid);modal('Financeiro — '+c.nome,`<form id="f" class="fg"><div class="field"><label>Responsável</label><input name="responsavel" value="${e(f.responsavel||c.responsavel||'')}"></div><div class="field"><label>Telefone</label><input name="telefone" value="${e(f.telefone||c.telefone||'')}"></div><div class="field"><label>E-mail</label><input name="email" value="${e(f.email||c.email||'')}"></div><div class="field"><label>Referência</label><input name="referencia" value="${e(f.referencia||new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}))}"></div><div class="field span"><label>Serviço</label><input name="descricao" value="${e(f.descricao||'Gestão de redes sociais')}"></div><div class="field"><label>Valor total</label><input type="number" step="0.01" name="valorTotal" value="${f.valorTotal||''}"></div><div class="field"><label>Parcelas</label><select name="parcelas"><option value="1">1x</option><option value="2" ${f.parcelas==2?'selected':''}>2x quinzenal</option></select></div><div class="field"><label>Vencimento 1</label><input type="number" name="v1" value="${f.v1||5}"></div><div class="field"><label>Vencimento 2</label><input type="number" name="v2" value="${f.v2||20}"></div><div class="field"><label>Multa após 3 dias</label><input type="number" step="0.01" name="multa" value="${f.multa||0}"></div><div class="field"><label>Status</label><select name="statusMes">${['Pendente','Pago','Negociado'].map(v=>`<option ${f.statusMes===v?'selected':''}>${v}</option>`).join('')}</select></div></form>`,()=>{let q=obj(document.getElementById('f'));q.valorTotal=Number(q.valorTotal||0);q.parcelas=Number(q.parcelas||1);if(f.id)Object.assign(f,q);else D.finance.push({...q,id:id(),companyId:cid});closeM();save()})}function paid(x){let f=D.finance.find(a=>a.id===x);f.statusMes=f.statusMes==='Pago'?'Pendente':'Pago';save()}function crc16(s){let crc=0xFFFF;for(let i=0;i<s.length;i++){crc^=s.charCodeAt(i)<<8;for(let j=0;j<8;j++)crc=(crc&0x8000)?((crc<<1)^0x1021):(crc<<1)}return(crc&0xFFFF).toString(16).toUpperCase().padStart(4,'0')}function emv(i,v){v=String(v);return i+String(v.length).padStart(2,'0')+v}function pix(valor,tx='MOVE'){let key='57293143000156',mai=emv('26',emv('00','BR.GOV.BCB.PIX')+emv('01',key)),p=emv('00','01')+mai+emv('52','0000')+emv('53','986');if(Number(valor)>0)p+=emv('54',Number(valor).toFixed(2));p+=emv('58','BR')+emv('59','MARLLUS VINICIUS S ARAUJO')+emv('60','URUCUI')+emv('62',emv('05',String(tx).replace(/[^A-Z0-9]/gi,'').slice(0,25)||'MOVE'))+'6304';return p+crc16(p)}
-function charge(cid,fid){let c=D.companies.find(x=>x.id===cid),f=D.finance.find(x=>x.id===fid),v=Number(f.valorTotal||0)/Math.max(1,f.parcelas||1),r=f.responsavel||c.responsavel||'';let m=`Olá${r?', '+r:''}! Tudo bem?
-
-Passando para lembrar sobre o pagamento referente ao serviço de ${f.descricao||'Gestão de redes sociais'} da ${c.nome}.
-
-Valor ${f.parcelas>1?'da parcela':'do pagamento'}: ${money(v)}.
-Referência: ${f.referencia||'mês atual'}.
-
-Pagamento via PIX:
-Chave: 57293143000156
-Mercado Pago
-MARLLUS VINICIUS S ARAUJO
-
-Caso já tenha realizado, pode desconsiderar e nos enviar o comprovante para atualizarmos o controle.
-
-Muito obrigado pela parceria! 💛
-MOVE AGÊNCIA`;navigator.clipboard.writeText(m);toast('Cobrança copiada.')}
-function chargeToday(cid,fid){let c=D.companies.find(x=>x.id===cid),f=D.finance.find(x=>x.id===fid),v=Number(f.valorTotal||0)/Math.max(1,f.parcelas||1),r=f.responsavel||c.responsavel||'';let m=`Olá${r?', '+r:''}! Tudo bem?
-
-Passando para avisar que o pagamento referente ao serviço de ${f.descricao||'Gestão de redes sociais'} da ${c.nome} vence hoje.
-
-Valor: ${money(v)}.
-
-PIX:
-57293143000156
-Mercado Pago
-MARLLUS VINICIUS S ARAUJO
-
-Se já efetuou o pagamento, pode nos encaminhar o comprovante para atualizarmos o financeiro.
-
-Obrigado pela parceria! 💛
-MOVE AGÊNCIA`;navigator.clipboard.writeText(m);toast('Cobrança do dia copiada.')}
-function boleto(cid,fid){let c=D.companies.find(x=>x.id===cid),f=D.finance.find(x=>x.id===fid),v=Number(f.valorTotal||0)/Math.max(1,f.parcelas||1),payload=pix(v,'MOVE'+String(fid).slice(0,8)),dues=[f.v1,f.v2].filter(Boolean).join(' e '),h=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cobrança - ${e(c.nome)}</title><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><style>body{margin:0;background:#f4f5f7;font-family:Arial;color:#171717}.w{max-width:760px;margin:30px auto;padding:0 18px}.b{background:#fff;border:1px solid #e7e7e7;border-radius:20px;overflow:hidden}.h{background:#111;color:#fff;padding:28px}.h b{color:#fca311}.h h1{margin:8px 0 4px}.h p{margin:0;color:#bbb}.ct{padding:24px}.amount{font-size:42px;font-weight:800;margin:10px 0}.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.box{border:1px solid #eee;border-radius:12px;padding:12px}.box small{display:block;font-size:9px;color:#888;text-transform:uppercase}.pix{margin-top:18px;background:#111;color:#fff;border-radius:14px;padding:18px;display:grid;grid-template-columns:1fr 190px;gap:16px;align-items:center}.pix b{color:#fca311}.qr{background:#fff;padding:8px;width:190px;height:190px;border-radius:10px}.copy{background:#f5f5f5;color:#444;padding:10px;border-radius:8px;font-size:9px;word-break:break-all;margin-top:10px}.btn{border:0;background:#fca311;padding:9px 12px;border-radius:9px;font-weight:bold}@media(max-width:600px){.g,.pix{grid-template-columns:1fr}.qr{margin:auto}}</style></head><body><div class="w"><div class="b"><div class="h"><b>MOVE AGÊNCIA</b><h1>Cobrança • ${e(c.nome)}</h1><p>${e(f.descricao||'Gestão de redes sociais')}</p></div><div class="ct"><div class="amount">${money(v)}</div><div class="g"><div class="box"><small>Responsável</small><b>${e(f.responsavel||c.responsavel||'—')}</b></div><div class="box"><small>Referência</small><b>${e(f.referencia||'Mês atual')}</b></div><div class="box"><small>Vencimento</small><b>Dia ${e(dues||'—')}</b></div><div class="box"><small>Situação</small><b>${e(f.statusMes||'Pendente')}</b></div></div><div class="pix"><div><h2>Pagamento via PIX</h2><p>Chave: <b>57293143000156</b><br>Mercado Pago<br>MARLLUS VINICIUS S ARAUJO</p><button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('p').textContent)">Copiar PIX copia e cola</button><div class="copy" id="p">${payload}</div></div><div id="q" class="qr"></div></div></div></div></div><script>new QRCode(document.getElementById('q'),{text:${JSON.stringify(payload)},width:174,height:174});<\/script></body></html>`;dl(h,`MOVE_Cobranca_${safe(c.nome)}.html`);toast('Boleto HTML baixado.')}
-function contract(cid){let c=D.contracts.find(x=>x.companyId===cid)||{},co=D.companies.find(x=>x.id===cid);modal('Contrato — '+co.nome,`<form id="f" class="fg"><div class="field"><label>Contratante</label><input name="nome" value="${e(c.nome||co.nome)}"></div><div class="field"><label>CPF/CNPJ</label><input name="doc" value="${e(c.doc||'')}"></div><div class="field span"><label>Endereço</label><input name="endereco" value="${e(c.endereco||'')}"></div><div class="field span"><label>Serviço</label><input name="servico" value="${e(c.servico||'Gestão de redes sociais')}"></div><div class="field"><label>Valor</label><input type="number" name="valor" value="${c.valor||''}"></div><div class="field"><label>Status</label><select name="status"><option>Contrato pendente</option><option ${c.status==='Contrato assinado'?'selected':''}>Contrato assinado</option></select></div></form>`,()=>{let q=obj(document.getElementById('f'));if(c.id)Object.assign(c,q);else D.contracts.push({...q,id:id(),companyId:cid});closeM();save()})}
 function dl(txt,name,type='text/html'){let u=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)}function safe(s){return String(s||'arquivo').replace(/[^a-z0-9_-]/gi,'_')}
 async function weekHTML(wid){
   const w=D.weeks.find(x=>x.id===wid);
@@ -1125,7 +1203,7 @@ async function weekHTML(wid){
 async function approval(cid){let c=D.companies.find(x=>x.id===cid),it=D.scheduled.filter(x=>x.companyId===cid),cards='';for(let s of it){let data=await mediaData(s.mediaId),ct=D.contents.find(x=>x.id===s.contentId)||{};cards+=`<article><div class="pv">${s.mime?.startsWith('image/')?`<img src="${data}">`:s.mime?.startsWith('video/')?`<video controls playsinline preload="metadata" src="${data}" onloadedmetadata="if(!this.videoWidth){this.insertAdjacentHTML(\'afterend\',\'<div class=&quot;video-warning&quot;>O navegador conseguiu ler o áudio, mas não o codec de vídeo deste arquivo. Converta para MP4 H.264 para visualizar em qualquer navegador.</div>\')}</video>`:'ARQUIVO'}</div><div class="info"><span>${e(ct.tipo||'Material')}</span><small>${e(s.status)}</small><h2>${e(ct.titulo||s.fileName||'Material')}</h2><p>${date(s.data)} ${e(s.hora||'')}</p>${s.legenda?`<section><b>Legenda proposta</b><p>${e(s.legenda).replace(/\n/g,'<br>')}</p></section>`:''}</div></article>`}dl(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${e(c.nome)} — Aprovação</title><style>body{font-family:Arial;margin:0;background:#f5f6f8}.hero{background:#111;color:#fff;padding:42px}.hero b{color:#fca311}.wrap{max-width:1100px;margin:auto;padding:24px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}article{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.05)}.pv{background:#111;display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto}.pv img{display:block;max-width:100%;width:auto;height:auto;object-fit:contain;object-position:center}.pv video{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:auto;object-fit:contain;object-position:center;background:#000}.video-warning{padding:10px;margin:8px;background:#fff3cd;color:#664d03;border-radius:8px;font-size:11px;line-height:1.4}.info{padding:14px}.info>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:bold}.info>small{float:right;color:#888}.info h2{font-size:15px}.info>p{font-size:10px;color:#888}section{background:#f7f7f7;border-radius:9px;padding:10px}section b{font-size:9px;color:#777}section p{font-size:11px;line-height:1.5}@media(max-width:850px){.grid{grid-template-columns:1fr}}
 
 </style></head><body><div class="hero"><b>MOVE AGÊNCIA</b><h1>${e(c.nome)}</h1><p>Materiais para visualização e aprovação</p></div><div class="wrap"><div class="grid">${cards||'<article><div class="info">Nenhum material.</div></article>'}</div></div></body></html>`,`MOVE_${safe(c.nome)}_Aprovacao.html`);toast('HTML de aprovação baixado.')}
-function backup(){dl(JSON.stringify(D,null,2),'MOVE_Backup_'+new Date().toISOString().slice(0,10)+'.json','application/json')}function restorePick(){const r=document.getElementById('restore');if(r)r.click()}const restoreEl=document.getElementById('restore');if(restoreEl)restoreEl.onchange=async()=>{try{const file=restoreEl.files&&restoreEl.files[0];if(!file)return;D=Object.assign(blank(),JSON.parse(await file.text()));save();toast('Backup restaurado.')}catch(err){toast('Backup inválido.')}}
+function backup(){dl(JSON.stringify(D,null,2),'MOVE_Backup_'+new Date().toISOString().slice(0,10)+'.json','application/json')}function restorePick(){const r=document.getElementById('restore');if(r)r.click()}const restoreEl=document.getElementById('restore');if(restoreEl)restoreEl.onchange=async()=>{try{const file=restoreEl.files&&restoreEl.files[0];if(!file)return;D=Object.assign(blank(),JSON.parse(await file.text()));delete D.finance;delete D.contracts;save();toast('Backup restaurado.')}catch(err){toast('Backup inválido.')}}
 function mediaDB(){return new Promise((ok,no)=>{let r=indexedDB.open('MOVE_MEDIA',1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('m'))r.result.createObjectStore('m')};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}async function mediaPut(k,v){let db=await mediaDB();return new Promise((ok,no)=>{let t=db.transaction('m','readwrite');t.objectStore('m').put(v,k);t.oncomplete=ok;t.onerror=()=>no(t.error)})}async function mediaGet(k){if(!k)return null;let db=await mediaDB();return new Promise((ok,no)=>{let r=db.transaction('m').objectStore('m').get(k);r.onsuccess=()=>ok(r.result||null);r.onerror=()=>no(r.error)})}async function mediaURL(k){let b=await mediaGet(k);return b?URL.createObjectURL(b):''}async function mediaData(k){let b=await mediaGet(k);if(!b)return'';return new Promise((ok,no)=>{let r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(b)})}
 
 
