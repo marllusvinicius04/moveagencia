@@ -396,14 +396,16 @@ async function board(cid){
                   <span class="badge">${e(ct.tipo||'Conteúdo')}</span>
                   <span class="badge ${contentTeam(ct)==='estrategica'?'move-team-strategic':'move-team-creative'}">${contentTeam(ct)==='estrategica'?'Estratégica':'Criativa'}</span>
                   ${workflowBadge(ct.workflowStatus)}
-                  ${media?`<span class="badge ok"><i class="fa fa-paperclip"></i> Mídia</span>`:''}
+                  ${media?`<span class="badge ok move-upload-attached"><i class="fa fa-circle-check"></i> Anexado</span>`:''}
                 </div>
                 <strong>${e(ct.titulo||'Sem título')}</strong>
                 <small>${e(ct.postTime||'Sem horário')}</small>
                 <div class="actions">
                   <button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')"><i class="fa fa-pen"></i></button>
                   ${contentTeam(ct)==='estrategica'?`<button class="btn primary sm" onclick="sendToProduction('${ct.id}')" title="Enviar para produção"><i class="fa fa-arrow-right"></i></button>`:''}
-                  <button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')" title="Anexar imagem ou vídeo"><i class="fa fa-paperclip"></i></button>
+                  ${media
+                    ?`<button class="btn ok sm move-upload-done" onclick="upload('${cid}','${media.id}')" title="Mídia anexada — clique para editar"><i class="fa fa-circle-check"></i> Anexado</button>`
+                    :`<button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')" title="Anexar imagem ou vídeo"><i class="fa fa-paperclip"></i> Upload</button>`}
                   <button class="btn danger sm" onclick="deleteContent('${ct.id}')"><i class="fa fa-trash"></i></button>
                 </div>
               </article>`;
@@ -468,11 +470,11 @@ async function board(cid){
     +`<div class="move-team-area">
       <section class="move-team-column">
         <h3>Equipe Estratégica</h3><p class="meta">Planejamento, ideias, roteiros, calendário e aprovação.</p>
-        <div class="move-team-list">${D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='estrategica').map(ct=>`<article class="move-team-card"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo||'Conteúdo')}</span>${workflowBadge(ct.workflowStatus)}</div><strong>${e(ct.titulo||'Sem título')}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><div class="actions"><button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')">Editar</button><button class="btn primary sm" onclick="sendToProduction('${ct.id}')">Enviar para produção</button></div></article>`).join('')||empty('Nenhum conteúdo estratégico.')}</div>
+        <div class="move-team-list">${D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='estrategica').map(ct=>`<article class="move-team-card"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo||'Conteúdo')}</span>${workflowBadge(ct.workflowStatus)}${D.scheduled.some(s=>s.contentId===ct.id)?`<span class="badge ok move-upload-attached"><i class="fa fa-circle-check"></i> Anexado</span>`:''}</div><strong>${e(ct.titulo||'Sem título')}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><div class="actions"><button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')">Editar</button><button class="btn primary sm" onclick="sendToProduction('${ct.id}')">Enviar para produção</button></div></article>`).join('')||empty('Nenhum conteúdo estratégico.')}</div>
       </section>
       <section class="move-team-column">
         <h3>Equipe Criativa / Operacional</h3><p class="meta">Design, edição, captação, ajustes, finalização e agendamento.</p>
-        <div class="move-team-list">${D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='criativa').map(ct=>`<article class="move-team-card"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo||'Conteúdo')}</span>${workflowBadge(ct.workflowStatus)}</div><strong>${e(ct.titulo||'Sem título')}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><select class="move-status-select" onchange="setWorkflowStatus('${ct.id}',this.value)">${MOVE_TEAM_STATUS.criativa.map(s=>`<option ${((ct.workflowStatus||'Fila de produção')===s)?'selected':''}>${s}</option>`).join('')}</select><div class="actions"><button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')">Abrir</button><button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')">Upload</button></div></article>`).join('')||empty('Nenhum conteúdo em produção.')}</div>
+        <div class="move-team-list">${D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='criativa').map(ct=>`<article class="move-team-card"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo||'Conteúdo')}</span>${workflowBadge(ct.workflowStatus)}${D.scheduled.some(s=>s.contentId===ct.id)?`<span class="badge ok move-upload-attached"><i class="fa fa-circle-check"></i> Anexado</span>`:''}</div><strong>${e(ct.titulo||'Sem título')}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><select class="move-status-select" onchange="setWorkflowStatus('${ct.id}',this.value)">${MOVE_TEAM_STATUS.criativa.map(s=>`<option ${((ct.workflowStatus||'Fila de produção')===s)?'selected':''}>${s}</option>`).join('')}</select><div class="actions"><button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')">Abrir</button>${(()=>{const sm=D.scheduled.find(s=>s.contentId===ct.id);return sm?`<button class="btn ok sm move-upload-done" onclick="upload('${cid}','${sm.id}')"><i class="fa fa-circle-check"></i> Anexado</button>`:`<button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')"><i class="fa fa-paperclip"></i> Upload</button>`})()}</div></article>`).join('')||empty('Nenhum conteúdo em produção.')}</div>
       </section>
     </div>`
     +`<div class="move-board-schedule">
@@ -695,6 +697,8 @@ function attachContent(cid,contentId){
 }
 
 let CAMP_EDIT_STATE=[];
+let CAMP_VIEW='list';
+
 
 function campaignSummaryCount(c){
   return Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0);
@@ -754,7 +758,6 @@ function campaignCollectCreatives(){
 }
 
 function campanhas(){
-  const cs=[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome));
   const cards=[...D.campaigns].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).map(c=>{
     const co=D.companies.find(x=>x.id===c.companyId);
     const total=campaignSummaryCount(c);
@@ -780,10 +783,23 @@ function campanhas(){
     </article>`;
   }).join('');
 
+  const createPanel=`<div class="campaign-create-start card section">
+    <div class="campaign-create-icon"><i class="fa fa-wand-magic-sparkles"></i></div>
+    <h3>Criar nova campanha</h3>
+    <p class="meta">Monte uma campanha estratégica completa para uma empresa, com ideia, objetivos, quantidade de criativos e roteiro de cada peça.</p>
+    <button class="btn primary" onclick="campaignEdit()"><i class="fa fa-plus"></i> Criar campanha</button>
+  </div>`;
+
+  const listPanel=`<div class="grid companies campaign-grid">${cards||empty('Nenhuma campanha criada ainda.')}</div>`;
+
   document.getElementById('p-campanhas').innerHTML=
-    head('Campanhas','Ideias criativas e campanhas estratégicas criadas para cada empresa.',`<button class="btn primary" onclick="campaignEdit()"><i class="fa fa-plus"></i> Nova campanha</button>`)
-    +`<div class="notice">Monte a ideia da campanha, defina os objetivos e a quantidade de criativos. Depois escreva ou cole a estrutura de cada Reel, Post e Stories e baixe uma proposta organizada para apresentar ao cliente.</div>`
-    +`<div class="grid companies campaign-grid">${cards||empty('Nenhuma campanha criada ainda.')}</div>`;
+    head('Campanhas','Ideias criativas e campanhas estratégicas criadas para cada empresa.')
+    +`<div class="campaign-tabs">
+        <button class="btn ${CAMP_VIEW==='create'?'primary':'light'}" onclick="CAMP_VIEW='create';campanhas()"><i class="fa fa-plus"></i> Criar campanha</button>
+        <button class="btn ${CAMP_VIEW==='list'?'dark':'light'}" onclick="CAMP_VIEW='list';campanhas()"><i class="fa fa-folder-open"></i> Ver campanhas <span class="campaign-tab-count">${D.campaigns.length}</span></button>
+      </div>`
+    +`<div class="notice">${CAMP_VIEW==='create'?'Comece uma nova campanha estratégica e depois salve para ela aparecer em Ver campanhas.':'Aqui ficam todas as campanhas já criadas, com opção de editar, excluir e baixar a proposta para o cliente.'}</div>`
+    +(CAMP_VIEW==='create'?createPanel:listPanel);
 }
 
 function campaignEdit(x=''){
@@ -818,7 +834,7 @@ function campaignEdit(x=''){
     q.updatedAt=new Date().toISOString();
     if(c.id)Object.assign(c,q);
     else D.campaigns.unshift({...q,id:id(),createdAt:new Date().toISOString()});
-    closeM();save();campanhas();toast('Campanha salva.');
+    closeM();save();CAMP_VIEW='list';campanhas();toast('Campanha salva.');
   });
 
   setTimeout(()=>{
@@ -1240,6 +1256,14 @@ function injectMoveCalendarCSS(){
     .move-team-card>strong{display:block;margin:8px 0 4px;font-size:12px}.move-team-card>small{display:block;color:#888;font-size:9px;margin-bottom:8px}
     .move-status-select{width:100%;border:1px solid #ddd;border-radius:9px;padding:8px;background:#fff;font-size:10px;margin:5px 0}
     .move-team-strategic{background:#eef3ff!important;color:#3156a3!important}.move-team-creative{background:#fff0d2!important;color:#805100!important}
+    .move-upload-attached{display:inline-flex;align-items:center;gap:4px}
+    .move-upload-done{display:inline-flex!important;align-items:center;gap:5px}
+    .campaign-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+    .campaign-tab-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:rgba(255,255,255,.18);margin-left:4px;font-size:9px}
+    .campaign-create-start{text-align:center;padding:34px!important;max-width:680px;margin:18px auto}
+    .campaign-create-icon{width:60px;height:60px;border-radius:18px;background:#111;color:#fca311;display:grid;place-items:center;margin:0 auto 14px;font-size:22px}
+    .campaign-create-start h3{margin:0 0 7px}
+    .campaign-create-start p{max-width:520px;margin:0 auto 18px;line-height:1.6}
     .campaign-grid{align-items:stretch}.campaign-card{display:flex;flex-direction:column}.campaign-card-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.campaign-card h3{margin:12px 0 6px}.campaign-idea{font-size:11px;line-height:1.55;color:#555;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.campaign-objective{display:grid;gap:3px;padding:10px;background:#f7f7f7;border-radius:10px;margin:10px 0}.campaign-objective b{font-size:9px;text-transform:uppercase;color:#888}.campaign-objective span{font-size:11px}.campaign-card .actions{margin-top:auto;padding-top:12px}.campaign-editor-title{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px}.campaign-editor-title small{display:block;color:#888;font-size:9px;margin-top:4px}.campaign-creative-list{display:grid;gap:10px}.campaign-creative-editor{border:1px solid #e5e5e5;border-radius:13px;padding:12px;background:#fafafa}.campaign-creative-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.campaign-creative-head small{font-size:9px;color:#888}.campaign-total-box{height:42px;display:flex;align-items:center;padding:0 12px;border-radius:10px;background:#111;color:#fca311;font-size:20px;font-weight:800}
     .move-board-schedule{margin-top:28px}
     .move-board-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
