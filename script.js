@@ -1,5 +1,72 @@
 const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['empresas','fa-building','Empresas'],['quadro','fa-lightbulb','Quadro Criativo'],['campanhas','fa-bullhorn','Campanhas'],['pendencias','fa-triangle-exclamation','Pendências'],['textos','fa-file-lines','Meus Textos'],['agenda','fa-calendar-days','Agenda'],['tarefas','fa-list-check','Minhas Tarefas'],['curadoria','fa-icons','Curadoria']];let D=load(),R='home',CID='',cal=new Date(),CUR='all';
 
+const MOVE_ACCESS_PASSWORD='DEUS2604';
+const MOVE_AUTH_KEY='move_local_auth_v1';
+
+
+function ensureLogoutButton(){
+  const topActions=document.querySelector('.top-actions')||document.querySelector('.top>div:last-child');
+  if(!topActions||document.getElementById('logoutAccessBtn'))return;
+  const b=document.createElement('button');
+  b.id='logoutAccessBtn';
+  b.className='btn dark sm';
+  b.innerHTML='<i class="fa fa-right-from-bracket"></i> Sair';
+  b.onclick=logoutAccess;
+  topActions.appendChild(b);
+}
+
+function isAuthenticated(){
+  return sessionStorage.getItem(MOVE_AUTH_KEY)==='1';
+}
+function applyAuthState(){
+  const login=document.getElementById('loginScreen');
+  const app=document.getElementById('appShell');
+  if(!login||!app)return;
+  if(isAuthenticated()){
+    login.classList.add('is-hidden');
+    app.classList.remove('auth-hidden');
+    ensureLogoutButton();
+  }else{
+    login.classList.remove('is-hidden');
+    app.classList.add('auth-hidden');
+    setTimeout(()=>document.getElementById('loginPassword')?.focus(),80);
+  }
+}
+function loginAccess(ev){
+  if(ev)ev.preventDefault();
+  const input=document.getElementById('loginPassword');
+  const err=document.getElementById('loginError');
+  const value=String(input?.value||'').trim();
+
+  if(value===MOVE_ACCESS_PASSWORD){
+    sessionStorage.setItem(MOVE_AUTH_KEY,'1');
+    if(err)err.textContent='';
+    if(input)input.value='';
+    applyAuthState();
+    toast('Acesso liberado.');
+  }else{
+    if(err)err.textContent='Senha incorreta.';
+    if(input){
+      input.value='';
+      input.focus();
+    }
+  }
+  return false;
+}
+function toggleLoginPassword(){
+  const input=document.getElementById('loginPassword');
+  const icon=document.querySelector('.login-eye i');
+  if(!input)return;
+  const show=input.type==='password';
+  input.type=show?'text':'password';
+  if(icon)icon.className=`fa ${show?'fa-eye-slash':'fa-eye'}`;
+}
+function logoutAccess(){
+  sessionStorage.removeItem(MOVE_AUTH_KEY);
+  applyAuthState();
+}
+
+
 if(D.finance)delete D.finance;if(D.contracts)delete D.contracts;
 
 const EL={saved:document.getElementById('saved'),title:document.getElementById('title'),restore:document.getElementById('restore'),nav:document.getElementById('nav'),modal:document.getElementById('modal')};
@@ -1471,3 +1538,4 @@ function injectMoveCelebrationCSS(){
 }
 
 try{injectMoveMultiCSS();injectMoveCalendarCSS();injectMoveCelebrationCSS();nav();render('home');}catch(err){console.error(err);document.getElementById('toast').textContent='Erro ao iniciar painel: '+err.message;document.getElementById('toast').style.display='block';}
+window.addEventListener('DOMContentLoaded',applyAuthState);
