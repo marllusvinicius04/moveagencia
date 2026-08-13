@@ -416,6 +416,7 @@ async function board(cid){
         <div class="actions">
           ${ct.id?`<button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')"><i class="fa fa-pen"></i> Editar conteúdo</button>`:''}
           <button class="btn dark sm" onclick="upload('${cid}','${s.id}')"><i class="fa fa-paperclip"></i> Mídia</button>
+          <button class="btn danger sm" onclick="deleteScheduled('${s.id}','${cid}')" title="Excluir upload"><i class="fa fa-trash"></i> Excluir upload</button>
         </div>
       </div>
     </article>`;
@@ -485,29 +486,75 @@ function copyCompanyData(cid){
   }
 }
 
-function deleteContent(contentId){
+async function deleteContent(contentId){
   const ct=D.contents.find(x=>x.id===contentId);
   if(!ct)return;
-  if(!confirm(`Excluir o conteúdo "${ct.titulo||'Sem título'}"?\n\nO material produzido/agendado vinculado a ele não será apagado automaticamente.`))return;
+  const linked=D.scheduled.filter(x=>x.contentId===contentId);
+  const msg=linked.length
+    ?`Excluir o conteúdo "${ct.titulo||'Sem título'}"?
+
+Existe ${linked.length} upload/material vinculado. Clique em OK para excluir o conteúdo E também remover o(s) upload(s).`
+    :`Excluir o conteúdo "${ct.titulo||'Sem título'}"?`;
+  if(!confirm(msg))return;
+
+  const mids=linked.map(x=>x.mediaId).filter(Boolean);
   D.contents=D.contents.filter(x=>x.id!==contentId);
+  D.scheduled=D.scheduled.filter(x=>x.contentId!==contentId);
+
+  if(mids.length){
+    try{
+      const db=await mediaDB();
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction('media','readwrite');
+        const st=tx.objectStore('media');
+        mids.forEach(mid=>st.delete(mid));
+        tx.oncomplete=()=>resolve();
+        tx.onerror=()=>reject(tx.error);
+        tx.onabort=()=>reject(tx.error);
+      });
+    }catch(_){}
+  }
+
   save();
-  if(CID)board(CID);
-  toast('Conteúdo excluído.');
+  if(CID)await board(CID);
+  toast('Conteúdo e upload(s) excluídos.');
 }
-function deleteWeek(weekId){
+async function deleteWeek(weekId){
   const w=D.weeks.find(x=>x.id===weekId);
   if(!w)return;
   const contents=D.contents.filter(x=>x.weekId===weekId);
-  const msg=`Excluir a Semana ${w.numero} e seu quadro?\n\n${contents.length} conteúdo(s) planejado(s) dentro dela também serão excluídos.\n\nOs arquivos já produzidos no Agendamento serão preservados.`;
-  if(!confirm(msg))return;
   const ids=new Set(contents.map(x=>x.id));
+  const linked=D.scheduled.filter(s=>ids.has(s.contentId));
+  const msg=`Excluir a Semana ${w.numero} e seu quadro?
+
+${contents.length} conteúdo(s) planejado(s) serão excluídos.
+${linked.length} upload(s)/material(is) vinculado(s) também serão removidos.
+
+Essa ação não pode ser desfeita.`;
+  if(!confirm(msg))return;
+
+  const mids=linked.map(x=>x.mediaId).filter(Boolean);
   D.contents=D.contents.filter(x=>x.weekId!==weekId);
   D.weeks=D.weeks.filter(x=>x.id!==weekId);
-  // Keep scheduled media, but remove broken content link
-  D.scheduled.forEach(s=>{if(ids.has(s.contentId))s.contentId=''});
+  D.scheduled=D.scheduled.filter(s=>!ids.has(s.contentId));
+
+  if(mids.length){
+    try{
+      const db=await mediaDB();
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction('media','readwrite');
+        const st=tx.objectStore('media');
+        mids.forEach(mid=>st.delete(mid));
+        tx.oncomplete=()=>resolve();
+        tx.onerror=()=>reject(tx.error);
+        tx.onabort=()=>reject(tx.error);
+      });
+    }catch(_){}
+  }
+
   save();
-  if(CID)board(CID);
-  toast('Quadro/semana excluído.');
+  if(CID)await board(CID);
+  toast('Semana, conteúdos e uploads excluídos.');
 }
 
 function week(cid,x=''){let w=D.weeks.find(a=>a.id===x)||{},n=w.numero||Math.min(4,D.weeks.filter(a=>a.companyId===cid).length+1);modal('Semana',`<form id="f" class="fg"><div class="field"><label>Número</label><select name="numero">${[1,2,3,4].map(i=>`<option ${i==n?'selected':''}>${i}</option>`).join('')}</select></div><div></div><div class="field"><label>Início</label><input type="date" name="inicio" value="${w.inicio||''}"></div><div class="field"><label>Fim</label><input type="date" name="fim" value="${w.fim||''}"></div>${multiSelectField('objetivo','Objetivo',OBJETIVOS_OPCOES,w.objetivo||'')}${multiSelectField('linha','Linha estratégica',LINHAS_CONTEUDO_OPCOES,w.linha||'')}</form>`,()=>{let q=objMulti(document.getElementById('f'));q.numero=Number(q.numero);if(w.id)Object.assign(w,q);else D.weeks.push({...q,id:id(),companyId:cid});closeM();save();board(cid)})}
@@ -688,7 +735,7 @@ function agendamento(){document.getElementById('p-agendamento').innerHTML=head('
         </div>
         <h3>${e(ct.titulo||s.fileName||'Material')}</h3>
         ${s.legenda?`<div class="caption">${e(s.legenda)}</div>`:'<div class="meta">Sem legenda cadastrada.</div>'}
-        <div class="actions"><button class="btn light sm" onclick="upload('${cid}','${s.id}')"><i class="fa fa-pen"></i> Editar</button></div>
+        <div class="actions"><button class="btn light sm" onclick="upload('${cid}','${s.id}')"><i class="fa fa-pen"></i> Editar</button><button class="btn danger sm" onclick="deleteScheduled('${s.id}','${cid}')"><i class="fa fa-trash"></i> Excluir upload</button></div>
       </div>
     </article>`;
   }
@@ -697,6 +744,39 @@ function agendamento(){document.getElementById('p-agendamento').innerHTML=head('
     +`<div style="display:grid;gap:18px">${cards||empty('Nenhum material.')}</div>`;
 }
 function upload(cid,x=''){let s=D.scheduled.find(a=>a.id===x)||{},opts=D.contents.filter(a=>a.companyId===cid).map(c=>`<option value="${c.id}" ${s.contentId===c.id?'selected':''}>${e(c.tipo)} — ${e(c.titulo)}</option>`).join('');modal('Material',`<form id="f" class="fg"><div class="field span"><label>Conteúdo</label><select name="contentId"><option value="">Sem vínculo</option>${opts}</select></div><div class="field span"><label>Imagem ou vídeo</label><input type="file" id="file" accept="image/*,video/*"></div><div class="field span"><label>Legenda</label><textarea name="legenda">${e(s.legenda||'')}</textarea></div><div class="field"><label>Data</label><input type="date" name="data" value="${s.data||''}"></div><div class="field"><label>Hora</label><input type="time" name="hora" value="${e(s.hora||'')}"></div><div class="field"><label>Status</label><select name="status">${['Aguardando aprovação','Aprovado','Ajustar','Agendado','Publicado'].map(v=>`<option ${s.status===v?'selected':''}>${v}</option>`).join('')}</select></div></form>`,async()=>{let q=obj(document.getElementById('f')),fl=document.getElementById('file').files[0],mid=s.mediaId||id();if(!x&&!fl)return toast('Selecione um arquivo.');if(fl&&fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');if(fl){await mediaPut(mid,fl);q.mediaId=mid;q.mime=fl.type;q.fileName=fl.name}else{q.mediaId=mid;q.mime=s.mime;q.fileName=s.fileName}if(s.id)Object.assign(s,q);else D.scheduled.push({...q,id:id(),companyId:cid});closeM();save();materials(cid)})}
+
+
+async function deleteScheduled(scheduledId,cid=''){
+  const s=D.scheduled.find(x=>x.id===scheduledId);
+  if(!s)return;
+  const ct=D.contents.find(x=>x.id===s.contentId);
+  const name=ct?.titulo||s.fileName||'material';
+  if(!confirm(`Excluir o upload "${name}"?\n\nO conteúdo planejado será mantido. Apenas a mídia/agendamento anexado será removido.`))return;
+
+  const mid=s.mediaId;
+  D.scheduled=D.scheduled.filter(x=>x.id!==scheduledId);
+
+  if(mid){
+    try{
+      const db=await mediaDB();
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction('media','readwrite');
+        tx.objectStore('media').delete(mid);
+        tx.oncomplete=()=>resolve();
+        tx.onerror=()=>reject(tx.error);
+        tx.onabort=()=>reject(tx.error);
+      });
+    }catch(_){}
+  }
+
+  save();
+  if(cid||CID){
+    await board(cid||CID);
+  }else{
+    agendamento();
+  }
+  toast('Upload excluído.');
+}
 
 function cleanInstagram(u){u=String(u||'').trim();try{let x=new URL(u);x.search='';x.hash='';return x.toString()}catch(_){return u}}
 function curadoria(){
