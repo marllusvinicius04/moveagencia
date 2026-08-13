@@ -1,8 +1,8 @@
-const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['empresas','fa-building','Empresas'],['quadro','fa-lightbulb','Quadro Criativo'],['pendencias','fa-triangle-exclamation','Pendências'],['textos','fa-file-lines','Meus Textos'],['agenda','fa-calendar-days','Agenda'],['tarefas','fa-list-check','Minhas Tarefas'],['agendamento','fa-photo-film','Agendamento'],['curadoria','fa-icons','Curadoria'],['financeiro','fa-wallet','Financeiro']];let D=load(),R='home',CID='',cal=new Date(),CUR='all';
+const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['operacao','fa-rotate','Operação'],['empresas','fa-building','Empresas'],['quadro','fa-lightbulb','Quadro Criativo'],['pendencias','fa-triangle-exclamation','Pendências'],['textos','fa-file-lines','Meus Textos'],['agenda','fa-calendar-days','Agenda'],['tarefas','fa-list-check','Minhas Tarefas'],['agendamento','fa-photo-film','Agendamento'],['curadoria','fa-icons','Curadoria'],['financeiro','fa-wallet','Financeiro']];let D=load(),R='home',CID='',cal=new Date(),CUR='all';
 
 const EL={saved:document.getElementById('saved'),title:document.getElementById('title'),restore:document.getElementById('restore'),nav:document.getElementById('nav'),modal:document.getElementById('modal')};
 
-function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],finance:[],contracts:[],tasks:[],texts:[],agenda:[],curadoria:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,pendencias,textos,agenda,tarefas,agendamento,curadoria,financeiro}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
+function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],finance:[],contracts:[],tasks:[],texts:[],agenda:[],curadoria:[],operationWeeks:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,operacao,empresas,quadro,pendencias,textos,agenda,tarefas,agendamento,curadoria,financeiro}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
 
 const OBJETIVOS_OPCOES=[
   'Vender mais',
@@ -156,6 +156,123 @@ function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
     +`<div style="margin-top:18px">${head('Demandas mensais','Cálculo por empresa usando o volume semanal x4 e as tarefas abertas.')}</div>`
     +`<div class="grid companies">${demandCards||empty('Cadastre empresas para calcular as demandas.')}</div>`;
 }
+
+function isoLocal(d){
+  const x=new Date(d);
+  const y=x.getFullYear(),m=String(x.getMonth()+1).padStart(2,'0'),day=String(x.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function mondayOf(v=new Date()){
+  const d=new Date(v),day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);
+  d.setDate(diff);d.setHours(12,0,0,0);return d;
+}
+function addDaysISO(iso,n){const d=new Date(iso+'T12:00');d.setDate(d.getDate()+n);return isoLocal(d)}
+function operationWeekByStart(start){return D.operationWeeks.find(x=>x.start===start)}
+function operationType(start){
+  const base=mondayOf(new Date());
+  const target=mondayOf(new Date(start+'T12:00'));
+  const diff=Math.round((target-base)/(7*86400000));
+  return Math.abs(diff)%2===0?'Planejamento':'Captação e Produção';
+}
+function operationLabel(type){return type==='Planejamento'?'SEMANA DE PLANEJAMENTO':'SEMANA DE CAPTAÇÃO E PRODUÇÃO'}
+function operationDefaults(type){
+  return type==='Planejamento'
+    ?[
+      ['Revisar pendências das 13 empresas','09:00','10:00','Operação'],
+      ['Planejar conteúdos das próximas 2 semanas','10:00','12:00','Planejamento'],
+      ['Criar roteiros, ideias e referências','14:00','16:00','Estratégia'],
+      ['Fechar calendário e preparar próxima captação','16:00','17:30','Preparação']
+    ]
+    :[
+      ['Conferir roteiro e ordem das captações','08:00','09:00','Preparação'],
+      ['Captações programadas','09:00','12:00','Captação'],
+      ['Organizar arquivos e backups','13:30','14:30','Organização'],
+      ['Editar materiais captados','14:30','17:00','Edição'],
+      ['Enviar materiais para aprovação / Kiiru','17:00','18:00','Entrega']
+    ];
+}
+function ensureOperationWeek(start,type=''){
+  let w=operationWeekByStart(start);
+  if(!w){
+    w={id:id(),start,type:type||operationType(start),prepared:false,notes:'',createdAt:new Date().toISOString()};
+    D.operationWeeks.push(w);
+  }
+  return w;
+}
+function weekTasks(start){return D.tasks.filter(t=>t.operationWeek===start).sort((a,b)=>(a.operationDate||'').localeCompare(b.operationDate||'')||(a.horaInicio||'').localeCompare(b.horaInicio||''))}
+function operationProgress(start){
+  const ts=weekTasks(start),done=ts.filter(t=>t.status==='Concluída').length;
+  return {total:ts.length,done,pct:ts.length?Math.round(done/ts.length*100):0};
+}
+function prepararSemana(start='',forcedType=''){
+  const base=start?new Date(start+'T12:00'):mondayOf(new Date());
+  const monday=isoLocal(mondayOf(base)),w=ensureOperationWeek(monday,forcedType||operationType(monday));
+  const days=['Segunda','Terça','Quarta','Quinta','Sexta'];
+  const body=`<form id="f" class="fg">
+    <div class="field"><label>Semana referente</label><input type="date" name="start" value="${w.start}"></div>
+    <div class="field"><label>Tipo da semana</label><select name="type">${['Planejamento','Captação e Produção'].map(v=>`<option ${w.type===v?'selected':''}>${v}</option>`).join('')}</select></div>
+    <div class="field span"><label>Objetivo / observações da semana</label><textarea name="notes" placeholder="Ex.: deixar semanas 2 e 3 prontas, finalizar aprovações, organizar captações...">${e(w.notes||'')}</textarea></div>
+    <div class="field span"><label>Adicionar tarefa à preparação</label>
+      <div class="fg" style="margin-top:8px">
+        <div class="field"><label>Dia</label><select id="opDay">${days.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select></div>
+        <div class="field"><label>Empresa</label><select id="opCompany"><option value="">Operação geral</option>${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`<option value="${c.id}">${e(c.nome)}</option>`).join('')}</select></div>
+        <div class="field span"><label>Tarefa</label><input id="opTitle" placeholder="Ex.: editar Reel da empresa X"></div>
+        <div class="field"><label>Início</label><input type="time" id="opStart" value="09:00"></div>
+        <div class="field"><label>Fim</label><input type="time" id="opEnd" value="10:00"></div>
+      </div>
+      <button type="button" class="btn dark sm" style="margin-top:10px" onclick="addOperationTaskFromModal('${w.id}')">+ Adicionar tarefa</button>
+    </div>
+    <div class="field span"><label>Rotina sugerida</label><div class="notice">Você pode gerar uma base automática para esta semana e depois editar/excluir as tarefas normalmente em Minhas Tarefas.</div>
+      <button type="button" class="btn light sm" style="margin-top:8px" onclick="generateOperationRoutine('${w.id}')"><i class="fa fa-wand-magic-sparkles"></i> Gerar rotina base</button>
+    </div>
+  </form>`;
+  modal('Preparar semana',body,()=>{
+    const q=obj(document.getElementById('f'));
+    const old=w.start;
+    w.start=q.start||w.start;w.type=q.type||w.type;w.notes=q.notes||'';w.prepared=true;
+    if(old!==w.start)D.tasks.filter(t=>t.operationWeek===old).forEach(t=>t.operationWeek=w.start);
+    closeM();save();operacao();toast('Semana preparada.');
+  });
+}
+function addOperationTaskFromModal(wid){
+  const w=D.operationWeeks.find(x=>x.id===wid);if(!w)return;
+  const title=document.getElementById('opTitle').value.trim();if(!title)return toast('Informe a tarefa.');
+  const day=Number(document.getElementById('opDay').value||0);
+  D.tasks.push({id:id(),companyId:document.getElementById('opCompany').value,lista:operationLabel(w.type),titulo:title,descricao:'',prazo:addDaysISO(w.start,day),operationDate:addDaysISO(w.start,day),operationWeek:w.start,horaInicio:document.getElementById('opStart').value,horaFim:document.getElementById('opEnd').value,status:'Pendente'});
+  document.getElementById('opTitle').value='';save();toast('Tarefa adicionada à semana.');
+}
+function generateOperationRoutine(wid){
+  const w=D.operationWeeks.find(x=>x.id===wid);if(!w)return;
+  if(D.tasks.some(t=>t.operationWeek===w.start)&&!confirm('Essa semana já possui tarefas. Adicionar a rotina base mesmo assim?'))return;
+  const defs=operationDefaults(w.type);
+  defs.forEach((x,i)=>D.tasks.push({id:id(),companyId:'',lista:operationLabel(w.type),titulo:x[0],descricao:x[3],prazo:addDaysISO(w.start,Math.min(i,4)),operationDate:addDaysISO(w.start,Math.min(i,4)),operationWeek:w.start,horaInicio:x[1],horaFim:x[2],status:'Pendente'}));
+  save();toast('Rotina base adicionada.');
+}
+function setOperationWeekType(start,type){
+  const w=ensureOperationWeek(start,type);w.type=type;save();operacao();
+}
+function operacao(){
+  const current=isoLocal(mondayOf(new Date()));
+  const starts=[-1,0,1,2].map(n=>addDaysISO(current,n*7));
+  starts.forEach(s=>ensureOperationWeek(s,operationType(s)));
+  const cards=starts.map(s=>{
+    const w=operationWeekByStart(s),p=operationProgress(s),ts=weekTasks(s),end=addDaysISO(s,4);
+    return `<div class="card section move-op-week ${s===current?'move-op-current':''}">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+        <div><span class="badge ${w.type==='Planejamento'?'warn':'ok'}">${operationLabel(w.type)}</span><h3 style="margin:8px 0 3px">${date(s)} — ${date(end)}</h3><div class="meta">${w.notes?e(w.notes):'Semana ainda sem observações.'}</div></div>
+        <button class="btn primary sm" onclick="prepararSemana('${s}','${w.type}')"><i class="fa fa-calendar-check"></i> Preparar semana</button>
+      </div>
+      <div class="move-op-progress"><div style="width:${p.pct}%"></div></div>
+      <div class="meta" style="margin:7px 0 10px"><b>${p.done}/${p.total}</b> tarefas concluídas • ${p.pct}%</div>
+      <div class="list">${ts.slice(0,8).map(t=>{const c=D.companies.find(x=>x.id===t.companyId);return `<div class="item"><div><strong>${e(t.horaInicio||'')} ${e(t.titulo)}</strong><small>${date(t.operationDate||t.prazo)}${c?' • '+e(c.nome):' • Operação geral'}${t.horaFim?' • até '+e(t.horaFim):''}</small></div><span class="badge ${t.status==='Concluída'?'ok':'warn'}">${e(t.status||'Pendente')}</span></div>`}).join('')||empty('Nenhuma tarefa preparada para esta semana.')}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('p-operacao').innerHTML=
+    head('Operação quinzenal','Seu método alternando planejamento e captação/produção. Prepare cada semana antes dela começar.',`<button class="btn primary" onclick="prepararSemana('${current}')"><i class="fa fa-calendar-plus"></i> Preparar semana atual</button>`)
+    +`<div class="notice"><b>Método MOVE:</b> Semana de Planejamento = criar e fechar o que será produzido nas próximas semanas. Semana de Captação e Produção = captar, editar, enviar para aprovação e deixar o conteúdo seguinte pronto. As tarefas criadas aqui também aparecem em Minhas Tarefas.</div>`
+    +`<div style="display:grid;gap:14px;margin-top:14px">${cards}</div>`;
+}
+
 function empresas(){
   document.getElementById('p-empresas').innerHTML=
     head('Empresas','Cadastre clientes e volume semanal.',`<button class="btn primary" onclick="company()">+ Nova empresa</button>`)
@@ -499,7 +616,7 @@ function tarefas(){
             </div>
             <h4>${e(t.titulo||'Sem título')}</h4>
             ${t.descricao?`<div class="task-desc">${e(t.descricao)}</div>`:''}
-            <div class="meta" style="margin-top:8px">${t.prazo?`Prazo: ${date(t.prazo)}`:'Sem prazo'}</div>
+            <div class="meta" style="margin-top:8px">${t.prazo?`Prazo: ${date(t.prazo)}`:'Sem prazo'}${t.horaInicio?` • ${e(t.horaInicio)}${t.horaFim?`–${e(t.horaFim)}`:''}`:''}</div>
             <div class="task-footer">
               <div class="task-statuses">
                 <button class="status-dot st-pend" onclick="taskStatus('${t.id}','Pendente')">Pendente</button>
@@ -539,7 +656,7 @@ function task(x=''){
   modal('Tarefa',`<form id="f" class="fg">
     <div class="field span"><label>Empresa</label><select name="companyId"><option value="">Sem empresa</option>${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`<option value="${c.id}" ${t.companyId===c.id?'selected':''}>${e(c.nome)}</option>`).join('')}</select></div>
     <div class="field"><label>Lista</label><input name="lista" value="${e(t.lista||'Semana atual')}"></div>
-    <div class="field"><label>Prazo</label><input type="date" name="prazo" value="${t.prazo||''}"></div>
+    <div class="field"><label>Prazo</label><input type="date" name="prazo" value="${t.prazo||''}"></div><div class="field"><label>Hora início</label><input type="time" name="horaInicio" value="${e(t.horaInicio||'')}"></div><div class="field"><label>Hora fim</label><input type="time" name="horaFim" value="${e(t.horaFim||'')}"></div>
     <div class="field span"><label>Título</label><input name="titulo" value="${e(t.titulo||'')}"></div>
     <div class="field span"><label>Descrição</label><textarea name="descricao">${e(t.descricao||'')}</textarea></div>
     <div class="field"><label>Status</label><select name="status">${['Pendente','Em andamento','Concluída'].map(s=>`<option ${t.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
@@ -831,4 +948,24 @@ function injectMoveCelebrationCSS(){
   document.head.appendChild(st);
 }
 
-try{injectMoveMultiCSS();injectMoveCelebrationCSS();nav();render('home');}catch(err){console.error(err);document.getElementById('toast').textContent='Erro ao iniciar painel: '+err.message;document.getElementById('toast').style.display='block';}
+
+function injectOperationUI(){
+  if(!document.getElementById('p-operacao')){
+    const page=document.createElement('section');
+    page.id='p-operacao';page.className='page';
+    const anchor=document.getElementById('p-home');
+    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(page,anchor.nextSibling);
+    else document.querySelector('main')?.appendChild(page);
+  }
+  if(!document.getElementById('move-operation-css')){
+    const st=document.createElement('style');st.id='move-operation-css';st.textContent=`
+      .move-op-week{border:1px solid #ececec}
+      .move-op-current{box-shadow:0 0 0 2px rgba(252,163,17,.14);border-color:#fca311}
+      .move-op-progress{height:8px;background:#eee;border-radius:999px;overflow:hidden;margin-top:14px}
+      .move-op-progress>div{height:100%;background:#111;border-radius:999px;transition:.25s}
+      @media(max-width:700px){.move-op-week .item{align-items:flex-start}}
+    `;document.head.appendChild(st);
+  }
+}
+
+try{injectOperationUI();injectMoveMultiCSS();injectMoveCelebrationCSS();nav();render('home');}catch(err){console.error(err);document.getElementById('toast').textContent='Erro ao iniciar painel: '+err.message;document.getElementById('toast').style.display='block';}
