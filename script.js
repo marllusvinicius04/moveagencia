@@ -233,6 +233,7 @@ function empresas(){
         <div class="avatar">${ini(c.nome)}</div>
         <h3>${e(c.nome)}</h3>
         <div class="meta">${e(c.responsavel||'—')} • ${e(c.telefone||'')}</div>
+        ${c.cor?`<div class="meta" style="display:flex;align-items:center;gap:6px;margin-top:6px"><span style="width:12px;height:12px;border-radius:50%;background:${e(c.cor)};border:1px solid #ddd;display:inline-block"></span> ${e(c.cor)}</div>`:''}
         <div class="stats">
           <div class="mini"><b>${c.reels||0}</b><span>REELS</span></div>
           <div class="mini"><b>${c.posts||0}</b><span>POSTS</span></div>
@@ -290,6 +291,14 @@ function company(x=''){
     <div class="field"><label>Responsável</label><input name="responsavel" value="${e(c.responsavel||'')}"></div>
     <div class="field"><label>Telefone</label><input name="telefone" value="${e(c.telefone||'')}"></div>
     <div class="field"><label>E-mail</label><input name="email" value="${e(c.email||'')}"></div>
+    <div class="field">
+      <label>Cor da empresa</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="color" name="cor" value="${e(c.cor||'#fca311')}" style="width:52px;height:42px;padding:4px;cursor:pointer">
+        <input type="text" value="${e(c.cor||'#fca311')}" oninput="this.previousElementSibling.value=this.value" onchange="this.previousElementSibling.value=this.value" placeholder="#000000" style="flex:1">
+      </div>
+      <small class="move-check-help">Cor principal/identidade visual da empresa.</small>
+    </div>
 
     <div class="field span">
       <label>Sobre a empresa</label>
@@ -308,6 +317,7 @@ function company(x=''){
     let q=objMulti(document.getElementById('f'));
     if(!q.nome)return toast('Informe o nome.');
     ['reels','posts','stories','captacoes'].forEach(k=>q[k]=Number(q[k]||0));
+    q.cor=String(q.cor||'#fca311').trim();
     if(c.id)Object.assign(c,q);
     else D.companies.push({...q,id:id()});
     closeM();
@@ -562,6 +572,9 @@ function copyCompanyData(cid){
     `Posts: ${Number(c.posts||0)}`,
     `Stories: ${Number(c.stories||0)}`,
     `Captações: ${Number(c.captacoes||0)}`,
+    '',
+    'COR DA EMPRESA:',
+    c.cor||'Não informado.',
     '',
     'TOM DE COMUNICAÇÃO:',
     c.tons||'Não informado.',
