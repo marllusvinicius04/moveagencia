@@ -1,8 +1,8 @@
-const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['operacao','fa-rotate','Operação'],['empresas','fa-building','Empresas'],['quadro','fa-lightbulb','Quadro Criativo'],['pendencias','fa-triangle-exclamation','Pendências'],['textos','fa-file-lines','Meus Textos'],['agenda','fa-calendar-days','Agenda'],['tarefas','fa-list-check','Minhas Tarefas'],['agendamento','fa-photo-film','Agendamento'],['curadoria','fa-icons','Curadoria'],['financeiro','fa-wallet','Financeiro']];let D=load(),R='home',CID='',cal=new Date(),CUR='all';
+const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['empresas','fa-building','Empresas'],['quadro','fa-lightbulb','Quadro Criativo'],['pendencias','fa-triangle-exclamation','Pendências'],['textos','fa-file-lines','Meus Textos'],['agenda','fa-calendar-days','Agenda'],['tarefas','fa-list-check','Minhas Tarefas'],['curadoria','fa-icons','Curadoria'],['financeiro','fa-wallet','Financeiro']];let D=load(),R='home',CID='',cal=new Date(),CUR='all';
 
 const EL={saved:document.getElementById('saved'),title:document.getElementById('title'),restore:document.getElementById('restore'),nav:document.getElementById('nav'),modal:document.getElementById('modal')};
 
-function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],finance:[],contracts:[],tasks:[],texts:[],agenda:[],curadoria:[],operationWeeks:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,operacao,empresas,quadro,pendencias,textos,agenda,tarefas,agendamento,curadoria,financeiro}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
+function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],finance:[],contracts:[],tasks:[],texts:[],agenda:[],curadoria:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,pendencias,textos,agenda,tarefas,agendamento,curadoria,financeiro}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
 
 const OBJETIVOS_OPCOES=[
   'Vender mais',
@@ -156,123 +156,6 @@ function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
     +`<div style="margin-top:18px">${head('Demandas mensais','Cálculo por empresa usando o volume semanal x4 e as tarefas abertas.')}</div>`
     +`<div class="grid companies">${demandCards||empty('Cadastre empresas para calcular as demandas.')}</div>`;
 }
-
-function isoLocal(d){
-  const x=new Date(d);
-  const y=x.getFullYear(),m=String(x.getMonth()+1).padStart(2,'0'),day=String(x.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
-function mondayOf(v=new Date()){
-  const d=new Date(v),day=d.getDay(),diff=d.getDate()-day+(day===0?-6:1);
-  d.setDate(diff);d.setHours(12,0,0,0);return d;
-}
-function addDaysISO(iso,n){const d=new Date(iso+'T12:00');d.setDate(d.getDate()+n);return isoLocal(d)}
-function operationWeekByStart(start){return D.operationWeeks.find(x=>x.start===start)}
-function operationType(start){
-  const base=mondayOf(new Date());
-  const target=mondayOf(new Date(start+'T12:00'));
-  const diff=Math.round((target-base)/(7*86400000));
-  return Math.abs(diff)%2===0?'Planejamento':'Captação e Produção';
-}
-function operationLabel(type){return type==='Planejamento'?'SEMANA DE PLANEJAMENTO':'SEMANA DE CAPTAÇÃO E PRODUÇÃO'}
-function operationDefaults(type){
-  return type==='Planejamento'
-    ?[
-      ['Revisar pendências das 13 empresas','09:00','10:00','Operação'],
-      ['Planejar conteúdos das próximas 2 semanas','10:00','12:00','Planejamento'],
-      ['Criar roteiros, ideias e referências','14:00','16:00','Estratégia'],
-      ['Fechar calendário e preparar próxima captação','16:00','17:30','Preparação']
-    ]
-    :[
-      ['Conferir roteiro e ordem das captações','08:00','09:00','Preparação'],
-      ['Captações programadas','09:00','12:00','Captação'],
-      ['Organizar arquivos e backups','13:30','14:30','Organização'],
-      ['Editar materiais captados','14:30','17:00','Edição'],
-      ['Enviar materiais para aprovação / Kiiru','17:00','18:00','Entrega']
-    ];
-}
-function ensureOperationWeek(start,type=''){
-  let w=operationWeekByStart(start);
-  if(!w){
-    w={id:id(),start,type:type||operationType(start),prepared:false,notes:'',createdAt:new Date().toISOString()};
-    D.operationWeeks.push(w);
-  }
-  return w;
-}
-function weekTasks(start){return D.tasks.filter(t=>t.operationWeek===start).sort((a,b)=>(a.operationDate||'').localeCompare(b.operationDate||'')||(a.horaInicio||'').localeCompare(b.horaInicio||''))}
-function operationProgress(start){
-  const ts=weekTasks(start),done=ts.filter(t=>t.status==='Concluída').length;
-  return {total:ts.length,done,pct:ts.length?Math.round(done/ts.length*100):0};
-}
-function prepararSemana(start='',forcedType=''){
-  const base=start?new Date(start+'T12:00'):mondayOf(new Date());
-  const monday=isoLocal(mondayOf(base)),w=ensureOperationWeek(monday,forcedType||operationType(monday));
-  const days=['Segunda','Terça','Quarta','Quinta','Sexta'];
-  const body=`<form id="f" class="fg">
-    <div class="field"><label>Semana referente</label><input type="date" name="start" value="${w.start}"></div>
-    <div class="field"><label>Tipo da semana</label><select name="type">${['Planejamento','Captação e Produção'].map(v=>`<option ${w.type===v?'selected':''}>${v}</option>`).join('')}</select></div>
-    <div class="field span"><label>Objetivo / observações da semana</label><textarea name="notes" placeholder="Ex.: deixar semanas 2 e 3 prontas, finalizar aprovações, organizar captações...">${e(w.notes||'')}</textarea></div>
-    <div class="field span"><label>Adicionar tarefa à preparação</label>
-      <div class="fg" style="margin-top:8px">
-        <div class="field"><label>Dia</label><select id="opDay">${days.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select></div>
-        <div class="field"><label>Empresa</label><select id="opCompany"><option value="">Operação geral</option>${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`<option value="${c.id}">${e(c.nome)}</option>`).join('')}</select></div>
-        <div class="field span"><label>Tarefa</label><input id="opTitle" placeholder="Ex.: editar Reel da empresa X"></div>
-        <div class="field"><label>Início</label><input type="time" id="opStart" value="09:00"></div>
-        <div class="field"><label>Fim</label><input type="time" id="opEnd" value="10:00"></div>
-      </div>
-      <button type="button" class="btn dark sm" style="margin-top:10px" onclick="addOperationTaskFromModal('${w.id}')">+ Adicionar tarefa</button>
-    </div>
-    <div class="field span"><label>Rotina sugerida</label><div class="notice">Você pode gerar uma base automática para esta semana e depois editar/excluir as tarefas normalmente em Minhas Tarefas.</div>
-      <button type="button" class="btn light sm" style="margin-top:8px" onclick="generateOperationRoutine('${w.id}')"><i class="fa fa-wand-magic-sparkles"></i> Gerar rotina base</button>
-    </div>
-  </form>`;
-  modal('Preparar semana',body,()=>{
-    const q=obj(document.getElementById('f'));
-    const old=w.start;
-    w.start=q.start||w.start;w.type=q.type||w.type;w.notes=q.notes||'';w.prepared=true;
-    if(old!==w.start)D.tasks.filter(t=>t.operationWeek===old).forEach(t=>t.operationWeek=w.start);
-    closeM();save();operacao();toast('Semana preparada.');
-  });
-}
-function addOperationTaskFromModal(wid){
-  const w=D.operationWeeks.find(x=>x.id===wid);if(!w)return;
-  const title=document.getElementById('opTitle').value.trim();if(!title)return toast('Informe a tarefa.');
-  const day=Number(document.getElementById('opDay').value||0);
-  D.tasks.push({id:id(),companyId:document.getElementById('opCompany').value,lista:operationLabel(w.type),titulo:title,descricao:'',prazo:addDaysISO(w.start,day),operationDate:addDaysISO(w.start,day),operationWeek:w.start,horaInicio:document.getElementById('opStart').value,horaFim:document.getElementById('opEnd').value,status:'Pendente'});
-  document.getElementById('opTitle').value='';save();toast('Tarefa adicionada à semana.');
-}
-function generateOperationRoutine(wid){
-  const w=D.operationWeeks.find(x=>x.id===wid);if(!w)return;
-  if(D.tasks.some(t=>t.operationWeek===w.start)&&!confirm('Essa semana já possui tarefas. Adicionar a rotina base mesmo assim?'))return;
-  const defs=operationDefaults(w.type);
-  defs.forEach((x,i)=>D.tasks.push({id:id(),companyId:'',lista:operationLabel(w.type),titulo:x[0],descricao:x[3],prazo:addDaysISO(w.start,Math.min(i,4)),operationDate:addDaysISO(w.start,Math.min(i,4)),operationWeek:w.start,horaInicio:x[1],horaFim:x[2],status:'Pendente'}));
-  save();toast('Rotina base adicionada.');
-}
-function setOperationWeekType(start,type){
-  const w=ensureOperationWeek(start,type);w.type=type;save();operacao();
-}
-function operacao(){
-  const current=isoLocal(mondayOf(new Date()));
-  const starts=[-1,0,1,2].map(n=>addDaysISO(current,n*7));
-  starts.forEach(s=>ensureOperationWeek(s,operationType(s)));
-  const cards=starts.map(s=>{
-    const w=operationWeekByStart(s),p=operationProgress(s),ts=weekTasks(s),end=addDaysISO(s,4);
-    return `<div class="card section move-op-week ${s===current?'move-op-current':''}">
-      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
-        <div><span class="badge ${w.type==='Planejamento'?'warn':'ok'}">${operationLabel(w.type)}</span><h3 style="margin:8px 0 3px">${date(s)} — ${date(end)}</h3><div class="meta">${w.notes?e(w.notes):'Semana ainda sem observações.'}</div></div>
-        <button class="btn primary sm" onclick="prepararSemana('${s}','${w.type}')"><i class="fa fa-calendar-check"></i> Preparar semana</button>
-      </div>
-      <div class="move-op-progress"><div style="width:${p.pct}%"></div></div>
-      <div class="meta" style="margin:7px 0 10px"><b>${p.done}/${p.total}</b> tarefas concluídas • ${p.pct}%</div>
-      <div class="list">${ts.slice(0,8).map(t=>{const c=D.companies.find(x=>x.id===t.companyId);return `<div class="item"><div><strong>${e(t.horaInicio||'')} ${e(t.titulo)}</strong><small>${date(t.operationDate||t.prazo)}${c?' • '+e(c.nome):' • Operação geral'}${t.horaFim?' • até '+e(t.horaFim):''}</small></div><span class="badge ${t.status==='Concluída'?'ok':'warn'}">${e(t.status||'Pendente')}</span></div>`}).join('')||empty('Nenhuma tarefa preparada para esta semana.')}</div>
-    </div>`;
-  }).join('');
-  document.getElementById('p-operacao').innerHTML=
-    head('Operação quinzenal','Seu método alternando planejamento e captação/produção. Prepare cada semana antes dela começar.',`<button class="btn primary" onclick="prepararSemana('${current}')"><i class="fa fa-calendar-plus"></i> Preparar semana atual</button>`)
-    +`<div class="notice"><b>Método MOVE:</b> Semana de Planejamento = criar e fechar o que será produzido nas próximas semanas. Semana de Captação e Produção = captar, editar, enviar para aprovação e deixar o conteúdo seguinte pronto. As tarefas criadas aqui também aparecem em Minhas Tarefas.</div>`
-    +`<div style="display:grid;gap:14px;margin-top:14px">${cards}</div>`;
-}
-
 function empresas(){
   document.getElementById('p-empresas').innerHTML=
     head('Empresas','Cadastre clientes e volume semanal.',`<button class="btn primary" onclick="company()">+ Nova empresa</button>`)
@@ -434,61 +317,122 @@ function quadro(){
     }).join('')||empty('Cadastre uma empresa.')}</div>`;
 }
 
-function board(cid){
+function boardDateKey(d){
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function boardDays(w){
+  if(!w?.inicio||!w?.fim)return[];
+  const start=new Date(String(w.inicio).slice(0,10)+'T12:00');
+  const end=new Date(String(w.fim).slice(0,10)+'T12:00');
+  if(isNaN(start)||isNaN(end)||end<start)return[];
+  const out=[];
+  for(let d=new Date(start);d<=end&&out.length<14;d.setDate(d.getDate()+1))out.push(new Date(d));
+  return out;
+}
+function boardDayName(d){
+  return d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','');
+}
+async function board(cid){
   CID=cid;
   R='quadro';
-  let c=D.companies.find(x=>x.id===cid),
-      ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>a.numero-b.numero),
-      done=completedWeeksCount(cid);
+  const c=D.companies.find(x=>x.id===cid);
+  if(!c)return quadro();
+  const ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>a.numero-b.numero),
+        done=completedWeeksCount(cid);
+
+  let weeksHTML=ws.map(w=>{
+    const progress=weekProgress(w,c);
+    const contents=D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>a.ordem-b.ordem);
+    const days=boardDays(w);
+    const withoutDate=contents.filter(x=>!x.postDate||!days.some(d=>boardDateKey(d)===x.postDate));
+
+    const calendar=days.length?`<div class="move-week-calendar">
+      ${days.map(d=>{
+        const k=boardDateKey(d);
+        const dayContents=contents.filter(x=>x.postDate===k);
+        return `<div class="move-day ${dayContents.length?'has-content':''}">
+          <div class="move-day-head">
+            <div><b>${boardDayName(d)}</b><span>${d.getDate()}</span></div>
+            <button class="move-day-add" onclick="content('${cid}','${w.id}','','${k}')" title="Planejar conteúdo neste dia"><i class="fa fa-plus"></i></button>
+          </div>
+          <div class="move-day-body">
+            ${dayContents.map(ct=>{
+              const media=D.scheduled.find(s=>s.contentId===ct.id);
+              return `<article class="move-calendar-content">
+                <div class="move-calendar-tags">
+                  <span class="badge">${e(ct.tipo||'Conteúdo')}</span>
+                  ${media?`<span class="badge ok"><i class="fa fa-paperclip"></i> Mídia</span>`:''}
+                </div>
+                <strong>${e(ct.titulo||'Sem título')}</strong>
+                <small>${e(ct.postTime||'Sem horário')}</small>
+                <div class="actions">
+                  <button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')"><i class="fa fa-pen"></i></button>
+                  <button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')" title="Anexar imagem ou vídeo"><i class="fa fa-paperclip"></i></button>
+                  <button class="btn danger sm" onclick="deleteContent('${ct.id}')"><i class="fa fa-trash"></i></button>
+                </div>
+              </article>`;
+            }).join('')||`<button class="move-empty-day" onclick="content('${cid}','${w.id}','','${k}')">+ Planejar neste dia</button>`}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`:`<div class="notice">Defina o início e o fim da semana para visualizar o calendário. <button class="btn light sm" onclick="week('${cid}','${w.id}')">Editar semana</button></div>`;
+
+    return `<section class="move-calendar-week ${progress.complete?'is-complete':''}">
+      <div class="move-week-top">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <h3 style="margin:0">Semana ${w.numero}</h3>
+            ${progress.complete?`<span class="move-week-done"><i class="fa fa-check"></i> Concluída</span>`:''}
+          </div>
+          <div class="meta">${date(w.inicio)} — ${date(w.fim)} • ${progress.created}/${progress.expected} conteúdos</div>
+          <div class="meta" style="margin-top:5px"><b>Objetivo:</b> ${e(w.objetivo||'—')} • <b>Linha:</b> ${e(w.linha||'—')}</div>
+        </div>
+        <div class="actions">
+          <button class="btn light sm" onclick="week('${cid}','${w.id}')"><i class="fa fa-pen"></i> Semana</button>
+          <button class="btn dark sm" onclick="weekHTML('${w.id}')"><i class="fa fa-download"></i> Baixar</button>
+          <button class="btn danger sm" onclick="deleteWeek('${w.id}')"><i class="fa fa-trash"></i></button>
+        </div>
+      </div>
+      ${calendar}
+      ${withoutDate.length?`<div class="move-undated"><b>Conteúdos fora das datas desta semana</b>${withoutDate.map(ct=>`<button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">${e(ct.titulo||'Sem título')}</button>`).join('')}</div>`:''}
+    </section>`;
+  }).join('')||empty('Crie a primeira semana para montar o calendário.');
+
+  const scheduled=D.scheduled.filter(x=>x.companyId===cid).sort((a,b)=>String(a.data||'').localeCompare(String(b.data||''))||String(a.hora||'').localeCompare(String(b.hora||'')));
+  let materialsHTML='';
+  for(const s of scheduled){
+    const ct=D.contents.find(x=>x.id===s.contentId)||{};
+    const u=await mediaURL(s.mediaId);
+    const preview=s.mime?.startsWith('image/')?`<img src="${u}" alt="${e(ct.titulo||s.fileName||'Material')}">`
+      :s.mime?.startsWith('video/')?`<video controls preload="metadata" src="${u}"></video>`
+      :`<div class="move-file-placeholder"><i class="fa fa-file"></i></div>`;
+    materialsHTML+=`<article class="move-board-media-card">
+      <div class="move-board-media">${preview}</div>
+      <div class="move-board-media-info">
+        <div style="display:flex;justify-content:space-between;gap:8px"><span class="badge">${e(ct.tipo||'Material')}</span><span class="badge ${s.status==='Aprovado'?'ok':'warn'}">${e(s.status||'Aguardando aprovação')}</span></div>
+        <h4>${e(ct.titulo||s.fileName||'Material')}</h4>
+        <div class="meta">${date(s.data)} ${e(s.hora||'')}</div>
+        <div class="actions">
+          ${ct.id?`<button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')"><i class="fa fa-pen"></i> Editar conteúdo</button>`:''}
+          <button class="btn dark sm" onclick="upload('${cid}','${s.id}')"><i class="fa fa-paperclip"></i> Mídia</button>
+        </div>
+      </div>
+    </article>`;
+  }
 
   document.getElementById('p-quadro').innerHTML=
     head(
       c.nome,
-      'Semanas, conteúdos, roteiros e HTML para compartilhar.',
-      `<span class="move-board-progress ${done===4?'is-complete':''}"><i class="fa fa-check"></i> ${done}/4 semanas concluídas</span> <button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn dark" onclick="copyCompanyData('${cid}')"><i class="fa fa-copy"></i> Copiar dados da empresa</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`
+      'Planejamento em calendário: crie o conteúdo no dia e anexe a imagem ou o Reels no mesmo fluxo.',
+      `<span class="move-board-progress ${done===4?'is-complete':''}"><i class="fa fa-check"></i> ${done}/4 semanas concluídas</span> <button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn dark" onclick="copyCompanyData('${cid}')"><i class="fa fa-copy"></i> Copiar dados</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`
     )
-    +`<div class="card section"><div class="board">${ws.map(w=>{
-      const progress=weekProgress(w,c);
-      const contents=D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>a.ordem-b.ordem);
-
-      return `<div class="week ${progress.complete?'move-week-complete':''}">
-        <div style="display:flex;justify-content:space-between;gap:10px">
-          <div>
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <h4 style="margin:0">Semana ${w.numero}</h4>
-              ${progress.complete?`<span class="move-week-done"><i class="fa fa-check"></i> Concluída</span>`:''}
-            </div>
-            <div class="meta">${date(w.inicio)} — ${date(w.fim)}</div>
-            <div class="move-content-progress ${progress.complete?'is-complete':''}">
-              <i class="fa fa-check"></i> ${progress.created}/${progress.expected} conteúdos
-            </div>
-          </div>
-          <div style="display:flex;gap:5px;align-items:flex-start">
-            <button class="btn dark sm" onclick="weekHTML('${w.id}')" title="Baixar planejamento"><i class="fa fa-download"></i></button>
-            <button class="btn danger sm" onclick="deleteWeek('${w.id}')" title="Excluir quadro/semana"><i class="fa fa-trash"></i></button>
-          </div>
-        </div>
-
-        <div class="meta" style="margin:8px 0"><b>Objetivo:</b> ${e(w.objetivo||'—')}<br><b>Linha:</b> ${e(w.linha||'—')}</div>
-
-        ${contents.map(ct=>`<div class="chip move-content-chip">
-          <span>${e(ct.tipo)}</span>
-          <strong>${e(ct.titulo)}</strong>
-          <small>${date(ct.postDate)} ${e(ct.postTime||'')}</small>
-          <i class="fa fa-check move-content-check" title="Conteúdo criado"></i>
-          <div class="actions">
-            <button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">Editar</button>
-            <button class="btn danger sm" onclick="deleteContent('${ct.id}')" title="Excluir conteúdo"><i class="fa fa-trash"></i> Excluir</button>
-          </div>
-        </div>`).join('')||empty('Sem conteúdo')}
-
-        <button class="btn primary sm" style="width:100%;margin-top:8px" onclick="content('${cid}','${w.id}')">+ Conteúdo</button>
-        <button class="btn light sm" style="width:100%;margin-top:6px" onclick="weekHTML('${w.id}')">Baixar planejamento HTML</button>
+    +`<div class="move-board-calendar-wrap">${weeksHTML}</div>`
+    +`<div class="move-board-schedule">
+        ${head('Agendamento da empresa','As mídias anexadas aos conteúdos ficam aqui dentro do próprio Quadro Criativo.',`<button class="btn primary" onclick="upload('${cid}')"><i class="fa fa-plus"></i> Anexar material</button> <button class="btn dark" onclick="approval('${cid}')"><i class="fa fa-download"></i> Baixar aprovação</button>`)}
+        <div class="move-board-media-grid">${materialsHTML||empty('Nenhuma mídia anexada ainda.')}</div>
       </div>`;
-    }).join('')||empty('Crie as semanas.')}</div></div>`;
 }
-
-
 
 function copyCompanyData(cid){
   const c=D.companies.find(x=>x.id===cid);
@@ -567,30 +511,91 @@ function deleteWeek(weekId){
 }
 
 function week(cid,x=''){let w=D.weeks.find(a=>a.id===x)||{},n=w.numero||Math.min(4,D.weeks.filter(a=>a.companyId===cid).length+1);modal('Semana',`<form id="f" class="fg"><div class="field"><label>Número</label><select name="numero">${[1,2,3,4].map(i=>`<option ${i==n?'selected':''}>${i}</option>`).join('')}</select></div><div></div><div class="field"><label>Início</label><input type="date" name="inicio" value="${w.inicio||''}"></div><div class="field"><label>Fim</label><input type="date" name="fim" value="${w.fim||''}"></div>${multiSelectField('objetivo','Objetivo',OBJETIVOS_OPCOES,w.objetivo||'')}${multiSelectField('linha','Linha estratégica',LINHAS_CONTEUDO_OPCOES,w.linha||'')}</form>`,()=>{let q=objMulti(document.getElementById('f'));q.numero=Number(q.numero);if(w.id)Object.assign(w,q);else D.weeks.push({...q,id:id(),companyId:cid});closeM();save();board(cid)})}
-function content(cid,wid,x=''){
+function content(cid,wid,x='',prefillDate=''){
   let c=D.contents.find(a=>a.id===x)||{},
       n=c.ordem||D.contents.filter(a=>a.weekId===wid).length+1,
       company=D.companies.find(a=>a.id===cid),
-      wasComplete=company?weekProgress(D.weeks.find(w=>w.id===wid),company).complete:false;
+      w=D.weeks.find(z=>z.id===wid),
+      wasComplete=company&&w?weekProgress(w,company).complete:false,
+      media=c.id?D.scheduled.find(s=>s.contentId===c.id):null;
 
-  modal('Conteúdo',`<form id="f" class="fg"><div class="field"><label>Ordem</label><input type="number" name="ordem" value="${n}"></div><div class="field"><label>Tipo</label><select name="tipo">${['Reels','Post','Stories'].map(t=>`<option ${c.tipo===t?'selected':''}>${t}</option>`).join('')}</select></div><div class="field span"><label>Título *</label><input name="titulo" value="${e(c.titulo||'')}"></div><div class="field span"><label>Descrição</label><textarea name="descricao">${e(c.descricao||'')}</textarea></div><div class="field span"><label>Roteiro / desenvolvimento</label><textarea name="roteiro" style="min-height:180px">${e(c.roteiro||'')}</textarea></div><div class="field"><label>Data postagem</label><input type="date" name="postDate" value="${c.postDate||''}"></div><div class="field"><label>Hora</label><input type="time" name="postTime" value="${e(c.postTime||'')}"></div></form>`,()=>{
-    let q=obj(document.getElementById('f'));
+  modal('Conteúdo + Agendamento',`<form id="f" class="fg">
+    <div class="field"><label>Ordem</label><input type="number" name="ordem" value="${n}"></div>
+    <div class="field"><label>Tipo</label><select name="tipo">${['Reels','Post','Stories'].map(t=>`<option ${c.tipo===t?'selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="field span"><label>Título *</label><input name="titulo" value="${e(c.titulo||'')}"></div>
+    <div class="field span"><label>Descrição</label><textarea name="descricao">${e(c.descricao||'')}</textarea></div>
+    <div class="field span"><label>Roteiro / desenvolvimento</label><textarea name="roteiro" style="min-height:180px">${e(c.roteiro||'')}</textarea></div>
+    <div class="field"><label>Data da postagem</label><input type="date" name="postDate" value="${c.postDate||prefillDate||''}"></div>
+    <div class="field"><label>Hora</label><input type="time" name="postTime" value="${e(c.postTime||'')}"></div>
+    <div class="field span"><label>Anexar imagem, post ou Reels/vídeo</label><input type="file" id="contentFile" accept="image/*,video/*"><small class="move-check-help">${media?.fileName?`Arquivo atual: ${e(media.fileName)}. Se não escolher outro, ele será mantido.`:'O arquivo fica salvo neste navegador e entra no HTML de aprovação/planejamento.'}</small></div>
+    <div class="field span"><label>Legenda</label><textarea name="mediaLegenda">${e(media?.legenda||'')}</textarea></div>
+    <div class="field"><label>Status do material</label><select name="mediaStatus">${['Aguardando aprovação','Aprovado','Ajustar','Agendado','Publicado'].map(v=>`<option ${media?.status===v?'selected':''}>${v}</option>`).join('')}</select></div>
+  </form>`,async()=>{
+    const f=document.getElementById('f');
+    let q=obj(f);
+    const legenda=q.mediaLegenda||'',status=q.mediaStatus||'Aguardando aprovação';
+    delete q.mediaLegenda;delete q.mediaStatus;
     if(!q.titulo)return toast('Informe o título.');
     q.ordem=Number(q.ordem);
+    const fl=document.getElementById('contentFile')?.files?.[0];
+    if(fl&&fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');
 
+    let contentId=c.id;
     if(c.id)Object.assign(c,q);
-    else D.contents.push({...q,id:id(),companyId:cid,weekId:wid});
+    else{
+      contentId=id();
+      c={...q,id:contentId,companyId:cid,weekId:wid};
+      D.contents.push(c);
+    }
 
-    const w=D.weeks.find(z=>z.id===wid);
+    if(fl||media){
+      if(!media){
+        media={id:id(),companyId:cid,contentId};
+        D.scheduled.push(media);
+      }
+      media.companyId=cid;
+      media.contentId=contentId;
+      media.data=q.postDate||'';
+      media.hora=q.postTime||'';
+      media.legenda=legenda;
+      media.status=status;
+      if(fl){
+        const mid=media.mediaId||id();
+        await mediaPut(mid,fl);
+        media.mediaId=mid;
+        media.mime=fl.type;
+        media.fileName=fl.name;
+      }
+    }
+
     const nowComplete=company&&w?weekProgress(w,company).complete:false;
-
     closeM();
     save();
-    board(cid);
+    await board(cid);
+    if(!wasComplete&&nowComplete)setTimeout(()=>celebrateWeek(wid),120);
+  });
+}
 
-    if(!wasComplete&&nowComplete){
-      setTimeout(()=>celebrateWeek(wid),120);
-    }
+function attachContent(cid,contentId){
+  const ct=D.contents.find(x=>x.id===contentId);
+  if(!ct)return toast('Conteúdo não encontrado.');
+  const s=D.scheduled.find(x=>x.contentId===contentId);
+  if(s)return upload(cid,s.id);
+  modal('Anexar mídia',`<form id="f" class="fg">
+    <div class="field span"><label>Conteúdo</label><input value="${e(ct.tipo||'Conteúdo')} — ${e(ct.titulo||'Sem título')}" disabled></div>
+    <div class="field span"><label>Imagem ou Reels/vídeo</label><input type="file" id="file" accept="image/*,video/*"></div>
+    <div class="field span"><label>Legenda</label><textarea name="legenda"></textarea></div>
+    <div class="field"><label>Data</label><input type="date" name="data" value="${ct.postDate||''}"></div>
+    <div class="field"><label>Hora</label><input type="time" name="hora" value="${e(ct.postTime||'')}"></div>
+    <div class="field"><label>Status</label><select name="status">${['Aguardando aprovação','Aprovado','Ajustar','Agendado','Publicado'].map(v=>`<option>${v}</option>`).join('')}</select></div>
+  </form>`,async()=>{
+    const q=obj(document.getElementById('f')),fl=document.getElementById('file')?.files?.[0];
+    if(!fl)return toast('Selecione uma imagem ou vídeo.');
+    if(fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');
+    const mid=id();
+    await mediaPut(mid,fl);
+    D.scheduled.push({...q,id:id(),companyId:cid,contentId,mediaId:mid,mime:fl.type,fileName:fl.name});
+    closeM();save();await board(cid);toast('Mídia anexada ao conteúdo.');
   });
 }
 function pend(){let a=[];D.companies.forEach(c=>{let ws=D.weeks.filter(w=>w.companyId===c.id);for(let i=1;i<=4;i++){let w=ws.find(z=>z.numero===i);if(!w)a.push({company:c.nome,title:'Semana '+i+' não criada',detail:'O mês precisa de 4 semanas planejadas.',type:'planejamento'});else{let exp=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0),got=D.contents.filter(x=>x.weekId===w.id).length;if(got<exp)a.push({company:c.nome,title:'Semana '+i+' incompleta',detail:got+'/'+exp+' conteúdos.',type:'conteúdo'})}}});D.finance.filter(x=>x.statusMes!=='Pago').forEach(f=>{let c=D.companies.find(x=>x.id===f.companyId);if(c)a.push({company:c.nome,title:'Pagamento pendente',detail:money(f.valorTotal),type:'financeiro'})});return a}function pendencias(){document.getElementById('p-pendencias').innerHTML=head('Pendências','Planejamento e financeiro sob controle.')+`<div class="card section"><div class="list">${pend().map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge ${x.type==='financeiro'?'red':'warn'}">${x.type}</span></div>`).join('')||empty('Nenhuma pendência.')}</div></div>`}
@@ -616,7 +621,7 @@ function tarefas(){
             </div>
             <h4>${e(t.titulo||'Sem título')}</h4>
             ${t.descricao?`<div class="task-desc">${e(t.descricao)}</div>`:''}
-            <div class="meta" style="margin-top:8px">${t.prazo?`Prazo: ${date(t.prazo)}`:'Sem prazo'}${t.horaInicio?` • ${e(t.horaInicio)}${t.horaFim?`–${e(t.horaFim)}`:''}`:''}</div>
+            <div class="meta" style="margin-top:8px">${t.prazo?`Prazo: ${date(t.prazo)}`:'Sem prazo'}</div>
             <div class="task-footer">
               <div class="task-statuses">
                 <button class="status-dot st-pend" onclick="taskStatus('${t.id}','Pendente')">Pendente</button>
@@ -656,7 +661,7 @@ function task(x=''){
   modal('Tarefa',`<form id="f" class="fg">
     <div class="field span"><label>Empresa</label><select name="companyId"><option value="">Sem empresa</option>${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`<option value="${c.id}" ${t.companyId===c.id?'selected':''}>${e(c.nome)}</option>`).join('')}</select></div>
     <div class="field"><label>Lista</label><input name="lista" value="${e(t.lista||'Semana atual')}"></div>
-    <div class="field"><label>Prazo</label><input type="date" name="prazo" value="${t.prazo||''}"></div><div class="field"><label>Hora início</label><input type="time" name="horaInicio" value="${e(t.horaInicio||'')}"></div><div class="field"><label>Hora fim</label><input type="time" name="horaFim" value="${e(t.horaFim||'')}"></div>
+    <div class="field"><label>Prazo</label><input type="date" name="prazo" value="${t.prazo||''}"></div>
     <div class="field span"><label>Título</label><input name="titulo" value="${e(t.titulo||'')}"></div>
     <div class="field span"><label>Descrição</label><textarea name="descricao">${e(t.descricao||'')}</textarea></div>
     <div class="field"><label>Status</label><select name="status">${['Pendente','Em andamento','Concluída'].map(s=>`<option ${t.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
@@ -763,10 +768,38 @@ MOVE AGÊNCIA`;navigator.clipboard.writeText(m);toast('Cobrança do dia copiada.
 function boleto(cid,fid){let c=D.companies.find(x=>x.id===cid),f=D.finance.find(x=>x.id===fid),v=Number(f.valorTotal||0)/Math.max(1,f.parcelas||1),payload=pix(v,'MOVE'+String(fid).slice(0,8)),dues=[f.v1,f.v2].filter(Boolean).join(' e '),h=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cobrança - ${e(c.nome)}</title><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><style>body{margin:0;background:#f4f5f7;font-family:Arial;color:#171717}.w{max-width:760px;margin:30px auto;padding:0 18px}.b{background:#fff;border:1px solid #e7e7e7;border-radius:20px;overflow:hidden}.h{background:#111;color:#fff;padding:28px}.h b{color:#fca311}.h h1{margin:8px 0 4px}.h p{margin:0;color:#bbb}.ct{padding:24px}.amount{font-size:42px;font-weight:800;margin:10px 0}.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.box{border:1px solid #eee;border-radius:12px;padding:12px}.box small{display:block;font-size:9px;color:#888;text-transform:uppercase}.pix{margin-top:18px;background:#111;color:#fff;border-radius:14px;padding:18px;display:grid;grid-template-columns:1fr 190px;gap:16px;align-items:center}.pix b{color:#fca311}.qr{background:#fff;padding:8px;width:190px;height:190px;border-radius:10px}.copy{background:#f5f5f5;color:#444;padding:10px;border-radius:8px;font-size:9px;word-break:break-all;margin-top:10px}.btn{border:0;background:#fca311;padding:9px 12px;border-radius:9px;font-weight:bold}@media(max-width:600px){.g,.pix{grid-template-columns:1fr}.qr{margin:auto}}</style></head><body><div class="w"><div class="b"><div class="h"><b>MOVE AGÊNCIA</b><h1>Cobrança • ${e(c.nome)}</h1><p>${e(f.descricao||'Gestão de redes sociais')}</p></div><div class="ct"><div class="amount">${money(v)}</div><div class="g"><div class="box"><small>Responsável</small><b>${e(f.responsavel||c.responsavel||'—')}</b></div><div class="box"><small>Referência</small><b>${e(f.referencia||'Mês atual')}</b></div><div class="box"><small>Vencimento</small><b>Dia ${e(dues||'—')}</b></div><div class="box"><small>Situação</small><b>${e(f.statusMes||'Pendente')}</b></div></div><div class="pix"><div><h2>Pagamento via PIX</h2><p>Chave: <b>57293143000156</b><br>Mercado Pago<br>MARLLUS VINICIUS S ARAUJO</p><button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('p').textContent)">Copiar PIX copia e cola</button><div class="copy" id="p">${payload}</div></div><div id="q" class="qr"></div></div></div></div></div><script>new QRCode(document.getElementById('q'),{text:${JSON.stringify(payload)},width:174,height:174});<\/script></body></html>`;dl(h,`MOVE_Cobranca_${safe(c.nome)}.html`);toast('Boleto HTML baixado.')}
 function contract(cid){let c=D.contracts.find(x=>x.companyId===cid)||{},co=D.companies.find(x=>x.id===cid);modal('Contrato — '+co.nome,`<form id="f" class="fg"><div class="field"><label>Contratante</label><input name="nome" value="${e(c.nome||co.nome)}"></div><div class="field"><label>CPF/CNPJ</label><input name="doc" value="${e(c.doc||'')}"></div><div class="field span"><label>Endereço</label><input name="endereco" value="${e(c.endereco||'')}"></div><div class="field span"><label>Serviço</label><input name="servico" value="${e(c.servico||'Gestão de redes sociais')}"></div><div class="field"><label>Valor</label><input type="number" name="valor" value="${c.valor||''}"></div><div class="field"><label>Status</label><select name="status"><option>Contrato pendente</option><option ${c.status==='Contrato assinado'?'selected':''}>Contrato assinado</option></select></div></form>`,()=>{let q=obj(document.getElementById('f'));if(c.id)Object.assign(c,q);else D.contracts.push({...q,id:id(),companyId:cid});closeM();save()})}
 function dl(txt,name,type='text/html'){let u=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)}function safe(s){return String(s||'arquivo').replace(/[^a-z0-9_-]/gi,'_')}
-function weekHTML(wid){let w=D.weeks.find(x=>x.id===wid),c=D.companies.find(x=>x.id===w.companyId),it=D.contents.filter(x=>x.weekId===wid).sort((a,b)=>a.ordem-b.ordem),cards=it.map((x,i)=>`<article><span>${e(x.tipo)}</span><small>CONTEÚDO ${i+1}</small><h2>${e(x.titulo)}</h2>${x.descricao?`<section><b>Descrição</b><p>${e(x.descricao)}</p></section>`:''}${x.roteiro?`<section class="script"><b>Roteiro / Desenvolvimento</b><p>${e(x.roteiro).replace(/\n/g,'<br>')}</p></section>`:''}<footer>Postagem: <b>${date(x.postDate)} ${e(x.postTime||'')}</b></footer></article>`).join('');dl(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${e(c.nome)}</title><style>body{font-family:Arial;margin:0;background:#f5f6f8;color:#171717}.hero{background:#111;color:#fff;padding:42px}.hero b{color:#fca311}.wrap{max-width:950px;margin:auto;padding:24px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}.meta div,article{background:#fff;border:1px solid #e8e8e8;border-radius:14px;padding:16px;margin-bottom:12px}.meta span,article small{font-size:9px;color:#888}article>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:bold}article small{float:right}section{background:#f7f7f7;padding:11px;border-radius:10px;margin-top:10px}section b{font-size:9px;text-transform:uppercase;color:#777}section p{font-size:12px;line-height:1.6}.script{border-left:3px solid #fca311}footer{border-top:1px solid #eee;margin-top:12px;padding-top:10px;font-size:11px}@media(max-width:600px){.meta{grid-template-columns:1fr}}
-
-</style></head><body><div class="hero"><b>MOVE AGÊNCIA</b><h1>${e(c.nome)} — Semana ${w.numero}</h1><p>${date(w.inicio)} — ${date(w.fim)}</p></div><div class="wrap"><div class="meta"><div><span>OBJETIVO</span><h3>${e(w.objetivo||'—')}</h3></div><div><span>LINHA ESTRATÉGICA</span><h3>${e(w.linha||'—')}</h3></div></div>${cards||'<article>Sem conteúdos.</article>'}</div></body></html>`,`MOVE_${safe(c.nome)}_Semana_${w.numero}.html`);toast('Planejamento baixado.')}
-async function approval(cid){let c=D.companies.find(x=>x.id===cid),it=D.scheduled.filter(x=>x.companyId===cid),cards='';for(let s of it){let data=await mediaData(s.mediaId),ct=D.contents.find(x=>x.id===s.contentId)||{};cards+=`<article><div class="pv">${s.mime?.startsWith('image/')?`<img src="${data}">`:s.mime?.startsWith('video/')?`<video controls src="${data}"></video>`:'ARQUIVO'}</div><div class="info"><span>${e(ct.tipo||'Material')}</span><small>${e(s.status)}</small><h2>${e(ct.titulo||s.fileName||'Material')}</h2><p>${date(s.data)} ${e(s.hora||'')}</p>${s.legenda?`<section><b>Legenda proposta</b><p>${e(s.legenda).replace(/\n/g,'<br>')}</p></section>`:''}</div></article>`}dl(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${e(c.nome)} — Aprovação</title><style>body{font-family:Arial;margin:0;background:#f5f6f8}.hero{background:#111;color:#fff;padding:42px}.hero b{color:#fca311}.wrap{max-width:1100px;margin:auto;padding:24px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}article{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.05)}.pv{background:#111;display:grid;place-items:center;padding:10px}.pv img,.pv video{display:block;max-width:100%;width:auto;height:auto;max-height:82vh;object-fit:contain}.info{padding:14px}.info>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:bold}.info>small{float:right;color:#888}.info h2{font-size:15px}.info>p{font-size:10px;color:#888}section{background:#f7f7f7;border-radius:9px;padding:10px}section b{font-size:9px;color:#777}section p{font-size:11px;line-height:1.5}@media(max-width:850px){.grid{grid-template-columns:1fr}}
+async function weekHTML(wid){
+  const w=D.weeks.find(x=>x.id===wid);
+  if(!w)return toast('Semana não encontrada.');
+  const c=D.companies.find(x=>x.id===w.companyId);
+  const it=D.contents.filter(x=>x.weekId===wid).sort((a,b)=>String(a.postDate||'').localeCompare(String(b.postDate||''))||a.ordem-b.ordem);
+  let cards='';
+  for(let i=0;i<it.length;i++){
+    const x=it[i],s=D.scheduled.find(v=>v.contentId===x.id);
+    let media='';
+    if(s?.mediaId){
+      const data=await mediaData(s.mediaId);
+      if(s.mime?.startsWith('image/'))media=`<div class="media"><img src="${data}" alt="${e(x.titulo||s.fileName||'Imagem')}"></div>`;
+      else if(s.mime?.startsWith('video/'))media=`<div class="media video"><video controls preload="metadata" playsinline src="${data}"></video><small>Vídeo/Reels em proporção original</small></div>`;
+    }
+    cards+=`<article>
+      <div class="top"><span>${e(x.tipo)}</span><small>CONTEÚDO ${i+1}</small></div>
+      <h2>${e(x.titulo)}</h2>
+      <div class="when">${date(x.postDate)} ${e(x.postTime||'')}</div>
+      ${media}
+      ${x.descricao?`<section><b>Descrição</b><p>${e(x.descricao).replace(/\n/g,'<br>')}</p></section>`:''}
+      ${x.roteiro?`<section class="script"><b>Roteiro / Desenvolvimento</b><p>${e(x.roteiro).replace(/\n/g,'<br>')}</p></section>`:''}
+      ${s?.legenda?`<section><b>Legenda</b><p>${e(s.legenda).replace(/\n/g,'<br>')}</p></section>`:''}
+      ${s?`<footer>Status do material: <b>${e(s.status||'Aguardando aprovação')}</b></footer>`:''}
+    </article>`;
+  }
+  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(c.nome)} — Semana ${w.numero}</title><style>
+    *{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;background:#f5f6f8;color:#171717}.hero{background:#111;color:#fff;padding:38px 5vw}.hero b{color:#fca311}.hero h1{margin:8px 0}.wrap{max-width:1000px;margin:auto;padding:24px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}.meta div,article{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:18px;margin-bottom:14px}.meta span,.top small{font-size:9px;color:#888;text-transform:uppercase}.top{display:flex;justify-content:space-between;align-items:center}.top>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:bold}.when{font-size:11px;color:#777;margin:5px 0 14px}.media{width:100%;background:#111;border-radius:12px;padding:10px;margin:12px 0;display:flex;flex-direction:column;align-items:center;overflow:auto}.media img,.media video{display:block;width:auto;height:auto;max-width:100%;object-fit:contain;object-position:center}.media video{max-height:none;aspect-ratio:auto}.media small{color:#bbb;margin-top:7px;font-size:9px}section{background:#f7f7f7;padding:12px;border-radius:10px;margin-top:10px}section b{font-size:9px;text-transform:uppercase;color:#777}section p{font-size:12px;line-height:1.6}.script{border-left:3px solid #fca311}footer{border-top:1px solid #eee;margin-top:12px;padding-top:10px;font-size:11px}@media(max-width:650px){.meta{grid-template-columns:1fr}.wrap{padding:14px}.hero{padding:28px 18px}}
+  </style></head><body><div class="hero"><b>MOVE AGÊNCIA</b><h1>${e(c.nome)} — Semana ${w.numero}</h1><p>${date(w.inicio)} — ${date(w.fim)}</p></div><div class="wrap"><div class="meta"><div><span>OBJETIVO</span><h3>${e(w.objetivo||'—')}</h3></div><div><span>LINHA ESTRATÉGICA</span><h3>${e(w.linha||'—')}</h3></div></div>${cards||'<article>Sem conteúdos.</article>'}</div></body></html>`;
+  dl(html,`MOVE_${safe(c.nome)}_Semana_${w.numero}.html`);
+  toast('Planejamento com mídias baixado.');
+}
+async function approval(cid){let c=D.companies.find(x=>x.id===cid),it=D.scheduled.filter(x=>x.companyId===cid),cards='';for(let s of it){let data=await mediaData(s.mediaId),ct=D.contents.find(x=>x.id===s.contentId)||{};cards+=`<article><div class="pv">${s.mime?.startsWith('image/')?`<img src="${data}">`:s.mime?.startsWith('video/')?`<video controls src="${data}"></video>`:'ARQUIVO'}</div><div class="info"><span>${e(ct.tipo||'Material')}</span><small>${e(s.status)}</small><h2>${e(ct.titulo||s.fileName||'Material')}</h2><p>${date(s.data)} ${e(s.hora||'')}</p>${s.legenda?`<section><b>Legenda proposta</b><p>${e(s.legenda).replace(/\n/g,'<br>')}</p></section>`:''}</div></article>`}dl(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${e(c.nome)} — Aprovação</title><style>body{font-family:Arial;margin:0;background:#f5f6f8}.hero{background:#111;color:#fff;padding:42px}.hero b{color:#fca311}.wrap{max-width:1100px;margin:auto;padding:24px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}article{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.05)}.pv{background:#111;display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto}.pv img,.pv video{display:block;max-width:100%;width:auto;height:auto;object-fit:contain;object-position:center}.pv video{max-height:none;aspect-ratio:auto}.info{padding:14px}.info>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:bold}.info>small{float:right;color:#888}.info h2{font-size:15px}.info>p{font-size:10px;color:#888}section{background:#f7f7f7;border-radius:9px;padding:10px}section b{font-size:9px;color:#777}section p{font-size:11px;line-height:1.5}@media(max-width:850px){.grid{grid-template-columns:1fr}}
 
 </style></head><body><div class="hero"><b>MOVE AGÊNCIA</b><h1>${e(c.nome)}</h1><p>Materiais para visualização e aprovação</p></div><div class="wrap"><div class="grid">${cards||'<article><div class="info">Nenhum material.</div></article>'}</div></div></body></html>`,`MOVE_${safe(c.nome)}_Aprovacao.html`);toast('HTML de aprovação baixado.')}
 function backup(){dl(JSON.stringify(D,null,2),'MOVE_Backup_'+new Date().toISOString().slice(0,10)+'.json','application/json')}function restorePick(){const r=document.getElementById('restore');if(r)r.click()}const restoreEl=document.getElementById('restore');if(restoreEl)restoreEl.onchange=async()=>{try{const file=restoreEl.files&&restoreEl.files[0];if(!file)return;D=Object.assign(blank(),JSON.parse(await file.text()));save();toast('Backup restaurado.')}catch(err){toast('Backup inválido.')}}
@@ -844,6 +877,52 @@ function injectMoveMultiCSS(){
   document.head.appendChild(st);
 }
 
+
+
+function injectMoveCalendarCSS(){
+  if(document.getElementById('move-calendar-css'))return;
+  const st=document.createElement('style');
+  st.id='move-calendar-css';
+  st.textContent=`
+    .move-board-calendar-wrap{display:grid;gap:18px;margin-top:16px}
+    .move-calendar-week{background:#fff;border:1px solid #e8e8e8;border-radius:18px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.04)}
+    .move-calendar-week.is-complete{border-color:#bfe8cb}
+    .move-week-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
+    .move-week-calendar{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:8px;overflow-x:auto;padding-bottom:4px}
+    .move-day{min-width:150px;min-height:190px;border:1px solid #ececec;border-radius:14px;background:#fafafa;overflow:hidden}
+    .move-day.has-content{background:#fff}
+    .move-day-head{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee;background:#f7f7f7}
+    .move-day-head>div{display:flex;align-items:center;gap:7px;text-transform:capitalize}
+    .move-day-head b{font-size:11px}
+    .move-day-head span{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#111;color:#fff;font-size:11px;font-weight:800}
+    .move-day-add{width:27px;height:27px;border:0;border-radius:8px;background:#fca311;color:#111;cursor:pointer}
+    .move-day-body{display:grid;gap:7px;padding:8px}
+    .move-empty-day{border:1px dashed #d7d7d7;background:transparent;border-radius:10px;padding:18px 8px;color:#888;font-size:10px;cursor:pointer}
+    .move-calendar-content{border:1px solid #ececec;border-radius:11px;padding:9px;background:#fff}
+    .move-calendar-content strong{display:block;font-size:11px;line-height:1.35;margin:7px 0 4px}
+    .move-calendar-content small{font-size:9px;color:#888}
+    .move-calendar-content .actions{margin-top:8px;gap:4px}
+    .move-calendar-tags{display:flex;gap:4px;flex-wrap:wrap}
+    .move-undated{margin-top:10px;padding:10px;border-radius:12px;background:#fff8e8;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:10px}
+    .move-board-schedule{margin-top:28px}
+    .move-board-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+    .move-board-media-card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden}
+    .move-board-media{background:#111;min-height:170px;display:flex;align-items:center;justify-content:center;overflow:auto}
+    .move-board-media img,.move-board-media video{display:block;width:auto;height:auto;max-width:100%;max-height:420px;object-fit:contain}
+    .move-board-media-info{padding:12px}
+    .move-board-media-info h4{margin:9px 0 5px}
+    .move-file-placeholder{font-size:32px;color:#aaa}
+    @media(max-width:900px){
+      .move-week-calendar{grid-template-columns:repeat(7,minmax(180px,1fr))}
+    }
+    @media(max-width:650px){
+      .move-week-top{flex-direction:column}
+      .move-week-top>.actions{width:100%;flex-wrap:wrap}
+      .move-calendar-week{padding:11px}
+    }
+  `;
+  document.head.appendChild(st);
+}
 
 function injectMoveCelebrationCSS(){
   if(document.getElementById('move-celebration-css'))return;
@@ -948,24 +1027,4 @@ function injectMoveCelebrationCSS(){
   document.head.appendChild(st);
 }
 
-
-function injectOperationUI(){
-  if(!document.getElementById('p-operacao')){
-    const page=document.createElement('section');
-    page.id='p-operacao';page.className='page';
-    const anchor=document.getElementById('p-home');
-    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(page,anchor.nextSibling);
-    else document.querySelector('main')?.appendChild(page);
-  }
-  if(!document.getElementById('move-operation-css')){
-    const st=document.createElement('style');st.id='move-operation-css';st.textContent=`
-      .move-op-week{border:1px solid #ececec}
-      .move-op-current{box-shadow:0 0 0 2px rgba(252,163,17,.14);border-color:#fca311}
-      .move-op-progress{height:8px;background:#eee;border-radius:999px;overflow:hidden;margin-top:14px}
-      .move-op-progress>div{height:100%;background:#111;border-radius:999px;transition:.25s}
-      @media(max-width:700px){.move-op-week .item{align-items:flex-start}}
-    `;document.head.appendChild(st);
-  }
-}
-
-try{injectOperationUI();injectMoveMultiCSS();injectMoveCelebrationCSS();nav();render('home');}catch(err){console.error(err);document.getElementById('toast').textContent='Erro ao iniciar painel: '+err.message;document.getElementById('toast').style.display='block';}
+try{injectMoveMultiCSS();injectMoveCalendarCSS();injectMoveCelebrationCSS();nav();render('home');}catch(err){console.error(err);document.getElementById('toast').textContent='Erro ao iniciar painel: '+err.message;document.getElementById('toast').style.display='block';}
