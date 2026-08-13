@@ -506,13 +506,26 @@ function tarefas(){
                 <button class="status-dot st-and" onclick="taskStatus('${t.id}','Em andamento')">Andamento</button>
                 <button class="status-dot st-done" onclick="taskStatus('${t.id}','Concluída')">Finalizado</button>
               </div>
-              <button class="btn light sm" onclick="task('${t.id}')"><i class="fa fa-pen"></i></button>
+              <div style="display:flex;gap:6px">
+                <button class="btn light sm" onclick="task('${t.id}')" title="Editar tarefa"><i class="fa fa-pen"></i></button>
+                <button class="btn danger sm" onclick="deleteTask('${t.id}')" title="Excluir tarefa"><i class="fa fa-trash"></i></button>
+              </div>
             </div>
           </article>`;
         }).join('')||`<div class="empty">Nenhuma tarefa aqui.</div>`}
       </section>`;
     }).join('')}</div>`;
 }
+function deleteTask(idTask){
+  const t=D.tasks.find(x=>x.id===idTask);
+  if(!t)return;
+  if(!confirm(`Excluir a tarefa "${t.titulo||'Sem título'}"?\n\nEssa ação não pode ser desfeita.`))return;
+  D.tasks=D.tasks.filter(x=>x.id!==idTask);
+  save();
+  tarefas();
+  toast('Tarefa excluída.');
+}
+
 function taskStatus(idTask,status){
   const t=D.tasks.find(x=>x.id===idTask);
   if(!t)return;
