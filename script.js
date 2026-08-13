@@ -2,7 +2,7 @@ const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['empresas',
 
 const EL={saved:document.getElementById('saved'),title:document.getElementById('title'),restore:document.getElementById('restore'),nav:document.getElementById('nav'),modal:document.getElementById('modal')};
 
-function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],finance:[],contracts:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,campanhas,pendencias,textos,agenda,tarefas,agendamento,curadoria,financeiro}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
+function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],finance:[],contracts:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,campanhas,pendencias,textos,agenda,tarefas,agendamento,curadoria}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
 
 const OBJETIVOS_OPCOES=[
   'Vender mais',
@@ -887,61 +887,64 @@ function campaignDownload(x){
 
 function pend(){let a=[];D.companies.forEach(c=>{let ws=D.weeks.filter(w=>w.companyId===c.id);for(let i=1;i<=4;i++){let w=ws.find(z=>z.numero===i);if(!w)a.push({company:c.nome,title:'Semana '+i+' não criada',detail:'O mês precisa de 4 semanas planejadas.',type:'planejamento'});else{let exp=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0),got=D.contents.filter(x=>x.weekId===w.id).length;if(got<exp)a.push({company:c.nome,title:'Semana '+i+' incompleta',detail:got+'/'+exp+' conteúdos.',type:'conteúdo'})}}});D.finance.filter(x=>x.statusMes!=='Pago').forEach(f=>{let c=D.companies.find(x=>x.id===f.companyId);if(c)a.push({company:c.nome,title:'Pagamento pendente',detail:money(f.valorTotal),type:'financeiro'})});return a}function pendencias(){document.getElementById('p-pendencias').innerHTML=head('Pendências','Planejamento e financeiro sob controle.')+`<div class="card section"><div class="list">${pend().map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge ${x.type==='financeiro'?'red':'warn'}">${x.type}</span></div>`).join('')||empty('Nenhuma pendência.')}</div></div>`}
 function textos(){document.getElementById('p-textos').innerHTML=head('Meus Textos','Prompts, legendas e modelos.',`<button class="btn primary" onclick="text()">+ Texto</button>`)+`<div class="grid companies">${D.texts.map(t=>`<div class="card section"><span class="badge">${e(t.categoria||'Texto')}</span><h3>${e(t.titulo)}</h3><p class="meta" style="white-space:pre-wrap">${e(t.conteudo)}</p><div class="actions"><button class="btn light sm" onclick='navigator.clipboard.writeText(${JSON.stringify(t.conteudo||"")});toast("Copiado")'>Copiar</button><button class="btn light sm" onclick="text('${t.id}')">Editar</button></div></div>`).join('')||empty('Nenhum texto.')}</div>`}function text(x=''){let t=D.texts.find(a=>a.id===x)||{};modal('Texto',`<form id="f"><div class="field"><label>Título</label><input name="titulo" value="${e(t.titulo||'')}"></div><div class="field"><label>Categoria</label><input name="categoria" value="${e(t.categoria||'')}"></div><div class="field"><label>Conteúdo</label><textarea name="conteudo" style="min-height:260px">${e(t.conteudo||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(t.id)Object.assign(t,q);else D.texts.push({...q,id:id()});closeM();save()})}
-function tarefas(){
-  const cols=[
-    {key:'Pendente',title:'Pendente',cls:'st-pend'},
-    {key:'Em andamento',title:'Em andamento',cls:'st-and'},
-    {key:'Concluída',title:'Finalizado',cls:'st-done'}
-  ];
-  document.getElementById('p-tarefas').innerHTML=
-    head('Minhas Tarefas','Fluxo rápido estilo Trello: cada tarefa pode ser vinculada a uma empresa.',`<button class="btn primary" onclick="task()">+ Nova tarefa</button>`)
-    +`<div class="lab-board">${cols.map(col=>{
-      const items=D.tasks.filter(t=>(t.status||'Pendente')===col.key);
-      return `<section class="lab-col">
-        <div class="lab-col-head"><h3>${col.title}</h3><span class="lab-count">${items.length}</span></div>
-        ${items.map(t=>{
-          const company=D.companies.find(c=>c.id===t.companyId);
-          return `<article class="task-card">
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <span class="badge">${e(t.lista||'Semana atual')}</span>
-              ${company?`<span class="badge warn"><i class="fa fa-building"></i> ${e(company.nome)}</span>`:`<span class="badge">Sem empresa</span>`}
-            </div>
-            <h4>${e(t.titulo||'Sem título')}</h4>
-            ${t.descricao?`<div class="task-desc">${e(t.descricao)}</div>`:''}
-            <div class="meta" style="margin-top:8px">${t.prazo?`Prazo: ${date(t.prazo)}`:'Sem prazo'}</div>
-            <div class="task-footer">
-              <div class="task-statuses">
-                <button class="status-dot st-pend" onclick="taskStatus('${t.id}','Pendente')">Pendente</button>
-                <button class="status-dot st-and" onclick="taskStatus('${t.id}','Em andamento')">Andamento</button>
-                <button class="status-dot st-done" onclick="taskStatus('${t.id}','Concluída')">Finalizado</button>
-              </div>
-              <div style="display:flex;gap:6px">
-                <button class="btn light sm" onclick="task('${t.id}')" title="Editar tarefa"><i class="fa fa-pen"></i></button>
-                <button class="btn danger sm" onclick="deleteTask('${t.id}')" title="Excluir tarefa"><i class="fa fa-trash"></i></button>
-              </div>
-            </div>
-          </article>`;
-        }).join('')||`<div class="empty">Nenhuma tarefa aqui.</div>`}
-      </section>`;
-    }).join('')}</div>`;
-}
-function deleteTask(idTask){
-  const t=D.tasks.find(x=>x.id===idTask);
-  if(!t)return;
-  if(!confirm(`Excluir a tarefa "${t.titulo||'Sem título'}"?\n\nEssa ação não pode ser desfeita.`))return;
-  D.tasks=D.tasks.filter(x=>x.id!==idTask);
-  save();
-  tarefas();
-  toast('Tarefa excluída.');
-}
+let TASK_SECTOR='planejamento';
 
-function taskStatus(idTask,status){
-  const t=D.tasks.find(x=>x.id===idTask);
-  if(!t)return;
-  t.status=status;
-  save();
-  tarefas();
-  toast(status==='Concluída'?'Tarefa finalizada.':'Status atualizado.');
+function tarefas(){
+  const sectors={
+    planejamento:{
+      title:'Planejamento',
+      icon:'fa-lightbulb',
+      desc:'Tarefas da Equipe Estratégica: planejamento, roteiros, campanhas, calendário, aprovações e organização.'
+    },
+    producao:{
+      title:'Produção',
+      icon:'fa-clapperboard',
+      desc:'Tarefas da Equipe Criativa / Operacional: design, edição, captação, ajustes, uploads, finalização e publicação.'
+    }
+  };
+  const s=sectors[TASK_SECTOR]||sectors.planejamento;
+  const list=D.tasks.filter(x=>(x.setor||'planejamento')===TASK_SECTOR).sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
+
+  const cards=list.map(t=>{
+    const c=D.companies.find(x=>x.id===t.companyId);
+    return `<article class="task sector-task ${t.feita?'done':''}">
+      <button class="check" onclick="toggleTask('${t.id}')"><i class="fa ${t.feita?'fa-check':'fa-circle'}"></i></button>
+      <div class="task-body">
+        <div class="move-calendar-tags">
+          <span class="badge ${TASK_SECTOR==='planejamento'?'move-team-strategic':'move-team-creative'}"><i class="fa ${s.icon}"></i> ${s.title}</span>
+          ${c?`<span class="badge">${e(c.nome)}</span>`:''}
+          ${t.prioridade?`<span class="badge ${t.prioridade==='Alta'?'warn':''}">${e(t.prioridade)}</span>`:''}
+        </div>
+        <b>${e(t.titulo)}</b>
+        <span>${date(t.data)} ${e(t.hora||'')}</span>
+        ${t.descricao?`<small>${e(t.descricao)}</small>`:''}
+      </div>
+      <div class="actions">
+        <button class="btn light sm" onclick="task('${t.id}','${TASK_SECTOR}')"><i class="fa fa-pen"></i></button>
+        <button class="btn danger sm" onclick="deleteTask('${t.id}')"><i class="fa fa-trash"></i></button>
+      </div>
+    </article>`;
+  }).join('');
+
+  document.getElementById('p-tarefas').innerHTML=
+    head('Minhas Tarefas','Planejamento e Produção possuem listas independentes. As tarefas de um setor não aparecem no outro.')
+    +`<div class="task-sector-choice">
+      <button class="task-sector-card ${TASK_SECTOR==='planejamento'?'active':''}" onclick="TASK_SECTOR='planejamento';tarefas()">
+        <div class="task-sector-icon"><i class="fa fa-lightbulb"></i></div>
+        <div><b>Planejamento</b><span>Equipe Estratégica</span></div>
+        <strong>${D.tasks.filter(x=>(x.setor||'planejamento')==='planejamento'&&!x.feita).length}</strong>
+      </button>
+      <button class="task-sector-card ${TASK_SECTOR==='producao'?'active':''}" onclick="TASK_SECTOR='producao';tarefas()">
+        <div class="task-sector-icon"><i class="fa fa-clapperboard"></i></div>
+        <div><b>Produção</b><span>Equipe Criativa / Operacional</span></div>
+        <strong>${D.tasks.filter(x=>x.setor==='producao'&&!x.feita).length}</strong>
+      </button>
+    </div>`
+    +`<div class="task-sector-head">
+      <div><span class="badge ${TASK_SECTOR==='planejamento'?'move-team-strategic':'move-team-creative'}"><i class="fa ${s.icon}"></i> Setor de ${s.title}</span><h3>${s.title}</h3><p class="meta">${s.desc}</p></div>
+      <button class="btn primary" onclick="task('','${TASK_SECTOR}')"><i class="fa fa-plus"></i> Nova tarefa de ${s.title}</button>
+    </div>`
+    +`<div class="tasks">${cards||empty(`Nenhuma tarefa no setor de ${s.title}.`)}</div>`;
 }
 function task(x=''){
   let t=D.tasks.find(a=>a.id===x)||{};
