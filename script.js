@@ -1,8 +1,8 @@
-const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['empresas','fa-building','Empresas'],['quadro','fa-lightbulb','Quadro Criativo'],['pendencias','fa-triangle-exclamation','Pendências'],['textos','fa-file-lines','Meus Textos'],['agenda','fa-calendar-days','Agenda'],['tarefas','fa-list-check','Minhas Tarefas'],['curadoria','fa-icons','Curadoria'],['financeiro','fa-wallet','Financeiro']];let D=load(),R='home',CID='',cal=new Date(),CUR='all';
+const KEY='move_local_complete_v1',M=[['home','fa-house','Início'],['empresas','fa-building','Empresas'],['quadro','fa-lightbulb','Quadro Criativo'],['campanhas','fa-bullhorn','Campanhas'],['pendencias','fa-triangle-exclamation','Pendências'],['textos','fa-file-lines','Meus Textos'],['agenda','fa-calendar-days','Agenda'],['tarefas','fa-list-check','Minhas Tarefas'],['curadoria','fa-icons','Curadoria'],['financeiro','fa-wallet','Financeiro']];let D=load(),R='home',CID='',cal=new Date(),CUR='all';
 
 const EL={saved:document.getElementById('saved'),title:document.getElementById('title'),restore:document.getElementById('restore'),nav:document.getElementById('nav'),modal:document.getElementById('modal')};
 
-function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],finance:[],contracts:[],tasks:[],texts:[],agenda:[],curadoria:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,pendencias,textos,agenda,tarefas,agendamento,curadoria,financeiro}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
+function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],finance:[],contracts:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));EL.saved.textContent='Salvo • '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});render(R)}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,campanhas,pendencias,textos,agenda,tarefas,agendamento,curadoria,financeiro}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
 
 const OBJETIVOS_OPCOES=[
   'Vender mais',
@@ -327,6 +327,19 @@ function workflowBadge(st){
   const s=st||'Planejamento',cls=['Finalizado','Agendado','Publicado'].includes(s)?'ok':['Ajustes','Aguardando aprovação'].includes(s)?'warn':'';
   return `<span class="badge ${cls}">${e(s)}</span>`;
 }
+
+function sendWeekToProduction(weekId){
+  const w=D.weeks.find(x=>x.id===weekId);
+  if(!w)return toast('Semana não encontrada.');
+  const items=D.contents.filter(x=>x.weekId===weekId);
+  if(!items.length)return toast('Essa semana ainda não tem conteúdos.');
+  if(!confirm(`Enviar a Semana ${w.numero} inteira para produção?\n\n${items.length} conteúdo(s) serão enviados para a Equipe Criativa / Operacional.`))return;
+  items.forEach(ct=>ct.workflowStatus='Fila de produção');
+  save();
+  if(CID)board(CID);
+  toast(`Semana ${w.numero} enviada para produção.`);
+}
+
 function sendToProduction(contentId){
   const ct=D.contents.find(x=>x.id===contentId);if(!ct)return toast('Conteúdo não encontrado.');
   ct.workflowStatus='Fila de produção';save();if(CID)board(CID);toast('Enviado para a Equipe Criativa.');
@@ -412,6 +425,7 @@ async function board(cid){
         </div>
         <div class="actions">
           <button class="btn light sm" onclick="week('${cid}','${w.id}')"><i class="fa fa-pen"></i> Semana</button>
+          <button class="btn primary sm" onclick="sendWeekToProduction('${w.id}')"><i class="fa fa-paper-plane"></i> Enviar semana para produção</button>
           <button class="btn dark sm" onclick="weekHTML('${w.id}')"><i class="fa fa-download"></i> Baixar</button>
           <button class="btn danger sm" onclick="deleteWeek('${w.id}')"><i class="fa fa-trash"></i></button>
         </div>
@@ -679,6 +693,182 @@ function attachContent(cid,contentId){
     closeM();save();await board(cid);toast('Mídia anexada ao conteúdo.');
   });
 }
+
+let CAMP_EDIT_STATE=[];
+
+function campaignSummaryCount(c){
+  return Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0);
+}
+function campaignTypeLabel(t){
+  return t==='Reels'?'Reels':t==='Stories'?'Stories':'Post';
+}
+function campaignExpectedCreativesFromForm(){
+  const f=document.getElementById('f');
+  if(!f)return[];
+  const reels=Number(f.querySelector('[name="reels"]')?.value||0);
+  const posts=Number(f.querySelector('[name="posts"]')?.value||0);
+  const stories=Number(f.querySelector('[name="stories"]')?.value||0);
+  return [
+    ...Array.from({length:reels},(_,i)=>({tipo:'Reels',numero:i+1})),
+    ...Array.from({length:posts},(_,i)=>({tipo:'Post',numero:i+1})),
+    ...Array.from({length:stories},(_,i)=>({tipo:'Stories',numero:i+1}))
+  ];
+}
+function campaignSyncCreativeFields(){
+  const box=document.getElementById('campaignCreativeFields');
+  if(!box)return;
+
+  // preserve anything already typed before rebuilding
+  box.querySelectorAll('[data-camp-creative]').forEach(el=>{
+    const key=el.dataset.campCreative;
+    const idx=CAMP_EDIT_STATE.findIndex(x=>x.key===key);
+    const val={key,tipo:el.dataset.tipo,numero:Number(el.dataset.numero||0),titulo:el.querySelector('[name="creativeTitle"]')?.value||'',roteiro:el.querySelector('[name="creativeScript"]')?.value||''};
+    if(idx>=0)CAMP_EDIT_STATE[idx]=val;else CAMP_EDIT_STATE.push(val);
+  });
+
+  const expected=campaignExpectedCreativesFromForm();
+  box.innerHTML=expected.map(x=>{
+    const key=`${x.tipo}-${x.numero}`;
+    const old=CAMP_EDIT_STATE.find(v=>v.key===key)||{};
+    return `<article class="campaign-creative-editor" data-camp-creative="${key}" data-tipo="${x.tipo}" data-numero="${x.numero}">
+      <div class="campaign-creative-head">
+        <span class="badge">${campaignTypeLabel(x.tipo)} ${x.numero}</span>
+        <small>Estrutura / roteiro do criativo</small>
+      </div>
+      <div class="field"><label>Nome do criativo</label><input name="creativeTitle" value="${e(old.titulo||'')}" placeholder="Ex.: Reel 01 — Gancho principal"></div>
+      <div class="field"><label>Estrutura / roteiro</label><textarea name="creativeScript" style="min-height:145px" placeholder="Crie, cole ou escreva aqui a estrutura completa, roteiro, cenas, copy, CTA e observações.">${e(old.roteiro||'')}</textarea></div>
+    </article>`;
+  }).join('')||`<div class="empty">Defina a quantidade de Reels, Posts ou Stories para criar os campos de roteiro.</div>`;
+}
+function campaignCollectCreatives(){
+  const box=document.getElementById('campaignCreativeFields');
+  if(!box)return[];
+  return [...box.querySelectorAll('[data-camp-creative]')].map(el=>({
+    id:el.dataset.id||id(),
+    key:el.dataset.campCreative,
+    tipo:el.dataset.tipo,
+    numero:Number(el.dataset.numero||0),
+    titulo:el.querySelector('[name="creativeTitle"]')?.value||'',
+    roteiro:el.querySelector('[name="creativeScript"]')?.value||''
+  }));
+}
+
+function campanhas(){
+  const cs=[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome));
+  const cards=[...D.campaigns].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||''))).map(c=>{
+    const co=D.companies.find(x=>x.id===c.companyId);
+    const total=campaignSummaryCount(c);
+    return `<article class="card campaign-card">
+      <div class="campaign-card-top">
+        <span class="badge warn"><i class="fa fa-building"></i> ${e(co?.nome||'Empresa removida')}</span>
+        <span class="badge">${total} criativo(s)</span>
+      </div>
+      <h3>${e(c.nome||'Campanha sem nome')}</h3>
+      <p class="campaign-idea">${e(c.ideia||'Sem ideia descrita.')}</p>
+      <div class="campaign-objective"><b>Objetivo</b><span>${e(c.objetivo||'—')}</span></div>
+      <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+        <div class="mini"><b>${Number(c.reels||0)}</b><span>REELS</span></div>
+        <div class="mini"><b>${Number(c.posts||0)}</b><span>POSTS</span></div>
+        <div class="mini"><b>${Number(c.stories||0)}</b><span>STORIES</span></div>
+      </div>
+      <div class="meta" style="margin-top:10px">${(c.creatives||[]).filter(x=>x.roteiro||x.titulo).length}/${total} criativos estruturados</div>
+      <div class="actions">
+        <button class="btn light sm" onclick="campaignEdit('${c.id}')"><i class="fa fa-pen"></i> Editar</button>
+        <button class="btn dark sm" onclick="campaignDownload('${c.id}')"><i class="fa fa-download"></i> Baixar proposta</button>
+        <button class="btn danger sm" onclick="campaignDelete('${c.id}')"><i class="fa fa-trash"></i> Excluir</button>
+      </div>
+    </article>`;
+  }).join('');
+
+  document.getElementById('p-campanhas').innerHTML=
+    head('Campanhas','Ideias criativas e campanhas estratégicas criadas para cada empresa.',`<button class="btn primary" onclick="campaignEdit()"><i class="fa fa-plus"></i> Nova campanha</button>`)
+    +`<div class="notice">Monte a ideia da campanha, defina os objetivos e a quantidade de criativos. Depois escreva ou cole a estrutura de cada Reel, Post e Stories e baixe uma proposta organizada para apresentar ao cliente.</div>`
+    +`<div class="grid companies campaign-grid">${cards||empty('Nenhuma campanha criada ainda.')}</div>`;
+}
+
+function campaignEdit(x=''){
+  const c=D.campaigns.find(v=>v.id===x)||{};
+  CAMP_EDIT_STATE=(c.creatives||[]).map(v=>({...v,key:v.key||`${v.tipo}-${v.numero}`}));
+
+  modal(c.id?'Editar campanha':'Nova campanha',`<form id="f" class="fg">
+    <div class="field span"><label>Empresa *</label><select name="companyId"><option value="">Selecione...</option>${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(co=>`<option value="${co.id}" ${c.companyId===co.id?'selected':''}>${e(co.nome)}</option>`).join('')}</select></div>
+    <div class="field span"><label>Nome da campanha *</label><input name="nome" value="${e(c.nome||'')}" placeholder="Ex.: Semana do Sorriso / Volta às Aulas / Campanha de Matrículas"></div>
+    <div class="field span"><label>Ideia da campanha *</label><textarea name="ideia" style="min-height:130px" placeholder="Descreva o conceito criativo, como a campanha funciona, qual é a abordagem e a mensagem principal.">${e(c.ideia||'')}</textarea></div>
+    <div class="field span"><label>Objetivos</label><textarea name="objetivo" placeholder="Ex.: gerar vendas, aumentar alcance, apresentar um novo serviço, gerar desejo...">${e(c.objetivo||'')}</textarea></div>
+
+    <div class="field"><label>Quantidade de Reels</label><input type="number" min="0" name="reels" value="${Number(c.reels||0)}" oninput="campaignSyncCreativeFields()"></div>
+    <div class="field"><label>Quantidade de Posts</label><input type="number" min="0" name="posts" value="${Number(c.posts||0)}" oninput="campaignSyncCreativeFields()"></div>
+    <div class="field"><label>Quantidade de Stories</label><input type="number" min="0" name="stories" value="${Number(c.stories||0)}" oninput="campaignSyncCreativeFields()"></div>
+    <div class="field"><label>Total</label><div class="campaign-total-box" id="campaignTotal">${campaignSummaryCount(c)}</div></div>
+
+    <div class="field span">
+      <div class="campaign-editor-title">
+        <div><label>Estrutura dos criativos</label><small>Você pode criar ou simplesmente colar o roteiro/estrutura de cada peça.</small></div>
+        <button type="button" class="btn dark sm" onclick="campaignSyncCreativeFields()">Atualizar campos</button>
+      </div>
+      <div id="campaignCreativeFields" class="campaign-creative-list"></div>
+    </div>
+  </form>`,()=>{
+    const f=document.getElementById('f'),q=obj(f);
+    if(!q.companyId)return toast('Selecione a empresa.');
+    if(!q.nome)return toast('Informe o nome da campanha.');
+    if(!q.ideia)return toast('Descreva a ideia da campanha.');
+    q.reels=Number(q.reels||0);q.posts=Number(q.posts||0);q.stories=Number(q.stories||0);
+    q.creatives=campaignCollectCreatives();
+    q.updatedAt=new Date().toISOString();
+    if(c.id)Object.assign(c,q);
+    else D.campaigns.unshift({...q,id:id(),createdAt:new Date().toISOString()});
+    closeM();save();campanhas();toast('Campanha salva.');
+  });
+
+  setTimeout(()=>{
+    campaignSyncCreativeFields();
+    const f=document.getElementById('f');
+    ['reels','posts','stories'].forEach(n=>{
+      const el=f?.querySelector(`[name="${n}"]`);
+      if(el)el.addEventListener('input',()=>{
+        const total=Number(f.querySelector('[name="reels"]')?.value||0)+Number(f.querySelector('[name="posts"]')?.value||0)+Number(f.querySelector('[name="stories"]')?.value||0);
+        const t=document.getElementById('campaignTotal');if(t)t.textContent=total;
+      });
+    });
+  },60);
+}
+function campaignDelete(x){
+  const c=D.campaigns.find(v=>v.id===x);
+  if(!c)return;
+  if(!confirm(`Excluir a campanha "${c.nome||'Sem nome'}"?\\n\\nEssa ação não pode ser desfeita.`))return;
+  D.campaigns=D.campaigns.filter(v=>v.id!==x);
+  save();campanhas();toast('Campanha excluída.');
+}
+function campaignDownload(x){
+  const c=D.campaigns.find(v=>v.id===x);
+  if(!c)return toast('Campanha não encontrada.');
+  const co=D.companies.find(v=>v.id===c.companyId);
+  const creatives=(c.creatives||[]).sort((a,b)=>{
+    const order={Reels:1,Post:2,Stories:3};
+    return (order[a.tipo]||9)-(order[b.tipo]||9)||Number(a.numero||0)-Number(b.numero||0);
+  });
+
+  const creativeHTML=creatives.map((cr,i)=>`<article class="creative">
+    <div class="creative-head"><span>${e(cr.tipo||'Criativo')} ${Number(cr.numero||i+1)}</span><small>CRIATIVO ${i+1}</small></div>
+    <h2>${e(cr.titulo||`${cr.tipo||'Criativo'} ${cr.numero||i+1}`)}</h2>
+    <section><b>Estrutura / roteiro</b><p>${e(cr.roteiro||'Estrutura ainda não definida.').replace(/\\n/g,'<br>')}</p></section>
+  </article>`).join('');
+
+  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(c.nome)} — ${e(co?.nome||'Cliente')}</title><style>
+  *{box-sizing:border-box}body{margin:0;background:#f4f5f7;color:#171717;font-family:Arial,sans-serif}.hero{background:#111;color:#fff;padding:48px 6vw}.hero b{color:#fca311}.hero h1{font-size:38px;margin:10px 0 6px}.hero p{margin:0;color:#bbb}.wrap{max-width:980px;margin:auto;padding:26px 18px}.intro,.creative{background:#fff;border:1px solid #e6e6e6;border-radius:18px;padding:20px;margin-bottom:14px}.label{font-size:9px;color:#888;text-transform:uppercase;font-weight:bold}.intro h2{margin:6px 0 12px}.idea{font-size:14px;line-height:1.7}.goal{background:#fff7e7;border-left:4px solid #fca311;padding:14px;border-radius:10px;margin-top:14px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}.stat{background:#111;color:#fff;border-radius:12px;padding:14px;text-align:center}.stat b{display:block;font-size:24px;color:#fca311}.stat span{font-size:9px;color:#bbb}.creative-head{display:flex;justify-content:space-between;align-items:center}.creative-head span{background:#fff1cf;color:#815300;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:bold}.creative-head small{font-size:9px;color:#888}.creative h2{margin:13px 0}.creative section{background:#f7f7f7;border-radius:12px;padding:14px}.creative section b{font-size:9px;text-transform:uppercase;color:#777}.creative section p{font-size:12px;line-height:1.65;margin-bottom:0}.foot{text-align:center;color:#888;font-size:10px;padding:20px}@media(max-width:620px){.stats{grid-template-columns:1fr 1fr}.hero h1{font-size:28px}}</style></head><body>
+  <div class="hero"><b>MOVE AGÊNCIA</b><h1>${e(c.nome)}</h1><p>Proposta de campanha • ${e(co?.nome||'Cliente')}</p></div>
+  <div class="wrap">
+    <div class="intro"><span class="label">IDEIA DA CAMPANHA</span><h2>Conceito estratégico</h2><div class="idea">${e(c.ideia||'—').replace(/\\n/g,'<br>')}</div><div class="goal"><span class="label">OBJETIVOS</span><div class="idea">${e(c.objetivo||'—').replace(/\\n/g,'<br>')}</div></div></div>
+    <div class="stats"><div class="stat"><b>${campaignSummaryCount(c)}</b><span>CRIATIVOS</span></div><div class="stat"><b>${Number(c.reels||0)}</b><span>REELS</span></div><div class="stat"><b>${Number(c.posts||0)}</b><span>POSTS</span></div><div class="stat"><b>${Number(c.stories||0)}</b><span>STORIES</span></div></div>
+    ${creativeHTML||'<div class="intro">Nenhum roteiro de criativo cadastrado.</div>'}
+    <div class="foot">Planejamento estratégico desenvolvido pela MOVE AGÊNCIA</div>
+  </div></body></html>`;
+
+  dl(html,`MOVE_Campanha_${safe(co?.nome||'Cliente')}_${safe(c.nome||'Campanha')}.html`);
+  toast('Proposta da campanha baixada.');
+}
+
 function pend(){let a=[];D.companies.forEach(c=>{let ws=D.weeks.filter(w=>w.companyId===c.id);for(let i=1;i<=4;i++){let w=ws.find(z=>z.numero===i);if(!w)a.push({company:c.nome,title:'Semana '+i+' não criada',detail:'O mês precisa de 4 semanas planejadas.',type:'planejamento'});else{let exp=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0),got=D.contents.filter(x=>x.weekId===w.id).length;if(got<exp)a.push({company:c.nome,title:'Semana '+i+' incompleta',detail:got+'/'+exp+' conteúdos.',type:'conteúdo'})}}});D.finance.filter(x=>x.statusMes!=='Pago').forEach(f=>{let c=D.companies.find(x=>x.id===f.companyId);if(c)a.push({company:c.nome,title:'Pagamento pendente',detail:money(f.valorTotal),type:'financeiro'})});return a}function pendencias(){document.getElementById('p-pendencias').innerHTML=head('Pendências','Planejamento e financeiro sob controle.')+`<div class="card section"><div class="list">${pend().map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge ${x.type==='financeiro'?'red':'warn'}">${x.type}</span></div>`).join('')||empty('Nenhuma pendência.')}</div></div>`}
 function textos(){document.getElementById('p-textos').innerHTML=head('Meus Textos','Prompts, legendas e modelos.',`<button class="btn primary" onclick="text()">+ Texto</button>`)+`<div class="grid companies">${D.texts.map(t=>`<div class="card section"><span class="badge">${e(t.categoria||'Texto')}</span><h3>${e(t.titulo)}</h3><p class="meta" style="white-space:pre-wrap">${e(t.conteudo)}</p><div class="actions"><button class="btn light sm" onclick='navigator.clipboard.writeText(${JSON.stringify(t.conteudo||"")});toast("Copiado")'>Copiar</button><button class="btn light sm" onclick="text('${t.id}')">Editar</button></div></div>`).join('')||empty('Nenhum texto.')}</div>`}function text(x=''){let t=D.texts.find(a=>a.id===x)||{};modal('Texto',`<form id="f"><div class="field"><label>Título</label><input name="titulo" value="${e(t.titulo||'')}"></div><div class="field"><label>Categoria</label><input name="categoria" value="${e(t.categoria||'')}"></div><div class="field"><label>Conteúdo</label><textarea name="conteudo" style="min-height:260px">${e(t.conteudo||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(t.id)Object.assign(t,q);else D.texts.push({...q,id:id()});closeM();save()})}
 function tarefas(){
@@ -1050,6 +1240,7 @@ function injectMoveCalendarCSS(){
     .move-team-card>strong{display:block;margin:8px 0 4px;font-size:12px}.move-team-card>small{display:block;color:#888;font-size:9px;margin-bottom:8px}
     .move-status-select{width:100%;border:1px solid #ddd;border-radius:9px;padding:8px;background:#fff;font-size:10px;margin:5px 0}
     .move-team-strategic{background:#eef3ff!important;color:#3156a3!important}.move-team-creative{background:#fff0d2!important;color:#805100!important}
+    .campaign-grid{align-items:stretch}.campaign-card{display:flex;flex-direction:column}.campaign-card-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.campaign-card h3{margin:12px 0 6px}.campaign-idea{font-size:11px;line-height:1.55;color:#555;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.campaign-objective{display:grid;gap:3px;padding:10px;background:#f7f7f7;border-radius:10px;margin:10px 0}.campaign-objective b{font-size:9px;text-transform:uppercase;color:#888}.campaign-objective span{font-size:11px}.campaign-card .actions{margin-top:auto;padding-top:12px}.campaign-editor-title{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px}.campaign-editor-title small{display:block;color:#888;font-size:9px;margin-top:4px}.campaign-creative-list{display:grid;gap:10px}.campaign-creative-editor{border:1px solid #e5e5e5;border-radius:13px;padding:12px;background:#fafafa}.campaign-creative-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.campaign-creative-head small{font-size:9px;color:#888}.campaign-total-box{height:42px;display:flex;align-items:center;padding:0 12px;border-radius:10px;background:#111;color:#fca311;font-size:20px;font-weight:800}
     .move-board-schedule{margin-top:28px}
     .move-board-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
     .move-board-media-card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden}
