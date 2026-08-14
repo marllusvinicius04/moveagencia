@@ -1741,7 +1741,7 @@ function quadro(){
         <div class="move-company-progress ${done===4?'is-complete':''}">
           <i class="fa fa-check"></i> ${done}/4 semanas concluídas
         </div>
-        <button class="btn primary" style="margin-top:12px" onclick="board('${c.id}')">Abrir quadro</button>
+        <div class="actions" style="margin-top:12px"><button class="btn primary" onclick="board('${c.id}')">Abrir quadro</button><button class="btn light" onclick="monthlyReport('${c.id}')"><i class="fa fa-chart-column"></i> Relatório</button></div>
       </div>`;
     }).join('')||empty('Cadastre uma empresa.')}</div>`;
 }
@@ -2128,13 +2128,56 @@ async function board(cid){
         </div>
 
         <div class="actions">
-          <button class="btn primary" onclick="upload('${cid}')"><i class="fa fa-plus"></i> Anexar material</button>
+          <button class="btn primary" onclick="upload('${cid}')"><i class="fa fa-plus"></i> Material / Legenda</button>
           <button class="btn dark" onclick="approval('${cid}')"><i class="fa fa-download"></i> Baixar aprovação</button>
         </div>
       </div>
 
       <div class="move-board-media-grid">${materialsHTML||empty('Nenhum material anexado ainda.')}</div>
     </section>`;
+}
+
+function monthlyReportData(cid){
+  const c=D.companies.find(x=>x.id===cid);
+  if(!c)return null;
+  const weeks=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>Number(a.numero)-Number(b.numero));
+  const contents=D.contents.filter(x=>x.companyId===cid);
+  const scheduled=D.scheduled.filter(x=>x.companyId===cid);
+  const expectedPerWeek=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0);
+  const expectedMonth=expectedPerWeek*4;
+  const finished=contents.filter(x=>['Finalizado','Agendado','Publicado'].includes(x.workflowStatus)).length;
+  const published=contents.filter(x=>x.workflowStatus==='Publicado').length;
+  const production=contents.filter(x=>contentTeam(x)==='criativa').length;
+  const progress=expectedMonth?Math.min(100,Math.round(contents.length/expectedMonth*100)):0;
+  return {c,weeks,contents,scheduled,expectedPerWeek,expectedMonth,finished,published,production,progress};
+}
+
+function monthlyReport(cid){
+  const r=monthlyReportData(cid);
+  if(!r)return toast('Empresa não encontrada.');
+
+  const weekSections=[1,2,3,4].map(n=>{
+    const w=r.weeks.find(x=>Number(x.numero)===n);
+    if(!w)return `<section class="week"><div class="week-head"><div><span class="tag">SEMANA ${n}</span><h2>Semana ainda não criada</h2></div></div></section>`;
+    const items=r.contents.filter(x=>x.weekId===w.id).sort((a,b)=>String(a.postDate||'').localeCompare(String(b.postDate||''))||Number(a.ordem||0)-Number(b.ordem||0));
+    const reels=items.filter(x=>x.tipo==='Reels').length,posts=items.filter(x=>x.tipo==='Post').length,stories=items.filter(x=>x.tipo==='Stories').length;
+    return `<section class="week">
+      <div class="week-head"><div><span class="tag">SEMANA ${n}</span><h2>${date(w.inicio)} — ${date(w.fim)}</h2><p><b>Objetivos da Semana:</b> ${e(w.objetivo||'Não definido')}</p></div><div class="week-total"><b>${items.length}</b><span>conteúdos</span></div></div>
+      <div class="week-meta"><span><b>Linha estratégica:</b> ${e(w.linha||r.c.linhas||'Não informada')}</span><span><b>Tom:</b> ${e(r.c.tons||'Não informado')}</span></div>
+      <div class="week-kpis"><div><b>${reels}</b><span>Reels</span></div><div><b>${posts}</b><span>Posts</span></div><div><b>${stories}</b><span>Stories</span></div><div><b>${items.filter(x=>['Finalizado','Agendado','Publicado'].includes(x.workflowStatus)).length}</b><span>Finalizados</span></div></div>
+      <div class="content-list">${items.map(ct=>`<article class="content"><div><span class="type">${e(ct.tipo||'Conteúdo')}</span><span class="status">${e(ct.workflowStatus||'Planejamento')}</span></div><h3>${e(ct.titulo||'Sem título')}</h3><p>${e(ct.objetivo||ct.ideia||'')}</p></article>`).join('')||'<p class="empty">Nenhum conteúdo criado nesta semana.</p>'}</div>
+    </section>`;
+  }).join('');
+
+  const report=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório Mensal — ${e(r.c.nome)}</title><style>
+    *{box-sizing:border-box}body{margin:0;background:#f4f5f7;color:#171717;font-family:Arial,sans-serif}.hero{padding:42px 6vw;background:#111;color:#fff}.hero b{color:#fca311}.hero h1{font-size:36px;margin:8px 0 4px}.hero p{margin:0;color:#aaa}.wrap{max-width:1050px;margin:auto;padding:24px}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:-42px}.summary>div,.card,.week{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px}.summary b{display:block;font-size:25px}.summary span,.summary small{display:block;font-size:9px;color:#777}.card{margin:14px 0}.label{font-size:9px;color:#888;font-weight:bold;text-transform:uppercase}.card p{font-size:12px;line-height:1.6}.week{margin-bottom:14px}.week-head{display:flex;justify-content:space-between;gap:16px}.week-head h2{font-size:17px;margin:7px 0}.week-head p{font-size:10px;color:#555}.week-total{text-align:right}.week-total b{display:block;font-size:24px}.week-total span{font-size:8px;color:#888}.tag,.type{display:inline-block;background:#fff1cf;color:#805200;border-radius:999px;padding:5px 8px;font-size:8px;font-weight:bold}.week-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:9px;color:#666;padding:9px 0}.week-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.week-kpis div{background:#f7f7f8;border-radius:9px;padding:9px;text-align:center}.week-kpis b{display:block}.week-kpis span{font-size:8px;color:#888}.content{border-top:1px solid #eee;padding:12px 0}.content:first-child{border-top:0}.content>div{display:flex;justify-content:space-between}.status{font-size:8px;color:#777}.content h3{font-size:12px;margin:7px 0 3px}.content p{font-size:9px;color:#666;margin:0}.empty{color:#888;font-size:10px}.foot{text-align:center;color:#999;font-size:9px;padding:18px}@media(max-width:700px){.summary,.week-kpis{grid-template-columns:1fr 1fr}.week-head{flex-direction:column}}
+  </style></head><body><div class="hero"><b>MOVE AGÊNCIA</b><h1>Relatório Mensal</h1><p>${e(r.c.nome)} • Planejamento + Produção</p></div><div class="wrap">
+    <div class="summary"><div><b>${r.contents.length}</b><span>CONTEÚDOS PLANEJADOS</span><small>meta mensal ${r.expectedMonth}</small></div><div><b>${r.finished}</b><span>FINALIZADOS</span><small>produção concluída</small></div><div><b>${r.published}</b><span>PUBLICADOS</span><small>status publicado</small></div><div><b>${r.progress}%</b><span>DESENVOLVIMENTO</span><small>volume planejado / meta</small></div></div>
+    <div class="card"><span class="label">Objetivos gerais da empresa</span><p>${e(r.c.objetivos||'Não informado.')}</p><span class="label">Linhas de conteúdo</span><p>${e(r.c.linhas||'Não informado.')}</p><span class="label">Tom de comunicação</span><p>${e(r.c.tons||'Não informado.')}</p></div>
+    <div class="card"><span class="label">Desenvolvimento geral do mês</span><p>Foram planejados <b>${r.contents.length}</b> conteúdos ao longo das quatro semanas, com <b>${r.finished}</b> itens já finalizados e <b>${r.published}</b> publicados. O volume planejado representa <b>${r.progress}%</b> da meta mensal cadastrada de ${r.expectedMonth} conteúdos.</p></div>
+    ${weekSections}<div class="foot">Relatório gerado pelo MOVE AGÊNCIA</div></div></body></html>`;
+
+  try{dl(report,`MOVE_Relatorio_Mensal_${safe(r.c.nome)}.html`);toast('Relatório mensal baixado.')}catch(err){console.error(err);toast('Não foi possível baixar o relatório.');}
 }
 
 async function copyWeekData(weekId){
@@ -2676,7 +2719,9 @@ function pendencias(){
     head('Pendências','Acompanhe somente o que falta no planejamento e na produção.')
     +`<div class="card section"><div class="list">${pend().map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge warn">${e(x.type)}</span></div>`).join('')||empty('Nenhuma pendência. Tudo em dia.')}</div></div>`;
 }
-function textos(){document.getElementById('p-textos').innerHTML=head('Meus Textos','Prompts, legendas e modelos.',`<button class="btn primary" onclick="text()">+ Texto</button>`)+`<div class="grid companies">${D.texts.map(t=>`<div class="card section"><span class="badge">${e(t.categoria||'Texto')}</span><h3>${e(t.titulo)}</h3><p class="meta" style="white-space:pre-wrap">${e(t.conteudo)}</p><div class="actions"><button class="btn light sm" onclick='navigator.clipboard.writeText(${JSON.stringify(t.conteudo||"")});toast("Copiado")'>Copiar</button><button class="btn light sm" onclick="text('${t.id}')">Editar</button></div></div>`).join('')||empty('Nenhum texto.')}</div>`}function text(x=''){let t=D.texts.find(a=>a.id===x)||{};modal('Texto',`<form id="f"><div class="field"><label>Título</label><input name="titulo" value="${e(t.titulo||'')}"></div><div class="field"><label>Categoria</label><input name="categoria" value="${e(t.categoria||'')}"></div><div class="field"><label>Conteúdo</label><textarea name="conteudo" style="min-height:260px">${e(t.conteudo||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(t.id)Object.assign(t,q);else D.texts.push({...q,id:id()});closeM();save()})}
+function textos(){document.getElementById('p-textos').innerHTML=head('Meus Textos','Legendas, prompts e modelos salvos sem precisar anexar imagem ou vídeo.',`<button class="btn primary" onclick="text()"><i class="fa fa-plus"></i> Nova legenda / texto</button>`)+`<div class="grid companies">${D.texts.map(t=>`<div class="card section"><span class="badge">${e(t.categoria||'Legenda')}</span><h3>${e(t.titulo||'Sem título')}</h3><p class="meta" style="white-space:pre-wrap">${e(t.conteudo||'')}</p><div class="actions"><button class="btn light sm" onclick='navigator.clipboard.writeText(${JSON.stringify(t.conteudo||"")});toast("Copiado")'><i class="fa fa-copy"></i> Copiar</button><button class="btn light sm" onclick="text('${t.id}')"><i class="fa fa-pen"></i> Editar</button><button class="btn danger sm" onclick="deleteText('${t.id}')"><i class="fa fa-trash"></i></button></div></div>`).join('')||empty('Nenhuma legenda ou texto salvo.')}</div>`}
+function text(x=''){let t=D.texts.find(a=>a.id===x)||{};modal(t.id?'Editar texto':'Nova legenda / texto',`<form id="f"><div class="field"><label>Título</label><input name="titulo" value="${e(t.titulo||'')}" placeholder="Ex.: Legenda Reel semana 1"></div><div class="field"><label>Categoria</label><select name="categoria">${['Legenda','Copy','Prompt','Modelo','Outro'].map(v=>`<option ${t.categoria===v?'selected':''}>${v}</option>`).join('')}</select></div><div class="field"><label>Conteúdo</label><textarea name="conteudo" style="min-height:260px" placeholder="Escreva a legenda ou texto aqui...">${e(t.conteudo||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(!String(q.conteudo||'').trim())return toast('Digite o texto ou legenda.');if(t.id)Object.assign(t,q);else D.texts.push({...q,id:id()});closeM();save();textos();toast('Texto salvo.')})}
+function deleteText(idText){if(!confirm('Excluir este texto?'))return;D.texts=D.texts.filter(x=>x.id!==idText);save();textos();toast('Texto excluído.')}
 let TASK_SECTOR='planejamento';
 
 const TASK_SECTORS={
@@ -2815,7 +2860,7 @@ function agendamento(){document.getElementById('p-agendamento').innerHTML=head('
     let u=await mediaURL(s.mediaId),ct=D.contents.find(x=>x.id===s.contentId)||{};
     let media=s.mime?.startsWith('image/')?`<img src="${u}" alt="${e(ct.titulo||s.fileName||'Material')}">`
       :s.mime?.startsWith('video/')?`<video class="move-video-player" controls playsinline preload="metadata" src="${u}" onloadedmetadata="moveVideoCheck(this)"></video>`
-      :'<i class="fa fa-file fa-2x"></i>';
+      :s.legenda?'<div class="move-caption-only"><i class="fa fa-quote-left"></i><span>Legenda sem mídia</span></div>':'<i class="fa fa-file fa-2x"></i>';
     cards+=`<article class="instagram-card">
       <div class="instagram-media-wrap">${media}</div>
       <div class="instagram-info">
@@ -2830,10 +2875,10 @@ function agendamento(){document.getElementById('p-agendamento').innerHTML=head('
     </article>`;
   }
   document.getElementById('p-agendamento').innerHTML=
-    head(c.nome,'Materiais produzidos em cards estilo post, preservando o formato original.',`<button class="btn light" onclick="agendamento()">← Empresas</button> <button class="btn primary" onclick="upload('${cid}')">+ Material</button> <button class="btn dark" onclick="approval('${cid}')">Baixar HTML aprovação</button>`)
+    head(c.nome,'Materiais produzidos em cards estilo post, preservando o formato original.',`<button class="btn light" onclick="agendamento()">← Empresas</button> <button class="btn primary" onclick="upload('${cid}')">+ Material / Legenda</button> <button class="btn dark" onclick="approval('${cid}')">Baixar HTML aprovação</button>`)
     +`<div style="display:grid;gap:18px">${cards||empty('Nenhum material.')}</div>`;
 }
-function upload(cid,x=''){let s=D.scheduled.find(a=>a.id===x)||{},opts=D.contents.filter(a=>a.companyId===cid).map(c=>`<option value="${c.id}" ${s.contentId===c.id?'selected':''}>${e(c.tipo)} — ${e(c.titulo)}</option>`).join('');modal('Material',`<form id="f" class="fg"><div class="field span"><label>Conteúdo</label><select name="contentId"><option value="">Sem vínculo</option>${opts}</select></div><div class="field span"><label>Imagem ou vídeo</label><input type="file" id="file" accept="image/*,video/*"></div><div class="field span"><label>Legenda</label><textarea name="legenda">${e(s.legenda||'')}</textarea></div><div class="field"><label>Data</label><input type="date" name="data" value="${s.data||''}"></div><div class="field"><label>Hora</label><input type="time" name="hora" value="${e(s.hora||'')}"></div><div class="field"><label>Status</label><select name="status">${['Aguardando aprovação','Aprovado','Ajustar','Agendado','Publicado'].map(v=>`<option ${s.status===v?'selected':''}>${v}</option>`).join('')}</select></div></form>`,async()=>{let q=obj(document.getElementById('f')),fl=document.getElementById('file').files[0],mid=s.mediaId||id();if(!x&&!fl)return toast('Selecione um arquivo.');if(fl&&fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');if(fl){await mediaPut(mid,fl);q.mediaId=mid;q.mime=fl.type;q.fileName=fl.name}else{q.mediaId=mid;q.mime=s.mime;q.fileName=s.fileName}if(s.id)Object.assign(s,q);else D.scheduled.push({...q,id:id(),companyId:cid});closeM();save();materials(cid)})}
+function upload(cid,x=''){let s=D.scheduled.find(a=>a.id===x)||{},opts=D.contents.filter(a=>a.companyId===cid).map(c=>`<option value="${c.id}" ${s.contentId===c.id?'selected':''}>${e(c.tipo)} — ${e(c.titulo)}</option>`).join('');modal('Material / Legenda',`<form id="f" class="fg"><div class="field span"><label>Conteúdo</label><select name="contentId"><option value="">Sem vínculo</option>${opts}</select></div><div class="field span"><label>Imagem ou vídeo <small style="font-weight:400;color:#888">(opcional)</small></label><input type="file" id="file" accept="image/*,video/*"><small class="move-check-help">Você pode salvar somente a legenda, sem anexar mídia.</small></div><div class="field span"><label>Legenda</label><textarea name="legenda">${e(s.legenda||'')}</textarea></div><div class="field"><label>Data</label><input type="date" name="data" value="${s.data||''}"></div><div class="field"><label>Hora</label><input type="time" name="hora" value="${e(s.hora||'')}"></div><div class="field"><label>Status</label><select name="status">${['Aguardando aprovação','Aprovado','Ajustar','Agendado','Publicado'].map(v=>`<option ${s.status===v?'selected':''}>${v}</option>`).join('')}</select></div></form>`,async()=>{let q=obj(document.getElementById('f')),fl=document.getElementById('file').files[0],mid=s.mediaId||'';if(!x&&!fl&&!String(q.legenda||'').trim())return toast('Adicione uma legenda ou selecione um arquivo.');if(fl&&fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');if(fl){mid=mid||id();await mediaPut(mid,fl);q.mediaId=mid;q.mime=fl.type;q.fileName=fl.name}else{q.mediaId=s.mediaId||'';q.mime=s.mime||'';q.fileName=s.fileName||''}if(s.id)Object.assign(s,q);else D.scheduled.push({...q,id:id(),companyId:cid});closeM();save();materials(cid)})}
 
 
 async function deleteScheduled(scheduledId,cid=''){
@@ -2868,39 +2913,37 @@ async function deleteScheduled(scheduledId,cid=''){
   toast('Upload excluído.');
 }
 
-function cleanInstagram(u){u=String(u||'').trim();try{let x=new URL(u);x.search='';x.hash='';return x.toString()}catch(_){return u}}
+function cleanTikTok(u){
+  u=String(u||'').trim();
+  try{const x=new URL(u);x.search='';x.hash='';return x.toString()}catch(_){return u}
+}
+function tikTokVideoId(u){
+  const clean=cleanTikTok(u);
+  const m=clean.match(/\/video\/(\d+)/i)||clean.match(/player\/v1\/(\d+)/i);
+  return m?m[1]:'';
+}
+function tikTokPlayer(u){
+  const id=tikTokVideoId(u);
+  if(!id)return `<div class="tiktok-invalid"><i class="fa-brands fa-tiktok"></i><b>Link do TikTok não reconhecido</b><span>Cole o link completo do vídeo, no formato tiktok.com/@usuario/video/123...</span></div>`;
+  return `<iframe class="tiktok-player" src="https://www.tiktok.com/player/v1/${id}?&music_info=1&description=1&autoplay=0&loop=0" allow="fullscreen; autoplay; encrypted-media" allowfullscreen title="Vídeo do TikTok"></iframe>`;
+}
 function curadoria(){
-  let cs=[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)),
-      it=D.curadoria.filter(x=>CUR==='all'||x.companyId===CUR);
+  let cs=D.companies,it=CUR==='all'?D.curadoria:D.curadoria.filter(x=>x.companyId===CUR);
   document.getElementById('p-curadoria').innerHTML=
-    head('Curadoria','Seu laboratório de referências: assista por aqui, organize por cliente e copie o link quando quiser compartilhar.',`<button class="btn primary" onclick="curadoriaEdit()">+ Nova referência</button>`)
+    head('Curadoria','Salve referências do TikTok e assista dentro do MOVE, sem sair da página.',`<button class="btn primary" onclick="curadoriaEdit()"><i class="fa fa-plus"></i> Nova referência</button>`)
     +`<div class="filter"><button class="btn ${CUR==='all'?'dark':'light'} sm" onclick="CUR='all';curadoria()">Todas</button>${cs.map(c=>`<button class="btn ${CUR===c.id?'dark':'light'} sm" onclick="CUR='${c.id}';curadoria()">${e(c.nome)}</button>`).join('')}</div>
     <div class="grid curadoria">${it.map(x=>{
-      let c=D.companies.find(z=>z.id===x.companyId)||{},u=cleanInstagram(x.url);
+      let c=D.companies.find(z=>z.id===x.companyId)||{},u=cleanTikTok(x.url);
       return `<article class="card reel">
-        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px">
-          <span class="badge warn">${e(c.nome||'Sem empresa')}</span>
-          <button class="btn copy-link-btn sm" onclick="copyCuradoriaLink('${x.id}')"><i class="fa fa-copy"></i> Copiar link</button>
-        </div>
-        <h3>${e(x.titulo||'Referência')}</h3>
-        ${x.obs?`<div class="meta" style="margin-bottom:9px">${e(x.obs)}</div>`:''}
-        <div class="reelbox">
-          <blockquote class="instagram-media" data-instgrm-permalink="${e(u)}" data-instgrm-version="14" data-instgrm-captioned style="background:#fff;border:0;margin:0;max-width:100%;min-width:0;width:100%"></blockquote>
-        </div>
-        <div class="actions">
-          <button class="btn light sm" onclick="curadoriaEdit('${x.id}')">Editar</button>
-          <button class="btn danger sm" onclick="curadoriaDel('${x.id}')">Excluir</button>
-        </div>
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px"><span class="badge warn">${e(c.nome||'Sem empresa')}</span><button class="btn copy-link-btn sm" onclick="copyCuradoriaLink('${x.id}')"><i class="fa fa-copy"></i> Copiar link</button></div>
+        <h3>${e(x.titulo||'Referência')}</h3>${x.obs?`<div class="meta" style="margin-bottom:9px">${e(x.obs)}</div>`:''}
+        <div class="reelbox tiktok-reelbox">${tikTokPlayer(u)}</div>
+        <div class="actions"><button class="btn light sm" onclick="curadoriaEdit('${x.id}')">Editar</button><button class="btn danger sm" onclick="curadoriaDel('${x.id}')">Excluir</button></div>
       </article>`;
     }).join('')||empty('Nenhuma referência salva.')}</div>`;
-  setTimeout(()=>{try{window.instgrm?.Embeds?.process()}catch(_){}},120);
 }
-function copyCuradoriaLink(idRef){
-  const x=D.curadoria.find(v=>v.id===idRef);
-  if(!x)return;
-  navigator.clipboard.writeText(cleanInstagram(x.url)).then(()=>toast('Link copiado.')).catch(()=>toast('Não foi possível copiar.'));
-}
-function curadoriaEdit(x=''){let a=D.curadoria.find(v=>v.id===x)||{};modal('Referência de Curadoria',`<form id="f" class="fg"><div class="field span"><label>Empresa</label><select name="companyId"><option value="">Selecione...</option>${D.companies.map(c=>`<option value="${c.id}" ${a.companyId===c.id?'selected':''}>${e(c.nome)}</option>`).join('')}</select></div><div class="field span"><label>Nome da referência</label><input name="titulo" value="${e(a.titulo||'')}" placeholder="Ex.: Gancho criativo / transição / campanha"></div><div class="field span"><label>Link do Instagram</label><input name="url" value="${e(a.url||'')}" placeholder="https://www.instagram.com/reel/..."></div><div class="field span"><label>Observação</label><textarea name="obs">${e(a.obs||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(!q.companyId)return toast('Selecione a empresa.');if(!q.url)return toast('Cole o link.');q.url=cleanInstagram(q.url);if(a.id)Object.assign(a,q);else D.curadoria.unshift({...q,id:id()});closeM();save();curadoria();toast('Referência salva.')})}
+function copyCuradoriaLink(idRef){const x=D.curadoria.find(v=>v.id===idRef);if(!x)return;navigator.clipboard.writeText(cleanTikTok(x.url)).then(()=>toast('Link copiado.')).catch(()=>toast('Não foi possível copiar.'))}
+function curadoriaEdit(x=''){let a=D.curadoria.find(v=>v.id===x)||{};modal('Referência do TikTok',`<form id="f" class="fg"><div class="field span"><label>Empresa</label><select name="companyId"><option value="">Selecione...</option>${D.companies.map(c=>`<option value="${c.id}" ${a.companyId===c.id?'selected':''}>${e(c.nome)}</option>`).join('')}</select></div><div class="field span"><label>Nome da referência</label><input name="titulo" value="${e(a.titulo||'')}" placeholder="Ex.: Gancho criativo / transição / campanha"></div><div class="field span"><label>Link do vídeo TikTok</label><input name="url" value="${e(a.url||'')}" placeholder="https://www.tiktok.com/@usuario/video/..."><small class="move-check-help">Use o link completo do vídeo para o player funcionar dentro do MOVE.</small></div><div class="field span"><label>Observação</label><textarea name="obs">${e(a.obs||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(!q.companyId)return toast('Selecione a empresa.');if(!q.url)return toast('Cole o link do TikTok.');q.url=cleanTikTok(q.url);if(!tikTokVideoId(q.url))return toast('Use o link completo do vídeo do TikTok.');if(a.id)Object.assign(a,q);else D.curadoria.unshift({...q,id:id()});closeM();save();curadoria();toast('Referência salva.')})}
 function curadoriaDel(x){if(!confirm('Excluir referência?'))return;D.curadoria=D.curadoria.filter(v=>v.id!==x);save();curadoria()}
 
 function dl(txt,name,type='text/html'){let u=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)}function safe(s){return String(s||'arquivo').replace(/[^a-z0-9_-]/gi,'_')}
@@ -2935,12 +2978,14 @@ async function weekHTML(wid){
   dl(html,`MOVE_${safe(c.nome)}_Semana_${w.numero}.html`);
   toast('Planejamento com mídias baixado.');
 }
-async function approval(cid){let c=D.companies.find(x=>x.id===cid),it=D.scheduled.filter(x=>x.companyId===cid),cards='';for(let s of it){let data=await mediaData(s.mediaId),ct=D.contents.find(x=>x.id===s.contentId)||{};cards+=`<article><div class="pv">${s.mime?.startsWith('image/')?`<img src="${data}">`:s.mime?.startsWith('video/')?`<video controls playsinline preload="metadata" src="${data}" onloadedmetadata="if(!this.videoWidth){this.insertAdjacentHTML(\'afterend\',\'<div class=&quot;video-warning&quot;>O navegador conseguiu ler o áudio, mas não o codec de vídeo deste arquivo. Converta para MP4 H.264 para visualizar em qualquer navegador.</div>\')}</video>`:'ARQUIVO'}</div><div class="info"><span>${e(ct.tipo||'Material')}</span><small>${e(s.status)}</small><h2>${e(ct.titulo||s.fileName||'Material')}</h2><p>${date(s.data)} ${e(s.hora||'')}</p>${s.legenda?`<section><b>Legenda proposta</b><p>${e(s.legenda).replace(/\n/g,'<br>')}</p></section>`:''}</div></article>`}dl(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${e(c.nome)} — Aprovação</title><style>body{font-family:Arial;margin:0;background:#f5f6f8}.hero{background:#111;color:#fff;padding:42px}.hero b{color:#fca311}.wrap{max-width:1100px;margin:auto;padding:24px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}article{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.05)}.pv{background:#111;display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto}.pv img{display:block;max-width:100%;width:auto;height:auto;object-fit:contain;object-position:center}.pv video{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:auto;object-fit:contain;object-position:center;background:#000}.video-warning{padding:10px;margin:8px;background:#fff3cd;color:#664d03;border-radius:8px;font-size:11px;line-height:1.4}.info{padding:14px}.info>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:bold}.info>small{float:right;color:#888}.info h2{font-size:15px}.info>p{font-size:10px;color:#888}section{background:#f7f7f7;border-radius:9px;padding:10px}section b{font-size:9px;color:#777}section p{font-size:11px;line-height:1.5}@media(max-width:850px){.grid{grid-template-columns:1fr}}
+async function approval(cid){let c=D.companies.find(x=>x.id===cid),it=D.scheduled.filter(x=>x.companyId===cid),cards='';for(let s of it){let data=s.mediaId?await mediaData(s.mediaId):'',ct=D.contents.find(x=>x.id===s.contentId)||{};cards+=`<article><div class="pv">${s.mime?.startsWith('image/')?`<img src="${data}">`:s.mime?.startsWith('video/')?`<video controls playsinline preload="metadata" src="${data}" onloadedmetadata="if(!this.videoWidth){this.insertAdjacentHTML(\'afterend\',\'<div class=&quot;video-warning&quot;>O navegador conseguiu ler o áudio, mas não o codec de vídeo deste arquivo. Converta para MP4 H.264 para visualizar em qualquer navegador.</div>\')}</video>`:s.legenda?'<div style="color:#fff;padding:35px;text-align:center"><b>LEGENDA SEM MÍDIA</b></div>':'ARQUIVO'}</div><div class="info"><span>${e(ct.tipo||'Material')}</span><small>${e(s.status)}</small><h2>${e(ct.titulo||s.fileName||'Material')}</h2><p>${date(s.data)} ${e(s.hora||'')}</p>${s.legenda?`<section><b>Legenda proposta</b><p>${e(s.legenda).replace(/\n/g,'<br>')}</p></section>`:''}</div></article>`}dl(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${e(c.nome)} — Aprovação</title><style>body{font-family:Arial;margin:0;background:#f5f6f8}.hero{background:#111;color:#fff;padding:42px}.hero b{color:#fca311}.wrap{max-width:1100px;margin:auto;padding:24px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}article{background:#fff;border:1px solid #e8e8e8;border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.05)}.pv{background:#111;display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto}.pv img{display:block;max-width:100%;width:auto;height:auto;object-fit:contain;object-position:center}.pv video{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:auto;object-fit:contain;object-position:center;background:#000}.video-warning{padding:10px;margin:8px;background:#fff3cd;color:#664d03;border-radius:8px;font-size:11px;line-height:1.4}.info{padding:14px}.info>span{background:#fff1cf;color:#8a5600;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:bold}.info>small{float:right;color:#888}.info h2{font-size:15px}.info>p{font-size:10px;color:#888}section{background:#f7f7f7;border-radius:9px;padding:10px}section b{font-size:9px;color:#777}section p{font-size:11px;line-height:1.5}@media(max-width:850px){.grid{grid-template-columns:1fr}}
 
 </style></head><body><div class="hero"><b>MOVE AGÊNCIA</b><h1>${e(c.nome)}</h1><p>Materiais para visualização e aprovação</p></div><div class="wrap"><div class="grid">${cards||'<article><div class="info">Nenhum material.</div></article>'}</div></div></body></html>`,`MOVE_${safe(c.nome)}_Aprovacao.html`);toast('HTML de aprovação baixado.')}
 function backup(){dl(JSON.stringify(D,null,2),'MOVE_Backup_'+new Date().toISOString().slice(0,10)+'.json','application/json')}function restorePick(){const r=document.getElementById('restore');if(r)r.click()}const restoreEl=document.getElementById('restore');if(restoreEl)restoreEl.onchange=async()=>{try{const file=restoreEl.files&&restoreEl.files[0];if(!file)return;D=Object.assign(blank(),JSON.parse(await file.text()));delete D.finance;delete D.contracts;save();toast('Backup restaurado.')}catch(err){toast('Backup inválido.')}}
 function mediaDB(){return new Promise((ok,no)=>{let r=indexedDB.open('MOVE_MEDIA',1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('m'))r.result.createObjectStore('m')};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}async function mediaPut(k,v){let db=await mediaDB();return new Promise((ok,no)=>{let t=db.transaction('m','readwrite');t.objectStore('m').put(v,k);t.oncomplete=ok;t.onerror=()=>no(t.error)})}async function mediaGet(k){if(!k)return null;let db=await mediaDB();return new Promise((ok,no)=>{let r=db.transaction('m').objectStore('m').get(k);r.onsuccess=()=>ok(r.result||null);r.onerror=()=>no(r.error)})}async function mediaURL(k){let b=await mediaGet(k);return b?URL.createObjectURL(b):''}async function mediaData(k){let b=await mediaGet(k);if(!b)return'';return new Promise((ok,no)=>{let r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(b)})}
 
+
+function injectMoveTikTokCSS(){if(document.getElementById('move-tiktok-css'))return;const st=document.createElement('style');st.id='move-tiktok-css';st.textContent=`.tiktok-reelbox{min-height:520px;background:#000;border-radius:12px;overflow:hidden}.tiktok-player{display:block;width:100%;height:620px;border:0;background:#000}.tiktok-invalid{min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:8px;color:#777;background:#f7f7f8}.tiktok-invalid i{font-size:28px;color:#111}.tiktok-invalid b{color:#111}.tiktok-invalid span{font-size:9px;max-width:300px;line-height:1.5}.move-caption-only{min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#777;background:#f7f7f8;width:100%}.move-caption-only i{font-size:22px;color:#fca311}.move-caption-only span{font-size:9px;font-weight:800}@media(max-width:700px){.tiktok-player{height:560px}.tiktok-reelbox{min-height:460px}}`;document.head.appendChild(st)}
 
 function injectMoveMultiCSS(){
   if(document.getElementById('move-multi-css'))return;
@@ -3206,7 +3251,7 @@ function injectMoveCelebrationCSS(){
 }
 
 function moveBoot(){
-  try{injectMoveMultiCSS();injectMoveCalendarCSS();injectMoveCelebrationCSS();nav();render('home');applyAuthState();}
+  try{injectMoveTikTokCSS();injectMoveMultiCSS();injectMoveCalendarCSS();injectMoveCelebrationCSS();nav();render('home');applyAuthState();}
   catch(err){console.error('Erro ao iniciar painel',err);const t=document.getElementById('toast');if(t){t.textContent='Erro ao iniciar painel: '+err.message;t.style.display='block';}}
 }
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',moveBoot);else moveBoot();
