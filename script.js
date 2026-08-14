@@ -102,7 +102,7 @@ async function moveLoadAfterLogin(){
   const rest=Math.max(0,3000-(Date.now()-started));
   if(rest)await moveSleep(rest);
   moveHideLoading();
-  try{nav();render(R||'home')}catch(err){console.error(err)}
+  try{nav();render(R||'home');moveShowTeamMessageOnce()}catch(err){console.error(err)}
 }
 
 
@@ -675,6 +675,11 @@ function magicInjectCSS(){
     @media(max-width:760px){.move-real-calendar-head{align-items:flex-start;flex-direction:column}.move-real-cal-grid{gap:4px}.move-real-cal-day{min-height:64px;padding:6px}.move-real-cal-type{font-size:6px;left:6px;right:6px;bottom:6px}.move-real-cal-number{font-size:10px}}
     @media(max-width:520px){.move-real-calendar-card{padding:11px}.move-real-calendar-legend{gap:7px}.move-real-cal-day{min-height:52px;border-radius:8px}.move-real-cal-type{font-size:5px;letter-spacing:0}.move-real-cal-weekdays span{font-size:6px}}
 
+    
+    .move-employee-welcome{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,360px);gap:12px;align-items:stretch;margin-bottom:14px}.move-employee-welcome-main{padding:18px 19px;border:1px solid #e7e9ed;border-radius:16px;background:#fff;box-shadow:0 8px 26px rgba(15,23,42,.04)}.move-employee-welcome-main h1{font-size:25px;margin:4px 0 4px;letter-spacing:-.7px}.move-employee-welcome-main p{margin:0;color:#777;font-size:9px;text-transform:capitalize}.move-employee-welcome-cycle{padding:15px;border-radius:16px;background:#111;color:#fff;border-left:5px solid #fca311;display:flex;flex-direction:column;justify-content:center}.move-employee-welcome-cycle.transition{border-left-color:#d92d20}.move-employee-welcome-cycle.planning{border-left-color:#12b76a}.move-employee-welcome-cycle.production{border-left-color:#2e5aac}.move-employee-welcome-cycle>span{font-size:7px;font-weight:900;color:#999;letter-spacing:.8px}.move-employee-welcome-cycle>b{font-size:17px;margin:4px 0 5px}.move-employee-welcome-cycle>small{font-size:8px;line-height:1.5;color:#aaa}
+    .move-team-message-modal{text-align:center;padding:10px 4px}.move-team-message-icon{width:58px;height:58px;margin:0 auto 15px;border-radius:17px;background:#111;color:#fca311;display:grid;place-items:center;font-size:20px}.move-team-message-modal h2{font-size:22px;letter-spacing:-.6px;margin:7px 0}.move-team-message-modal>p{max-width:560px;margin:0 auto;color:#62666d;font-size:11px;line-height:1.65}.move-team-message-rule{max-width:560px;margin:17px auto 0;padding:11px 12px;border-radius:11px;background:#fff5dc;color:#744d00;display:flex;align-items:center;gap:8px;text-align:left;font-size:9px;line-height:1.45}.move-team-message-rule i{color:#b77900}
+    @media(max-width:760px){.move-employee-welcome{grid-template-columns:1fr}.move-employee-welcome-main h1{font-size:22px}}
+
     @media(max-width:520px){.move-magic-main-btn{width:100%}.move-magic-top-wrap{width:100%}.move-magic-drop{width:100%;position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-width:none}.magic-stats{grid-template-columns:1fr 1fr}}
   `;
   document.head.appendChild(st);
@@ -1172,6 +1177,107 @@ function movePPMonthCalendar(baseDate=new Date()){
   </section>`;
 }
 
+
+const MOVE_TEAM_MESSAGES=[
+  {
+    title:'Organização antes da correria.',
+    text:'Antes de começar, veja o que realmente precisa da sua atenção. Priorize prazos, conclua o que está em andamento e evite abrir novas demandas sem necessidade.',
+    icon:'fa-list-check'
+  },
+  {
+    title:'Planejamento bom facilita a Produção.',
+    text:'Quanto mais claro estiver o planejamento, mais rápida e melhor será a execução. Informação incompleta vira retrabalho.',
+    icon:'fa-lightbulb'
+  },
+  {
+    title:'Prazo é compromisso.',
+    text:'Se uma entrega tem prazo, ela precisa de acompanhamento. Se houver impedimento, registre e comunique antes de virar atraso.',
+    icon:'fa-clock'
+  },
+  {
+    title:'Uma coisa bem feita de cada vez.',
+    text:'Não transforme tudo em urgente. Trabalhe por prioridade, finalize o que começou e mantenha o painel atualizado para toda a equipe.',
+    icon:'fa-bullseye'
+  },
+  {
+    title:'O painel precisa refletir a operação real.',
+    text:'Mudou o status? Atualize. Terminou? Conclua. Surgiu uma demanda? Registre. O MOVE só consegue organizar a equipe quando a informação está correta.',
+    icon:'fa-arrows-rotate'
+  },
+  {
+    title:'Produção não deve adivinhar.',
+    text:'Toda demanda enviada precisa chegar com objetivo, orientação, prazo e informação suficiente para ser executada sem ruído.',
+    icon:'fa-clapperboard'
+  }
+];
+
+function moveGreetingInfo(){
+  const now=new Date();
+  const h=now.getHours();
+  const greeting=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+  const dateText=now.toLocaleDateString('pt-BR',{
+    weekday:'long',day:'2-digit',month:'long',year:'numeric'
+  });
+  return {greeting,dateText,now};
+}
+
+function moveEmployeeWelcome(){
+  const g=moveGreetingInfo();
+  const cycle=movePPCycleInfo();
+  const cycleText=cycle.type==='TRANSIÇÃO'
+    ?'Hoje estamos em semana de Transição. Feche pendências e proteja o próximo ciclo.'
+    :cycle.type==='PLANEJAMENTO'
+      ?'Esta é uma semana de Planejamento. O foco é deixar a próxima Produção abastecida.'
+      :'Esta é uma semana de Produção. O foco é executar o que foi planejado e respeitar os prazos.';
+
+  return `<section class="move-employee-welcome">
+    <div class="move-employee-welcome-main">
+      <span class="eyebrow">MOVE • OPERAÇÃO</span>
+      <h1>${g.greeting} 👋</h1>
+      <p>${g.dateText.charAt(0).toUpperCase()+g.dateText.slice(1)}</p>
+    </div>
+
+    <div class="move-employee-welcome-cycle ${cycle.cls}">
+      <span>SEMANA ATUAL</span>
+      <b>${e(cycle.type)}</b>
+      <small>${e(cycleText)}</small>
+    </div>
+  </section>`;
+}
+
+function moveShowTeamMessageOnce(){
+  const key='move_team_message_session_v1';
+  if(sessionStorage.getItem(key)==='1')return;
+  if(!isAuthenticated() && !hasLoginCache())return;
+
+  sessionStorage.setItem(key,'1');
+
+  const day=new Date().getDate();
+  const msg=MOVE_TEAM_MESSAGES[day % MOVE_TEAM_MESSAGES.length];
+
+  setTimeout(()=>{
+    modal('Mensagem para a equipe',`
+      <div class="move-team-message-modal">
+        <div class="move-team-message-icon"><i class="fa ${msg.icon}"></i></div>
+        <span class="eyebrow">ANTES DE COMEÇAR</span>
+        <h2>${e(msg.title)}</h2>
+        <p>${e(msg.text)}</p>
+
+        <div class="move-team-message-rule">
+          <i class="fa fa-check-circle"></i>
+          <span>Abra a Visão Geral, identifique a prioridade do dia e trabalhe pela ordem.</span>
+        </div>
+      </div>
+    `);
+    const saveBtn=document.getElementById('saveM');
+    if(saveBtn){
+      saveBtn.innerHTML='<i class="fa fa-check"></i> Entendido';
+      saveBtn.onclick=closeM;
+      saveBtn.className='btn primary';
+    }
+  },500);
+}
+
 function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
   const demandCards=[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>{
     const weekly=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0)+Number(c.captacoes||0);
@@ -1194,7 +1300,7 @@ function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
       <div class="meta" style="margin-top:10px">Planejados: <b>${contentsMonth}</b> • Produzidos: <b>${scheduledMonth}</b> • Finalizados: <b>${doneTasks}</b></div>
     </div>`;
   }).join('');
-  document.getElementById('p-home').innerHTML=movePPCycleBanner()+movePPMonthCalendar()+
+  document.getElementById('p-home').innerHTML=moveEmployeeWelcome()+movePPCycleBanner()+movePPMonthCalendar()+
     head('Visão geral','Operação sincronizada com o Google Sheets e cache local para velocidade.')
     +`<div class="grid kpis"><div class="card kpi"><i class="fa fa-building"></i><b>${D.companies.length}</b><span>empresas</span></div><div class="card kpi"><i class="fa fa-lightbulb"></i><b>${p}</b><span>planejamentos</span></div><div class="card kpi"><i class="fa fa-photo-film"></i><b>${m}</b><span>materiais produzidos</span></div><div class="card kpi"><i class="fa fa-triangle-exclamation"></i><b>${pe}</b><span>pendências</span></div></div>`
     +`<div class="card section" style="margin-top:14px"><div class="list">${pend().slice(0,8).map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge warn">${x.type}</span></div>`).join('')||empty('Tudo em dia.')}</div></div>`
