@@ -23,27 +23,14 @@
       <label for="loginPassword">Senha de acesso</label>
 
       <div class="login-password-wrap">
-        <input
-          id="loginPassword"
-          type="password"
-          autocomplete="current-password"
-          placeholder="Digite sua senha"
-          required
-        >
-
-        <button
-          type="button"
-          class="login-eye"
-          onclick="toggleLoginPassword()"
-          aria-label="Mostrar ou ocultar senha"
-        >
+        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Digite sua senha" required>
+        <button type="button" class="login-eye" onclick="toggleLoginPassword()" aria-label="Mostrar ou ocultar senha">
           <i class="fa fa-eye"></i>
         </button>
       </div>
 
       <button class="btn primary login-submit" type="submit">
-        <i class="fa fa-arrow-right-to-bracket"></i>
-        Entrar
+        <i class="fa fa-arrow-right-to-bracket"></i> Entrar
       </button>
 
       <div id="loginError" class="login-error"></div>
@@ -52,10 +39,8 @@
 </div>
 
 <div id="appShell" class="active auth-hidden">
-
   <aside class="side">
     <div class="brand">MOVE<span>.</span></div>
-
     <nav class="nav" id="nav"></nav>
 
     <div class="foot">
@@ -66,7 +51,6 @@
   </aside>
 
   <main class="main">
-
     <header class="top">
       <div>
         <h1 id="title">Início</h1>
@@ -74,62 +58,25 @@
       </div>
 
       <div class="top-actions">
-        <!-- Planner Mágico e botão Sair são adicionados dinamicamente pelo script.js -->
-
-        <button class="btn light sm" onclick="backup()">
-          <i class="fa fa-download"></i>
-          Backup
-        </button>
-
-        <button class="btn light sm" onclick="restorePick()">
-          <i class="fa fa-upload"></i>
-          Restaurar
-        </button>
-
-        <input
-          id="restore"
-          class="hidden"
-          type="file"
-          accept=".json,application/json"
-        >
+        <!-- Planner Mágico e Sair são inseridos pelo JS -->
+        <button class="btn light sm" onclick="backup()"><i class="fa fa-download"></i> Backup</button>
+        <button class="btn light sm" onclick="restorePick()"><i class="fa fa-upload"></i> Restaurar</button>
+        <input id="restore" class="hidden" type="file" accept=".json,application/json">
       </div>
     </header>
 
     <div class="wrap">
-
-      <!-- VISÃO GERAL + CICLO P+P -->
       <section class="page active" id="p-home"></section>
-
-      <!-- EMPRESAS -->
       <section class="page" id="p-empresas"></section>
-
-      <!-- QUADRO CRIATIVO / PLANEJAMENTO MANUAL -->
       <section class="page" id="p-quadro"></section>
-
-      <!-- PLANNER MÁGICO / PLANEJAMENTO SEPARADO -->
       <section class="page" id="p-magicplanner"></section>
-
-      <!-- CAMPANHAS -->
       <section class="page" id="p-campanhas"></section>
-
-      <!-- PENDÊNCIAS -->
       <section class="page" id="p-pendencias"></section>
-
-      <!-- TEXTOS / LEGENDAS -->
       <section class="page" id="p-textos"></section>
-
-      <!-- AGENDA -->
       <section class="page" id="p-agenda"></section>
-
-      <!-- TAREFAS: PLANEJAMENTO + PRODUÇÃO -->
       <section class="page" id="p-tarefas"></section>
-
-      <!-- ÁREA TÉCNICA DE AGENDAMENTO/MÍDIAS -->
       <section class="page" id="p-agendamento"></section>
-
-      <!-- CURADORIA -->
       <section class="page" id="p-curadoria"></section>
-
     </div>
   </main>
 </div>
@@ -139,6 +86,5 @@
 
 <script src="script.js"></script>
 <script async src="https://www.instagram.com/embed.js"></script>
-
 </body>
 </html>
