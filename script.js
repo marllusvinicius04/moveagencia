@@ -684,10 +684,10 @@ function magicInjectCSS(){
     .move-employee-welcome{grid-template-columns:minmax(0,1fr) minmax(260px,340px)}.move-employee-point-card{padding:15px;border:1px solid #e7e9ed;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 8px 26px rgba(15,23,42,.04)}.move-employee-point-card b{display:block;font-size:14px;margin:4px 0 2px}.move-employee-point-card small{display:block;color:#888;font-size:8px}
     .move-clock-modal{display:grid;gap:13px}.move-clock-status{text-align:center}.move-clock-status h2{font-size:22px;margin:5px 0 3px}.move-clock-status p{font-size:9px;color:#777;margin:0}.move-clock-camera-wrap{position:relative;max-width:460px;width:100%;aspect-ratio:4/3;margin:0 auto;border-radius:18px;overflow:hidden;background:#090909;display:grid;place-items:center}.move-clock-camera-wrap video,.move-clock-photo-preview img{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}.move-clock-camera-guide{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(0,0,0,.7);color:#fff;border-radius:10px;padding:9px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:8px}.move-clock-photo-preview{position:absolute;inset:0}.move-clock-photo-preview .btn{position:absolute;right:10px;bottom:10px}.move-clock-actions{justify-content:center}.move-clock-day-list{border-top:1px solid #eceef0;padding-top:12px}.move-clock-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.move-clock-day-head b{display:block;font-size:10px}.move-clock-day-head small{display:block;font-size:8px;color:#888;margin-top:2px}.move-clock-entries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.move-clock-entry{display:grid;grid-template-columns:46px 1fr;gap:9px;align-items:center;padding:8px;border:1px solid #e7e9ed;border-radius:11px;background:#fafbfc}.move-clock-photo{width:46px;height:46px;border-radius:10px;overflow:hidden;background:#eee;display:grid;place-items:center}.move-clock-photo img{width:100%;height:100%;object-fit:cover}.move-clock-entry b{display:block;font-size:11px;margin:4px 0 2px}.move-clock-entry small{font-size:7px;color:#888}.move-clock-home-summary{padding:11px 13px;border:1px solid #e7e9ed;border-radius:14px;background:#fff;margin-bottom:12px}.move-clock-home-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.move-clock-home-head h3{margin:4px 0 0;font-size:13px}.move-clock-home-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.move-clock-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;font-size:8px}.move-clock-pill.entry{background:#eaf8f0;color:#087443}.move-clock-pill.exit{background:#fff3d5;color:#815200}
     @media(max-width:700px){.move-employee-welcome{grid-template-columns:1fr}.move-employee-point-card{align-items:stretch;flex-direction:column}.move-clock-entries{grid-template-columns:1fr}.move-clock-home-head{align-items:flex-start;flex-direction:column}}
+.move-board-company-ref-grid .span,.move-week-ref-grid .span{grid-column:auto}}
 
     
-    .move-board-company-reference,.move-week-company-reference{background:#fff;border:1px solid #e7e9ed;border-radius:16px;padding:14px;margin:14px 0;box-shadow:0 7px 22px rgba(15,23,42,.035)}.move-board-company-ref-head h3,.move-week-ref-head h3{margin:4px 0 3px;font-size:15px}.move-board-company-ref-head p,.move-week-ref-head p{margin:0;color:#777;font-size:8px}.move-board-company-ref-grid,.move-week-ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.move-board-company-ref-grid>div,.move-week-ref-grid>div{background:#f7f8fa;border-radius:10px;padding:10px}.move-board-company-ref-grid span,.move-week-ref-grid span{display:block;font-size:7px;font-weight:900;color:#777;letter-spacing:.45px}.move-board-company-ref-grid p,.move-week-ref-grid p{font-size:9px;line-height:1.55;margin:5px 0 0;color:#3f444a}.move-board-company-ref-grid .span,.move-week-ref-grid .span{grid-column:1/-1}
-    @media(max-width:650px){.move-board-company-ref-grid,.move-week-ref-grid{grid-template-columns:1fr}.move-board-company-ref-grid .span,.move-week-ref-grid .span{grid-column:auto}}
+    .move-fixed-company-field{min-height:42px;border:1px solid #e4e7ec;border-radius:10px;background:#f7f8fa;padding:10px 11px;display:flex;align-items:flex-start;gap:8px;color:#3f444a;font-size:9px;line-height:1.5}.move-fixed-company-field i{color:#9a6100;margin-top:2px}.move-fixed-company-field span{white-space:pre-wrap}
 
     @media(max-width:520px){.move-magic-main-btn{width:100%}.move-magic-top-wrap{width:100%}.move-magic-drop{width:100%;position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-width:none}.magic-stats{grid-template-columns:1fr 1fr}}
   `;
@@ -2086,36 +2086,6 @@ async function board(cid){
       </div>
     </div>`
 
-
-    +`<section class="move-board-company-reference">
-      <div class="move-board-company-ref-head">
-        <div>
-          <span class="eyebrow">REFERÊNCIA DA EMPRESA</span>
-          <h3>Base para o Planejamento</h3>
-          <p>Estas informações vêm do cadastro da empresa e servem como guia para todas as semanas.</p>
-        </div>
-      </div>
-
-      <div class="move-board-company-ref-grid">
-        <div>
-          <span>TOM DE COMUNICAÇÃO</span>
-          <p>${e(c.tons||'Não informado.')}</p>
-        </div>
-        <div>
-          <span>LINHAS DE CONTEÚDO</span>
-          <p>${e(c.linhas||'Não informado.')}</p>
-        </div>
-        <div class="span">
-          <span>OBJETIVOS GERAIS</span>
-          <p>${e(c.objetivos||'Não informado.')}</p>
-        </div>
-        <div class="span">
-          <span>VOLUME SEMANAL</span>
-          <p>${Number(c.reels||0)} Reels • ${Number(c.posts||0)} Posts • ${Number(c.stories||0)} Stories</p>
-        </div>
-      </div>
-    </section>`
-
     +`<section class="move-board-section">
       <div class="move-board-section-head">
         <div>
@@ -2350,7 +2320,61 @@ Essa ação não pode ser desfeita.`;
   toast('Semana, conteúdos e uploads excluídos.');
 }
 
-function week(cid,x=''){let w=D.weeks.find(a=>a.id===x)||{},n=w.numero||Math.min(4,D.weeks.filter(a=>a.companyId===cid).length+1);modal('Semana',`<form id="f" class="fg"><div class="field"><label>Número</label><select name="numero">${[1,2,3,4].map(i=>`<option ${i==n?'selected':''}>${i}</option>`).join('')}</select></div><div></div><div class="field"><label>Início</label><input type="date" name="inicio" value="${w.inicio||''}"></div><div class="field"><label>Fim</label><input type="date" name="fim" value="${w.fim||''}"></div>${multiSelectField('objetivo','Objetivo',OBJETIVOS_OPCOES,w.objetivo||'')}${multiSelectField('linha','Linha estratégica',LINHAS_CONTEUDO_OPCOES,w.linha||'')}</form>`,()=>{let q=objMulti(document.getElementById('f'));q.numero=Number(q.numero);if(w.id)Object.assign(w,q);else D.weeks.push({...q,id:id(),companyId:cid});closeM();save();board(cid)})}
+function week(cid,x=''){
+  const companyRef=D.companies.find(a=>a.id===cid)||{};
+  let w=D.weeks.find(a=>a.id===x)||{};
+  const n=w.numero||Math.min(4,D.weeks.filter(a=>a.companyId===cid).length+1);
+
+  modal('Semana',`
+    <form id="f" class="fg">
+      <div class="field">
+        <label>Número da Semana</label>
+        <select name="numero">${[1,2,3,4].map(i=>`<option ${i==n?'selected':''}>${i}</option>`).join('')}</select>
+      </div>
+      <div></div>
+
+      <div class="field">
+        <label>Início</label>
+        <input type="date" name="inicio" value="${w.inicio||''}">
+      </div>
+
+      <div class="field">
+        <label>Fim</label>
+        <input type="date" name="fim" value="${w.fim||''}">
+      </div>
+
+      ${multiSelectField('objetivo','Objetivos da Semana',OBJETIVOS_OPCOES,w.objetivo||'')}
+
+      <div class="field span">
+        <label>Linha Estratégica</label>
+        <div class="move-fixed-company-field">
+          <i class="fa fa-layer-group"></i>
+          <span>${e(companyRef.linhas||'Não informada no cadastro da empresa.')}</span>
+        </div>
+        <input type="hidden" name="linha" value="${e(companyRef.linhas||'')}">
+      </div>
+
+      <div class="field span">
+        <label>Tom de Comunicação</label>
+        <div class="move-fixed-company-field">
+          <i class="fa fa-comments"></i>
+          <span>${e(companyRef.tons||'Não informado no cadastro da empresa.')}</span>
+        </div>
+      </div>
+    </form>
+  `,()=>{
+    let q=objMulti(document.getElementById('f'));
+    q.numero=Number(q.numero);
+    q.linha=companyRef.linhas||'';
+
+    if(w.id)Object.assign(w,q);
+    else D.weeks.push({...q,id:id(),companyId:cid});
+
+    closeM();
+    save();
+    board(cid);
+  });
+}
 function content(cid,wid,x='',prefillDate=''){
   let c=D.contents.find(a=>a.id===x)||{},
       n=c.ordem||D.contents.filter(a=>a.weekId===wid).length+1,
