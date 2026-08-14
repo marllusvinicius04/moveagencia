@@ -1256,9 +1256,6 @@ function launchConfetti(){
 }
 
 function quadro(){
-  const prod=productionSummary(cid);
-  const prodProgress=prod.total?Math.round(prod.done/prod.total*100):0;
-
   document.getElementById('p-quadro').innerHTML=
     head('Quadro Criativo','Planejamento mensal e exportação por semana.')
     +`<div class="grid companies">${D.companies.map(c=>{
@@ -1477,6 +1474,9 @@ async function board(cid){
       </div>
     </article>`;
   }
+
+  const prod=productionSummary(cid);
+  const prodProgress=prod.total?Math.round(prod.done/prod.total*100):0;
 
   document.getElementById('p-quadro').innerHTML=
     head(
