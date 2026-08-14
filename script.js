@@ -5,7 +5,7 @@ const MOVE_AUTH_KEY='move_local_auth_v1';
 
 
 // COLE AQUI A URL /exec GERADA AO IMPLANTAR O APPS SCRIPT COMO APLICATIVO DA WEB.
-const MOVE_API_URL='https://script.google.com/macros/s/AKfycbzgVk3IPdYlfH9u8ciMargnPRTkxuvn4oBQQWtSbnvyIud1Owd5sm6qLJGzuu83IfAmcw/exec';
+const MOVE_API_URL='https://script.google.com/macros/s/AKfycbydd_YHx04s5iFhFXeNUXnptdztQJXv2L2Ut9bWSWrg_O_9TuTbRYa_i2Y57sxWMeiCHA/exec';
 
 let MOVE_SYNC_TIMER=null;
 let MOVE_SYNCING=false;
@@ -191,7 +191,9 @@ Não use comentários dentro do JSON.
 REGRAS OBRIGATÓRIAS:
 1. Planeje 4 semanas para CADA empresa.
 2. Em CADA semana respeite EXATAMENTE a quantidade de Reels, Posts e Stories cadastrada para aquela empresa.
-3. Cada conteúdo deve ter:
+3. Cada conteúdo deve ser PROFISSIONAL, CRIATIVO, específico para a empresa e diretamente ligado aos objetivos, público, posicionamento e linha editorial cadastrados.
+4. NÃO REPITA ideias, títulos, ganchos, conceitos, campanhas ou estruturas entre empresas. Mesmo empresas do mesmo nicho precisam receber abordagens diferentes.
+5. Cada conteúdo deve ter:
    - tipo
    - titulo
    - ideia
@@ -200,10 +202,52 @@ REGRAS OBRIGATÓRIAS:
    - data sugerida
    - horário sugerido
    - linha editorial
+   - direção criativa
    - observações de produção
-4. Para Reels, entregue roteiro executável com GANCHO + CENAS + CTA, preferencialmente até 30 segundos quando fizer sentido.
-5. Para Posts e Stories, entregue título principal, subtexto/copy, CTA e direção criativa.
-6. Analise datas comemorativas e oportunidades do período. Só use datas que façam sentido para a empresa. Para cada uma informe se deve virar homenagem, conteúdo, ação ou campanha.
+6. Para REELS, o campo "roteiro" DEVE obrigatoriamente seguir este esqueleto, adaptado ao conteúdo:
+# REELS — <NOME DO REEL>
+
+### GANCHO
+
+**FALA:**
+"<fala exata do gancho>"
+
+**IDEIA CRIATIVA PARA O GANCHO:**
+<como gravar/executar visualmente o gancho>
+
+### CENA 01
+
+**FALA:**
+"<fala>"
+
+**CENA:**
+<orientação visual/take/ação>
+
+### CENA 02
+
+**FALA:**
+"<fala>"
+
+**CENA:**
+<orientação visual/take/ação>
+
+[adicione CENA 03, CENA 04 etc. somente quando necessário]
+
+### FECHAMENTO
+
+**FALA:**
+"<fala final>"
+
+**TEXTO NA TELA:**
+"<texto curto para aparecer na tela>"
+
+**CTA:**
+"<chamada para ação específica da empresa>"
+
+O Reel deve ser executável pela equipe de produção, ter gancho forte e, preferencialmente, até 30 segundos quando fizer sentido.
+7. Para POSTS, o roteiro/estrutura deve trazer: TÍTULO PRINCIPAL, SUBTEXTO, IDEIA VISUAL/BACK DE CRIAÇÃO, COPY/INFORMAÇÕES DA ARTE e CTA.
+8. Para STORIES, o roteiro/estrutura deve trazer: GANCHO/TÍTULO, TEXTO PRINCIPAL, INTERAÇÃO quando fizer sentido (enquete, caixa, reação etc.), DIREÇÃO VISUAL e CTA.
+6. PESQUISE datas comemorativas, profissionais, comerciais, sazonais, locais e temáticas do mês/período para o NICHO de CADA empresa. Não se limite às datas mais famosas. Selecione somente datas realmente relevantes para aquela marca e informe se deve virar homenagem, Post, Stories, Reels, ação ou campanha. Não invente datas: confirme a existência e a data correta antes de incluí-las.
 7. Crie ideias de CAMPANHAS ESTRATÉGICAS quando houver oportunidade real. Campanha não deve ser apenas um post: precisa ter conceito, objetivo e criativos.
 8. Pense no "movimento da empresa": o que a marca deve comunicar naquele mês, qual percepção construir e qual sequência de mensagens faz sentido.
 9. Evite repetição entre semanas e entre empresas.
@@ -286,6 +330,12 @@ SCHEMA OBRIGATÓRIO:
     }
   ]
 }
+
+PESQUISA DE DATAS:
+Antes de montar o planejamento, faça pesquisa atualizada das datas comemorativas do período para cada nicho presente nas empresas. Cruze o calendário geral com datas específicas de odontologia, educação, alimentação, finanças, saúde, varejo, tecnologia, profissões e demais nichos existentes no cadastro. Use somente oportunidades pertinentes à empresa.
+
+VALIDAÇÃO DE QUALIDADE:
+Antes de finalizar, compare TODOS os conteúdos de TODAS as empresas e elimine repetições ou ideias excessivamente parecidas. O planejamento deve parecer criado individualmente para cada cliente, e não replicado em massa.
 
 VALIDAÇÃO DE VOLUME:
 Antes de finalizar o JSON, confira empresa por empresa e semana por semana se o total de conteúdos é EXATAMENTE igual à demanda semanal fornecida.
@@ -438,11 +488,59 @@ function magicOpenPlan(planId){
   page.innerHTML=
     head(p.title||'Planejamento Mágico',`${date(p.periodo?.inicio)} — ${date(p.periodo?.fim)}`,`
       <button class="btn light" onclick="magicPlannerPage()"><i class="fa fa-arrow-left"></i> Voltar</button>
+      <button class="btn light" onclick="magicClientDownload('${p.id}')"><i class="fa fa-file-arrow-down"></i> Versão para empresas</button>
       <button class="btn dark" onclick="magicDownload('${p.id}')"><i class="fa fa-download"></i> Baixar JSON</button>
     `)
     +`<div class="notice">Este planejamento continua isolado do manual. Abra uma empresa para revisar semanas, conteúdos, datas e campanhas.</div>`
     +`<div class="grid companies magic-company-grid">${companyCards||empty('Nenhuma empresa no planejamento.')}</div>`;
 }
+
+function magicEditContent(planId,companyId,weekId,contentId){
+  const p=(D.magicPlans||[]).find(x=>x.id===planId);
+  const ep=p?.data?.empresas?.find(x=>x.companyId===companyId);
+  const w=ep?.semanas?.find(x=>x.id===weekId);
+  const ct=w?.conteudos?.find(x=>x.id===contentId);
+  if(!ct)return toast('Conteúdo não encontrado.');
+
+  modal('Editar conteúdo do Planner Mágico',`<form id="magicEditForm" class="fg">
+    <div class="field"><label>Tipo</label><select name="tipo">${['Reels','Post','Stories'].map(v=>`<option ${ct.tipo===v?'selected':''}>${v}</option>`).join('')}</select></div>
+    <div class="field"><label>Data</label><input type="date" name="postDate" value="${e(ct.postDate||'')}"></div>
+    <div class="field"><label>Horário</label><input type="time" name="postTime" value="${e(ct.postTime||'')}"></div>
+    <div class="field"><label>Linha editorial</label><input name="linhaEditorial" value="${e(ct.linhaEditorial||'')}"></div>
+    <div class="field span"><label>Título</label><input name="titulo" value="${e(ct.titulo||'')}"></div>
+    <div class="field span"><label>Ideia</label><textarea name="ideia">${e(ct.ideia||'')}</textarea></div>
+    <div class="field span"><label>Objetivo</label><textarea name="objetivo">${e(ct.objetivo||'')}</textarea></div>
+    <div class="field span"><label>Roteiro / estrutura</label><textarea name="roteiro" style="min-height:360px">${e(ct.roteiro||'')}</textarea></div>
+    <div class="field span"><label>Direção criativa</label><textarea name="direcaoCriativa">${e(ct.direcaoCriativa||'')}</textarea></div>
+    <div class="field span"><label>Observações de produção</label><textarea name="observacoes">${e(ct.observacoes||'')}</textarea></div>
+  </form>`,()=>{
+    const q=obj(document.getElementById('magicEditForm'));
+    Object.assign(ct,q);
+    closeM();save();magicCompanyDetail(planId,companyId);toast('Conteúdo atualizado.');
+  });
+}
+function magicClientDownload(planId,companyId=''){
+  const p=(D.magicPlans||[]).find(x=>x.id===planId);
+  if(!p)return toast('Planejamento não encontrado.');
+  const empresas=companyId?(p.data?.empresas||[]).filter(x=>x.companyId===companyId):(p.data?.empresas||[]);
+  let html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(p.title||'Planejamento')}</title>
+  <style>body{font-family:Arial,sans-serif;color:#171717;max-width:1000px;margin:0 auto;padding:40px;background:#fff}h1{font-size:30px}h2{margin-top:40px;border-bottom:2px solid #111;padding-bottom:10px}h3{margin-top:28px}.meta{color:#666;font-size:13px}.box{border:1px solid #ddd;border-radius:14px;padding:18px;margin:14px 0}.content{border-left:4px solid #fca311;background:#f7f7f7;padding:16px;margin:12px 0;border-radius:8px}pre{white-space:pre-wrap;font:inherit;line-height:1.55}.badge{font-size:11px;font-weight:bold;text-transform:uppercase}.no-print{margin-bottom:25px}@media print{.no-print{display:none}body{padding:0}}</style></head><body>
+  <button class="no-print" onclick="window.print()">Imprimir / Salvar em PDF</button><h1>${e(p.title||'Planejamento Estratégico')}</h1><div class="meta">${date(p.periodo?.inicio)} — ${date(p.periodo?.fim)}</div>`;
+  empresas.forEach(ep=>{
+    html+=`<h2>${e(ep.empresa)}</h2><div class="box"><b>Movimento estratégico</b><p>${e(ep.movimentoEstrategico||'')}</p><b>Direção criativa</b><p>${e(ep.direcaoCriativa||'')}</p></div>`;
+    (ep.semanas||[]).forEach(w=>{
+      html+=`<h3>Semana ${w.numero} — ${date(w.inicio)} a ${date(w.fim)}</h3><div class="meta">${e(w.objetivo||'')} • ${e(w.linha||'')}</div>`;
+      (w.conteudos||[]).forEach(ct=>{
+        html+=`<div class="content"><span class="badge">${e(ct.tipo)}</span><h3>${e(ct.titulo)}</h3><p><b>Ideia:</b> ${e(ct.ideia||'')}</p><p><b>Objetivo:</b> ${e(ct.objetivo||'')}</p><pre>${e(ct.roteiro||'')}</pre><p class="meta">${date(ct.postDate)} ${e(ct.postTime||'')} • ${e(ct.direcaoCriativa||'')}</p></div>`;
+      });
+    });
+    if((ep.datasComemorativas||[]).length){html+=`<h3>Datas e oportunidades</h3>`;(ep.datasComemorativas||[]).forEach(d=>html+=`<div class="box"><b>${date(d.data)} — ${e(d.nome)}</b><p>${e(d.ideia||'')}</p></div>`)}
+    if((ep.campanhas||[]).length){html+=`<h3>Campanhas estratégicas</h3>`;(ep.campanhas||[]).forEach(cp=>html+=`<div class="box"><b>${e(cp.nome)}</b><p>${e(cp.ideia||'')}</p><p><b>Objetivo:</b> ${e(cp.objetivo||'')}</p></div>`)}
+  });
+  html+=`</body></html>`;
+  dl(html,`MOVE_Planejamento_Cliente_${safe(companyId?(empresas[0]?.empresa||'empresa'):(p.title||'planejamento'))}.html`);
+}
+
 function magicCompanyDetail(planId,companyId){
   const p=(D.magicPlans||[]).find(x=>x.id===planId);
   const ep=p?.data?.empresas?.find(x=>x.companyId===companyId);
@@ -464,6 +562,7 @@ function magicCompanyDetail(planId,companyId){
           <p><b>Objetivo:</b> ${e(ct.objetivo||'')}</p>
           <div class="magic-script"><b>ROTEIRO / ESTRUTURA</b><pre>${e(ct.roteiro||'')}</pre></div>
           <div class="meta">${date(ct.postDate)} ${e(ct.postTime||'')} • ${e(ct.direcaoCriativa||'')}</div>
+          <div class="actions"><button class="btn light sm" onclick="magicEditContent('${planId}','${companyId}','${w.id}','${ct.id}')"><i class="fa fa-pen"></i> Editar conteúdo</button></div>
         </article>`).join('')}
       </div>
     </section>`).join('');
@@ -478,7 +577,7 @@ function magicCompanyDetail(planId,companyId){
   </article>`).join('');
 
   page.innerHTML=
-    head(ep.empresa||c?.nome||'Empresa',ep.movimentoEstrategico||'',`<button class="btn light" onclick="magicOpenPlan('${planId}')"><i class="fa fa-arrow-left"></i> Voltar ao plano</button>`)
+    head(ep.empresa||c?.nome||'Empresa',ep.movimentoEstrategico||'',`<button class="btn light" onclick="magicOpenPlan('${planId}')"><i class="fa fa-arrow-left"></i> Voltar ao plano</button> <button class="btn dark" onclick="magicClientDownload('${planId}','${companyId}')"><i class="fa fa-download"></i> Baixar versão para empresa</button>`)
     +`<div class="card section magic-direction"><span class="eyebrow">DIREÇÃO CRIATIVA</span><p>${e(ep.direcaoCriativa||'—')}</p><div class="meta">Cor registrada: <b>${e(c?.cor||'Não informada')}</b></div></div>`
     +`<div style="margin-top:18px">${head('Semanas planejadas','Conteúdo completo para a equipe revisar e executar.')}</div>`
     +`<div class="magic-weeks">${weeks||empty('Sem semanas.')}</div>`
@@ -524,6 +623,41 @@ function magicInjectCSS(){
     .magic-script{margin:9px 0;padding:10px;border-left:3px solid #fca311;border-radius:8px;background:#fff}.magic-script>b{font-size:8px;color:#7d8288}.magic-script pre,.magic-mini-creative pre{white-space:pre-wrap;word-break:break-word;font:inherit;font-size:9px;line-height:1.55;margin:7px 0 0}
     .magic-direction p{font-size:12px;line-height:1.65}.magic-campaign-creatives{display:grid;gap:7px;margin-top:10px}.magic-mini-creative{padding:9px;border-radius:9px;background:#f7f7f8}.magic-mini-creative b{font-size:9px}
     @media(max-width:820px){.move-magic-drop{right:auto;left:0;max-width:calc(100vw - 24px)}.magic-content-list{grid-template-columns:1fr}.magic-run-top,.magic-week-head,.magic-company-head{flex-direction:column}.magic-stats{grid-template-columns:repeat(2,1fr)}}
+
+    .production-command{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;background:#111;color:#fff;border-radius:15px;padding:16px 18px;margin:16px 0;border:1px solid #222}.production-command.has-critical{box-shadow:inset 4px 0 0 #b42318}.production-command h3{margin:5px 0 3px;font-size:18px}.production-command p{margin:0;color:#aaa;font-size:9px}.production-command .eyebrow{color:#fca311}.production-command-kpis{display:grid;grid-template-columns:repeat(4,minmax(74px,1fr));gap:6px}.production-command-kpis>div{background:#1c1c1c;border-radius:9px;padding:9px;text-align:center}.production-command-kpis b{display:block;font-size:17px}.production-command-kpis span{font-size:7px;color:#aaa}.production-command-kpis .danger-kpi{background:#351817}.production-command-kpis .danger-kpi b{color:#ff8d86}
+    .production-rule{display:grid;grid-template-columns:32px 1fr;gap:9px;background:#fff1ef;border:1px solid #ffd2cc;border-radius:10px;padding:10px;margin-bottom:10px;color:#8f251c}.production-rule>i{width:32px;height:32px;border-radius:8px;background:#b42318;color:#fff;display:grid;place-items:center}.production-rule b{display:block;font-size:8px}.production-rule span{display:block;font-size:8px;line-height:1.45;margin-top:3px}.prod-late-card{border-color:#f3b5ae!important;box-shadow:inset 3px 0 0 #d92d20}.prod-critical-card{border-color:#d92d20!important;background:#fffafa!important;box-shadow:inset 4px 0 0 #b42318}.prod-meta{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0;padding-top:8px;border-top:1px dashed #e5e7eb;font-size:8px;color:#666}.prod-meta i{color:#9a6100;margin-right:3px}.prod-blocker{margin:7px 0;background:#fff4e5;border-radius:8px;padding:8px}.prod-blocker b{display:block;font-size:7px;color:#8a5300}.prod-blocker span{display:block;font-size:8px;color:#6f5a37;margin-top:3px}
+    @media(max-width:900px){.production-command{grid-template-columns:1fr}.production-command-kpis{grid-template-columns:repeat(4,1fr)}}@media(max-width:520px){.production-command-kpis{grid-template-columns:1fr 1fr}.prod-meta{flex-direction:column;gap:5px}}
+
+    
+    .move-task-title-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.move-task-title-row strong{flex:1;min-width:140px}
+    .move-priority{white-space:nowrap}.move-priority-baixa{opacity:.78}.move-priority-normal{background:#f1f2f4;color:#555}.move-priority-alta{background:#fff2d1;color:#875100}.move-priority-urgente{background:#fff0ef;color:#b42318}.move-priority-crítica,.move-priority-critica{background:#b42318!important;color:#fff!important}
+    .move-task-priority-card.move-task-priority-crítica,.move-task-priority-card.move-task-priority-critica{box-shadow:inset 4px 0 0 #b42318}.move-task-priority-card.move-task-priority-urgente{box-shadow:inset 3px 0 0 #d92d20}.move-task-priority-card.move-task-priority-alta{box-shadow:inset 3px 0 0 #fca311}
+
+    
+    .move-op{margin-bottom:24px}.move-op-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:13px}.move-op-head h2{margin:4px 0 3px;font-size:21px;letter-spacing:-.5px}.move-op-head p{margin:0;color:#777;font-size:9px}.move-op-alerts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.move-op-alert{border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:12px;text-align:left;transition:.15s}.move-op-alert:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.06)}.move-op-alert span{display:block;font-size:7px;font-weight:900;color:#777}.move-op-alert b{display:block;font-size:25px;margin:5px 0 1px}.move-op-alert small{font-size:8px;color:#999}.move-op-alert.danger{border-color:#f2b8b3;background:#fffafa;box-shadow:inset 3px 0 0 #b42318}.move-op-alert.danger b{color:#b42318}.move-op-alert.warning{border-color:#f7d58b;background:#fffdf7;box-shadow:inset 3px 0 0 #fca311}
+    .move-op-health{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#e5e7eb;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin:8px 0}.move-op-health>div{background:#111;color:#fff;padding:11px 13px}.move-op-health span{display:block;font-size:7px;color:#aaa;font-weight:800}.move-op-health b{display:block;font-size:18px;margin-top:3px}.move-op-health b small{font-size:9px;color:#888}
+    .move-op-table-card{overflow:hidden}.move-op-table-head{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #eee}.move-op-table-head b{display:block;font-size:11px}.move-op-table-head small{display:block;color:#888;font-size:8px;margin-top:3px}.move-op-table-wrap{overflow:auto}.move-op-table{min-width:720px}.move-op-table td>small{display:block;margin-top:4px;color:#888;font-size:8px}.move-op-company{display:flex;align-items:center;gap:8px}.move-op-color{width:9px;height:28px;border-radius:5px;flex:0 0 auto}
+    @media(max-width:850px){.move-op-alerts,.move-op-health{grid-template-columns:1fr 1fr}}@media(max-width:520px){.move-op-head{align-items:flex-start;flex-direction:column}.move-op-alerts{grid-template-columns:1fr 1fr}.move-op-health{grid-template-columns:1fr 1fr}.move-op-alert b{font-size:21px}}
+
+    
+    .move-approval-note{margin-top:7px;padding:8px 9px;border-radius:8px;background:#fff4e5;color:#76520b;font-size:8px;line-height:1.45}.move-approval-note b{display:block;font-size:7px;margin-bottom:2px}
+
+    
+    .task-sector-choice-inline{display:flex;gap:7px;flex-wrap:wrap}.task-sector-choice-inline .move-check-chip span{min-height:38px;padding:0 12px}.task-transfer-note{margin-top:7px;padding:7px 9px;border-radius:8px;background:#f2f4f7;color:#667085;font-size:8px;display:flex;align-items:center;gap:5px}.task-transfer-note b{color:#344054}
+
+    
+    .move-pp-cycle{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:10px;background:#111;color:#fff;border-radius:18px;padding:16px;margin-bottom:16px;overflow:hidden;border:1px solid #222;box-shadow:0 14px 32px rgba(0,0,0,.08)}
+    .move-pp-cycle:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#fca311}.move-pp-cycle.transition:before{background:#d92d20}.move-pp-cycle.production:before{background:#12b76a}
+    .move-pp-main{display:flex;gap:13px;align-items:flex-start}.move-pp-icon{width:45px;height:45px;border-radius:12px;background:#242424;color:#fca311;display:grid;place-items:center;font-size:17px;flex:0 0 auto}.move-pp-cycle.transition .move-pp-icon{color:#ff7b72}.move-pp-cycle.production .move-pp-icon{color:#6ce9a6}
+    .move-pp-label{font-size:7px;font-weight:900;letter-spacing:1.2px;color:#999}.move-pp-copy h2{font-size:24px;margin:4px 0 2px;letter-spacing:-.7px}.move-pp-clock{font-size:9px;font-weight:800;color:#fca311;text-transform:capitalize}.move-pp-copy p{font-size:9px;line-height:1.5;color:#aaa;margin:8px 0 0;max-width:720px}
+    .move-pp-next{background:#1d1d1d;border:1px solid #292929;border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:center}.move-pp-next span{font-size:7px;color:#888;font-weight:900}.move-pp-next b{font-size:14px;margin:5px 0 2px}.move-pp-next small{font-size:8px;color:#aaa}
+    .move-pp-rule{grid-column:1/-1;background:#1a1a1a;border-top:1px solid #2b2b2b;margin:2px -16px -16px;padding:9px 16px;display:flex;align-items:center;gap:9px}.move-pp-rule>i{color:#fca311}.move-pp-rule b{display:block;font-size:7px;color:#ddd}.move-pp-rule span{display:block;font-size:8px;color:#888;margin-top:2px}
+    @media(max-width:700px){.move-pp-cycle{grid-template-columns:1fr}.move-pp-next{min-height:76px}.move-pp-copy h2{font-size:21px}}
+
+    
+    .monthly-report-preview{display:grid;gap:12px}.report-hero{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px;border-radius:14px;background:#111;color:#fff}.report-hero h2{margin:5px 0 3px}.report-hero p{margin:0;color:#aaa;font-size:9px}.report-color{width:52px;height:52px;border-radius:15px;flex:0 0 auto}.report-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.report-summary-grid>div{background:#f7f7f8;border-radius:10px;padding:10px}.report-summary-grid span{display:block;font-size:7px;color:#888;font-weight:800}.report-summary-grid b{display:block;font-size:20px;margin-top:4px}.report-summary-grid small{font-size:8px;color:#999}.report-goal-card,.report-development{border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff}.report-goal-card p{font-size:10px;line-height:1.55}.report-month-total{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.report-month-total>div{background:#111;color:#fff;border-radius:10px;padding:10px;text-align:center}.report-month-total b{display:block;font-size:18px;color:#fca311}.report-month-total span{font-size:7px;color:#aaa}.report-weeks{display:grid;gap:10px}.report-week-card{border:1px solid #e5e7eb;border-radius:13px;padding:12px;background:#fafbfc}.report-week-head{display:flex;justify-content:space-between;gap:12px}.report-week-head h3{font-size:13px;margin:6px 0 3px}.report-week-head p{font-size:9px;color:#666;margin:0}.report-week-kpis{display:flex;gap:6px}.report-week-kpis span{background:#fff;border:1px solid #eee;border-radius:8px;padding:7px;font-size:8px;color:#777}.report-week-kpis b{display:block;color:#111}.report-content-list{display:grid;gap:6px}.report-content-line{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;background:#fff;border-radius:9px;padding:8px}.report-content-line b{display:block;font-size:9px}.report-content-line small{display:block;font-size:7px;color:#888;margin-top:2px}
+    @media(max-width:700px){.report-summary-grid,.report-month-total{grid-template-columns:1fr 1fr}.report-week-head{flex-direction:column}.report-content-line{grid-template-columns:auto 1fr}.report-content-line>.badge:last-child{grid-column:2}}
+
     @media(max-width:520px){.move-magic-main-btn{width:100%}.move-magic-top-wrap{width:100%}.move-magic-drop{width:100%;position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-width:none}.magic-stats{grid-template-columns:1fr 1fr}}
   `;
   document.head.appendChild(st);
@@ -716,6 +850,172 @@ function objMulti(f){
   return o;
 }
 
+
+
+const MOVE_PP_CYCLE_START='2026-08-17'; // primeira segunda-feira oficial: PLANEJAMENTO
+const MOVE_PP_TRANSITION_END='2026-08-16T23:59:59';
+
+function movePPCycleInfo(now=new Date()){
+  const transitionEnd=new Date(MOVE_PP_TRANSITION_END);
+  const start=new Date(MOVE_PP_CYCLE_START+'T00:00:00');
+
+  if(now<=transitionEnd){
+    return {
+      type:'TRANSIÇÃO',
+      icon:'fa-triangle-exclamation',
+      cls:'transition',
+      weekNumber:0,
+      nextType:'PLANEJAMENTO',
+      nextDate:MOVE_PP_CYCLE_START,
+      instruction:'Fechar pendências e deixar materiais agendados. Não quebrar o próximo ciclo.'
+    };
+  }
+
+  const localNow=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const localStart=new Date(start.getFullYear(),start.getMonth(),start.getDate());
+  const days=Math.floor((localNow-localStart)/86400000);
+  const weekIndex=Math.max(0,Math.floor(days/7));
+  const planning=weekIndex%2===0;
+  const currentMonday=new Date(localStart);
+  currentMonday.setDate(localStart.getDate()+weekIndex*7);
+  const nextMonday=new Date(currentMonday);
+  nextMonday.setDate(currentMonday.getDate()+7);
+
+  return {
+    type:planning?'PLANEJAMENTO':'PRODUÇÃO',
+    icon:planning?'fa-lightbulb':'fa-clapperboard',
+    cls:planning?'planning':'production',
+    weekNumber:weekIndex+1,
+    currentMonday:currentMonday.toISOString().slice(0,10),
+    nextType:planning?'PRODUÇÃO':'PLANEJAMENTO',
+    nextDate:nextMonday.toISOString().slice(0,10),
+    instruction:planning
+      ?'Semana protegida para pensar, roteirizar, organizar campanhas, legendas, datas e preparar tudo que a Produção executará.'
+      :'Semana protegida para executar: captação, design, edição, ajustes e finalização. O planejamento estratégico não deve ser refeito aqui.'
+  };
+}
+
+function movePPClock(){
+  const el=document.getElementById('movePPClock');
+  if(!el)return;
+  const now=new Date();
+  el.textContent=now.toLocaleString('pt-BR',{
+    weekday:'long',day:'2-digit',month:'2-digit',year:'numeric',
+    hour:'2-digit',minute:'2-digit',second:'2-digit'
+  });
+}
+
+function movePPCycleBanner(){
+  const c=movePPCycleInfo();
+  setTimeout(()=>{
+    movePPClock();
+    if(window.__movePPClockTimer)clearInterval(window.__movePPClockTimer);
+    window.__movePPClockTimer=setInterval(movePPClock,1000);
+  },0);
+
+  return `<section class="move-pp-cycle ${c.cls}">
+    <div class="move-pp-main">
+      <div class="move-pp-icon"><i class="fa ${c.icon}"></i></div>
+      <div class="move-pp-copy">
+        <span class="move-pp-label">CICLO P + P • SEMANA ATUAL</span>
+        <h2>${e(c.type)}</h2>
+        <div id="movePPClock" class="move-pp-clock">Carregando data e hora...</div>
+        <p>${e(c.instruction)}</p>
+      </div>
+    </div>
+    <div class="move-pp-next">
+      <span>PRÓXIMA SEMANA</span>
+      <b>${e(c.nextType)}</b>
+      <small>A partir de ${date(c.nextDate)}</small>
+    </div>
+    <div class="move-pp-rule">
+      <i class="fa fa-lock"></i>
+      <div><b>ORDEM OPERACIONAL FIXA</b><span>PLANEJAMENTO → PRODUÇÃO → PLANEJAMENTO → PRODUÇÃO. Atrasos não mudam o tipo da semana.</span></div>
+    </div>
+  </section>`;
+}
+
+function moveOperationalOverview(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const in7=new Date(today); in7.setDate(in7.getDate()+7);
+
+  const companies=D.companies||[];
+  const contents=D.contents||[];
+  const tasks=D.tasks||[];
+
+  const planningTasks=tasks.filter(t=>taskSector(t)==='Planejamento');
+  const productionTasks=tasks.filter(t=>taskSector(t)==='Produção');
+
+  const planningPending=planningTasks.filter(t=>!['Concluído','Finalizado'].includes(t.status)).length;
+  const productionPending=productionTasks.filter(t=>!['Concluído','Finalizado'].includes(t.status)).length;
+
+  const prodContents=contents.filter(c=>contentTeam(c)==='criativa');
+  const prodLate=prodContents.filter(c=>['late','critical'].includes(productionDeadlineState(c).key));
+  const prodToday=prodContents.filter(c=>productionDeadlineState(c).key==='today');
+  const prodCritical=prodContents.filter(c=>productionDeadlineState(c).key==='critical');
+  const prodDone=prodContents.filter(c=>productionDeadlineState(c).key==='done');
+
+  const waitingApproval=contents.filter(c=>['Revisão','Ajustes'].includes(c.workflowStatus)).length;
+  const attached=(D.scheduled||[]).length;
+
+  const companyRows=companies.map(c=>{
+    const ws=(D.weeks||[]).filter(w=>w.companyId===c.id);
+    const cs=contents.filter(x=>x.companyId===c.id);
+    const prod=cs.filter(x=>contentTeam(x)==='criativa');
+    const late=prod.filter(x=>['late','critical'].includes(productionDeadlineState(x).key)).length;
+    const todayCount=prod.filter(x=>productionDeadlineState(x).key==='today').length;
+    const pendingPlan=planningTasks.filter(t=>t.companyId===c.id&&!['Concluído','Finalizado'].includes(t.status)).length;
+    const pendingProd=productionTasks.filter(t=>t.companyId===c.id&&!['Concluído','Finalizado'].includes(t.status)).length;
+    const future=cs.filter(x=>x.postDate&&new Date(x.postDate+'T00:00:00')>=today).length;
+    let health='Em dia',cls='ok',score=0,reason='Operação sem alerta imediato';
+    if(late){health='Em risco';cls='red';score=100+late*10;reason=`${late} conteúdo${late>1?'s':''} atrasado${late>1?'s':''}`}
+    else if(todayCount){health='Atenção';cls='warn';score=70+todayCount;reason=`${todayCount} entrega${todayCount>1?'s':''} vence${todayCount>1?'m':''} hoje`}
+    else if(!future&&ws.length){health='Preparar';cls='warn';score=55;reason='Sem conteúdo futuro preparado'}
+    else if(pendingPlan){health='Planejamento';cls='';score=35;reason=`${pendingPlan} tarefa${pendingPlan>1?'s':''} de planejamento pendente${pendingPlan>1?'s':''}`}
+    return {c,health,cls,score,reason,pendingPlan,pendingProd,late,todayCount,future};
+  }).sort((a,b)=>b.score-a.score||a.c.nome.localeCompare(b.c.nome));
+
+  return {companies,contents,tasks,planningPending,productionPending,prodContents,prodLate,prodToday,prodCritical,prodDone,waitingApproval,attached,companyRows};
+}
+function moveOverviewSection(){
+  const o=moveOperationalOverview();
+  const plannedCompanies=o.companyRows.filter(x=>x.future>0).length;
+  const healthy=o.companyRows.filter(x=>x.health==='Em dia').length;
+  const risk=o.companyRows.filter(x=>['Em risco','Atenção'].includes(x.health)).length;
+  const rows=o.companyRows.slice(0,12).map(x=>`<tr>
+    <td><div class="move-op-company"><span class="move-op-color" style="background:${e(x.c.cor||'#fca311')}"></span><b>${e(x.c.nome)}</b></div></td>
+    <td><span class="badge ${x.cls}">${e(x.health)}</span><small>${e(x.reason)}</small></td>
+    <td>${x.pendingPlan}</td><td>${x.pendingProd}</td><td>${x.future}</td>
+    <td><button class="btn light sm" onclick="board('${x.c.id}')">Abrir empresa</button></td>
+  </tr>`).join('');
+
+  return movePPCycleBanner()+`<section class="move-op">
+    <div class="move-op-head">
+      <div><span class="eyebrow">VISÃO GERAL DA OPERAÇÃO</span><h2>O que precisa da sua atenção agora</h2><p>Uma leitura rápida para você trabalhar por prioridade, sem procurar problema empresa por empresa.</p></div>
+      <button class="btn light sm" onclick="home()"><i class="fa fa-rotate"></i> Atualizar</button>
+    </div>
+
+    <div class="move-op-alerts">
+      <button class="move-op-alert ${o.prodLate.length?'danger':''}" onclick="go('tarefas')"><span>ATRASADAS</span><b>${o.prodLate.length}</b><small>${o.prodCritical.length} críticas</small></button>
+      <button class="move-op-alert ${o.prodToday.length?'warning':''}" onclick="go('tarefas')"><span>VENCEM HOJE</span><b>${o.prodToday.length}</b><small>produção</small></button>
+      <button class="move-op-alert" onclick="go('tarefas')"><span>PLANEJAMENTO</span><b>${o.planningPending}</b><small>tarefas pendentes</small></button>
+      <button class="move-op-alert" onclick="go('tarefas')"><span>PRODUÇÃO</span><b>${o.productionPending}</b><small>tarefas pendentes</small></button>
+    </div>
+
+    <div class="move-op-health">
+      <div><span>EMPRESAS EM DIA</span><b>${healthy}<small> / ${o.companies.length}</small></b></div>
+      <div><span>COM PLANEJAMENTO FUTURO</span><b>${plannedCompanies}<small> / ${o.companies.length}</small></b></div>
+      <div><span>EM RISCO</span><b>${risk}</b></div>
+      <div><span>MATERIAIS ANEXADOS</span><b>${o.attached}</b></div>
+    </div>
+
+    <div class="card move-op-table-card">
+      <div class="move-op-table-head"><div><b>Radar das empresas</b><small>As empresas que mais precisam de atenção aparecem primeiro.</small></div><span class="badge ${risk?'red':'ok'}">${risk?risk+' precisam de atenção':'Tudo sob controle'}</span></div>
+      <div class="move-op-table-wrap"><table class="table move-op-table"><thead><tr><th>Empresa</th><th>Situação</th><th>Planejamento</th><th>Produção</th><th>Futuros</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>
+  </section>`;
+}
+
 function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
   const demandCards=[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>{
     const weekly=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0)+Number(c.captacoes||0);
@@ -738,7 +1038,7 @@ function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
       <div class="meta" style="margin-top:10px">Planejados: <b>${contentsMonth}</b> • Produzidos: <b>${scheduledMonth}</b> • Finalizados: <b>${doneTasks}</b></div>
     </div>`;
   }).join('');
-  document.getElementById('p-home').innerHTML=
+  document.getElementById('p-home').innerHTML=moveOverviewSection()+
     head('Visão geral','Tudo salvo localmente e abrindo instantaneamente.')
     +`<div class="grid kpis"><div class="card kpi"><i class="fa fa-building"></i><b>${D.companies.length}</b><span>empresas</span></div><div class="card kpi"><i class="fa fa-lightbulb"></i><b>${p}</b><span>planejamentos</span></div><div class="card kpi"><i class="fa fa-photo-film"></i><b>${m}</b><span>materiais produzidos</span></div><div class="card kpi"><i class="fa fa-triangle-exclamation"></i><b>${pe}</b><span>pendências</span></div></div>`
     +`<div class="card section" style="margin-top:14px"><div class="list">${pend().slice(0,8).map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge warn">${x.type}</span></div>`).join('')||empty('Tudo em dia.')}</div></div>`
@@ -895,6 +1195,9 @@ function launchConfetti(){
 }
 
 function quadro(){
+  const prod=productionSummary(cid);
+  const prodProgress=prod.total?Math.round(prod.done/prod.total*100):0;
+
   document.getElementById('p-quadro').innerHTML=
     head('Quadro Criativo','Planejamento mensal e exportação por semana.')
     +`<div class="grid companies">${D.companies.map(c=>{
@@ -928,7 +1231,13 @@ function sendWeekToProduction(weekId){
   const items=D.contents.filter(x=>x.weekId===weekId);
   if(!items.length)return toast('Essa semana ainda não tem conteúdos.');
   if(!confirm(`Enviar a Semana ${w.numero} inteira para produção?\n\n${items.length} conteúdo(s) serão enviados para a Equipe Criativa / Operacional.`))return;
-  items.forEach(ct=>ct.workflowStatus='Fila de produção');
+  items.forEach(ct=>{
+    ct.workflowStatus='Fila de produção';
+    ct.productionDeadline=ct.productionDeadline||ct.postDate||w.fim||'';
+    ct.productionResponsible=ct.productionResponsible||'';
+    ct.productionBlocker=ct.productionBlocker||'';
+    ct.sentToProductionAt=new Date().toISOString();
+  });
   save();
   if(CID)board(CID);
   toast(`Semana ${w.numero} enviada para produção.`);
@@ -936,11 +1245,52 @@ function sendWeekToProduction(weekId){
 
 function sendToProduction(contentId){
   const ct=D.contents.find(x=>x.id===contentId);if(!ct)return toast('Conteúdo não encontrado.');
-  ct.workflowStatus='Fila de produção';save();if(CID)board(CID);toast('Enviado para a Equipe Criativa.');
+  const w=D.weeks.find(x=>x.id===ct.weekId);
+  ct.workflowStatus='Fila de produção';
+  ct.productionDeadline=ct.productionDeadline||ct.postDate||w?.fim||'';
+  ct.productionResponsible=ct.productionResponsible||'';
+  ct.productionBlocker=ct.productionBlocker||'';
+  ct.sentToProductionAt=new Date().toISOString();
+  save();if(CID)board(CID);toast('Enviado para a Equipe Criativa com prazo de entrega.');
+}
+function productionDeadlineState(ct){
+  if(['Finalizado','Agendado','Publicado'].includes(ct?.workflowStatus))return {key:'done',label:'FINALIZADO',cls:'ok'};
+  const deadline=ct?.productionDeadline||ct?.postDate||'';
+  if(!deadline)return {key:'none',label:'SEM PRAZO',cls:'red'};
+  const end=new Date(deadline+'T23:59:59');
+  const diff=end.getTime()-Date.now();
+  if(diff<0){
+    const days=Math.max(1,Math.ceil(Math.abs(diff)/86400000));
+    return {key:days>=2?'critical':'late',label:days>=2?`ATRASO CRÍTICO • ${days}D`:`ATRASADO • ${days}D`,cls:'red'};
+  }
+  const hours=Math.ceil(diff/3600000);
+  if(hours<=24)return {key:'today',label:'VENCE HOJE',cls:'red'};
+  if(hours<=72)return {key:'soon',label:`PRAZO PRÓXIMO • ${Math.ceil(hours/24)}D`,cls:'warn'};
+  return {key:'ok',label:`NO PRAZO • ${Math.ceil(hours/24)}D`,cls:'ok'};
+}
+function productionControl(contentId){
+  const ct=D.contents.find(x=>x.id===contentId);if(!ct)return;
+  modal('Controle de prazo da Produção',`<form id="productionControlForm" class="fg">
+    <div class="field"><label>Prazo obrigatório</label><input type="date" name="productionDeadline" value="${e(ct.productionDeadline||ct.postDate||'')}"></div>
+    <div class="field"><label>Responsável pela entrega</label><input name="productionResponsible" value="${e(ct.productionResponsible||'')}" placeholder="Nome do responsável"></div>
+    <div class="field span"><label>Impedimento / justificativa de atraso</label><textarea name="productionBlocker" placeholder="Se houver risco ou atraso, registre o motivo e o que está sendo feito para resolver.">${e(ct.productionBlocker||'')}</textarea></div>
+  </form>`,()=>{
+    const q=obj(document.getElementById('productionControlForm'));
+    if(!q.productionDeadline)return toast('O prazo é obrigatório.');
+    Object.assign(ct,q);closeM();save();if(CID)board(CID);toast('Controle de produção atualizado.');
+  });
 }
 function setWorkflowStatus(contentId,status){
   const ct=D.contents.find(x=>x.id===contentId);if(!ct)return;
-  ct.workflowStatus=status;save();if(CID)board(CID);toast('Etapa atualizada.');
+  const ds=productionDeadlineState(ct);
+  if(['late','critical'].includes(ds.key)&&status!=='Finalizado'&&!String(ct.productionBlocker||'').trim()){
+    toast('Entrega atrasada: registre a justificativa antes de continuar.');
+    productionControl(contentId);
+    return;
+  }
+  ct.workflowStatus=status;
+  if(status==='Finalizado')ct.productionDoneAt=new Date().toISOString();
+  save();if(CID)board(CID);toast('Etapa atualizada.');
 }
 
 function boardDateKey(d){
@@ -959,6 +1309,19 @@ function boardDays(w){
 function boardDayName(d){
   return d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','');
 }
+
+function productionSummary(cid){
+  const arr=D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='criativa');
+  const states=arr.map(productionDeadlineState);
+  return {
+    total:arr.length,
+    done:states.filter(x=>x.key==='done').length,
+    today:states.filter(x=>x.key==='today').length,
+    late:states.filter(x=>['late','critical'].includes(x.key)).length,
+    critical:states.filter(x=>x.key==='critical').length
+  };
+}
+
 async function board(cid){
   CID=cid;
   R='quadro';
@@ -1058,9 +1421,18 @@ async function board(cid){
     head(
       c.nome,
       'Planejamento em calendário: crie o conteúdo no dia e anexe a imagem ou o Reels no mesmo fluxo.',
-      `<span class="move-board-progress ${done===4?'is-complete':''}"><i class="fa fa-check"></i> ${done}/4 semanas concluídas</span> <button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn dark" onclick="copyCompanyData('${cid}')"><i class="fa fa-copy"></i> Copiar dados</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`
+      `<span class="move-board-progress ${done===4?'is-complete':''}"><i class="fa fa-check"></i> ${done}/4 semanas concluídas</span> <button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn dark" onclick="copyCompanyData('${cid}')"><i class="fa fa-copy"></i> Copiar dados</button> <button class="btn light" onclick="monthlyReport('${cid}')"><i class="fa fa-chart-column"></i> Gerar relatório mensal</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`
     )
     +`<div class="move-board-calendar-wrap">${weeksHTML}</div>`
+    +`<div class="production-command ${prod.critical?'has-critical':''}">
+      <div><span class="eyebrow">CENTRAL DE PRAZOS • PRODUÇÃO</span><h3>${prod.late?`${prod.late} entrega${prod.late>1?'s':''} atrasada${prod.late>1?'s':''}`:'Produção sob controle'}</h3><p>${prod.late?'Prioridade máxima: regularizar atrasos antes de acumular novas entregas.':'Toda demanda enviada para produção passa a ser compromisso de prazo.'}</p></div>
+      <div class="production-command-kpis">
+        <div><b>${prodProgress}%</b><span>CONCLUÍDO</span></div>
+        <div class="${prod.today?'danger-kpi':''}"><b>${prod.today}</b><span>VENCEM HOJE</span></div>
+        <div class="${prod.late?'danger-kpi':''}"><b>${prod.late}</b><span>ATRASADAS</span></div>
+        <div class="${prod.critical?'danger-kpi':''}"><b>${prod.critical}</b><span>CRÍTICAS</span></div>
+      </div>
+    </div>`
     +`<div class="move-team-area">
       <section class="move-team-column">
         <h3>Equipe Estratégica</h3><p class="meta">Planejamento, ideias, roteiros, calendário e aprovação.</p>
@@ -1068,13 +1440,167 @@ async function board(cid){
       </section>
       <section class="move-team-column">
         <h3>Equipe Criativa / Operacional</h3><p class="meta">Design, edição, captação, ajustes, finalização e agendamento.</p>
-        <div class="move-team-list">${D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='criativa').map(ct=>`<article class="move-team-card"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo||'Conteúdo')}</span>${workflowBadge(ct.workflowStatus)}${D.scheduled.some(s=>s.contentId===ct.id)?`<span class="badge ok move-upload-attached"><i class="fa fa-circle-check"></i> Anexado</span>`:''}</div><strong>${e(ct.titulo||'Sem título')}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><select class="move-status-select" onchange="setWorkflowStatus('${ct.id}',this.value)">${MOVE_TEAM_STATUS.criativa.map(s=>`<option ${((ct.workflowStatus||'Fila de produção')===s)?'selected':''}>${s}</option>`).join('')}</select><div class="actions"><button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')">Abrir</button>${(()=>{const sm=D.scheduled.find(s=>s.contentId===ct.id);return sm?`<button class="btn ok sm move-upload-done" onclick="upload('${cid}','${sm.id}')"><i class="fa fa-circle-check"></i> Anexado</button>`:`<button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')"><i class="fa fa-paperclip"></i> Upload</button>`})()}</div></article>`).join('')||empty('Nenhum conteúdo em produção.')}</div>
+        <div class="production-rule"><i class="fa fa-triangle-exclamation"></i><div><b>REGRA OPERACIONAL</b><span>Prazo é compromisso. Conteúdo atrasado exige justificativa registrada e deve ser tratado como prioridade.</span></div></div>
+        <div class="move-team-list">${D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='criativa').map(ct=>{const ds=productionDeadlineState(ct);return `<article class="move-team-card ${ds.key==='critical'?'prod-critical-card':['late','today'].includes(ds.key)?'prod-late-card':''}"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo||'Conteúdo')}</span>${workflowBadge(ct.workflowStatus)}<span class="badge ${ds.cls}">${e(ds.label)}</span>${D.scheduled.some(s=>s.contentId===ct.id)?`<span class="badge ok move-upload-attached"><i class="fa fa-circle-check"></i> Anexado</span>`:''}</div><strong>${e(ct.titulo||'Sem título')}</strong><div class="prod-meta"><span><i class="fa fa-calendar-day"></i> Prazo: <b>${ct.productionDeadline?date(ct.productionDeadline):'Não definido'}</b></span><span><i class="fa fa-user"></i> Responsável: <b>${e(ct.productionResponsible||'Não definido')}</b></span></div>${ct.productionBlocker?`<div class="prod-blocker"><b>IMPEDIMENTO REGISTRADO</b><span>${e(ct.productionBlocker)}</span></div>`:''}<select class="move-status-select" onchange="setWorkflowStatus('${ct.id}',this.value)">${MOVE_TEAM_STATUS.criativa.map(st=>`<option ${((ct.workflowStatus||'Fila de produção')===st)?'selected':''}>${st}</option>`).join('')}</select><div class="actions"><button class="btn light sm" onclick="productionControl('${ct.id}')"><i class="fa fa-sliders"></i> Prazo / responsável</button><button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')">Abrir</button>${(()=>{const sm=D.scheduled.find(x=>x.contentId===ct.id);return sm?`<button class="btn ok sm move-upload-done" onclick="upload('${cid}','${sm.id}')"><i class="fa fa-circle-check"></i> Anexado</button>`:`<button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')"><i class="fa fa-paperclip"></i> Upload</button>`})()}</div></article>`}).join('')||empty('Nenhum conteúdo em produção.')}</div>
       </section>
     </div>`
     +`<div class="move-board-schedule">
         ${head('Agendamento da empresa','As mídias anexadas aos conteúdos ficam aqui dentro do próprio Quadro Criativo.',`<button class="btn primary" onclick="upload('${cid}')"><i class="fa fa-plus"></i> Anexar material</button> <button class="btn dark" onclick="approval('${cid}')"><i class="fa fa-download"></i> Baixar aprovação</button>`)}
         <div class="move-board-media-grid">${materialsHTML||empty('Nenhuma mídia anexada ainda.')}</div>
       </div>`;
+}
+
+
+function monthlyReportData(cid){
+  const c=D.companies.find(x=>x.id===cid);
+  if(!c)return null;
+
+  const weeks=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>Number(a.numero)-Number(b.numero));
+  const contents=D.contents.filter(x=>x.companyId===cid);
+  const scheduled=D.scheduled.filter(x=>x.companyId===cid);
+
+  const byType={
+    Reels:contents.filter(x=>x.tipo==='Reels').length,
+    Post:contents.filter(x=>x.tipo==='Post').length,
+    Stories:contents.filter(x=>x.tipo==='Stories').length
+  };
+
+  const produced=contents.filter(x=>['Finalizado','Agendado','Publicado'].includes(x.workflowStatus)).length;
+  const inProduction=contents.filter(x=>['Fila de produção','Em produção','Ajustes'].includes(x.workflowStatus)).length;
+  const published=contents.filter(x=>x.workflowStatus==='Publicado').length;
+  const attached=scheduled.length;
+  const expectedWeekly=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0);
+  const expectedMonth=expectedWeekly*4;
+  const progress=expectedMonth?Math.min(100,Math.round(contents.length/expectedMonth*100)):0;
+
+  const weekRows=weeks.map(w=>{
+    const cs=contents.filter(x=>x.weekId===w.id);
+    const done=cs.filter(x=>['Finalizado','Agendado','Publicado'].includes(x.workflowStatus)).length;
+    return {
+      week:w,
+      total:cs.length,
+      reels:cs.filter(x=>x.tipo==='Reels').length,
+      posts:cs.filter(x=>x.tipo==='Post').length,
+      stories:cs.filter(x=>x.tipo==='Stories').length,
+      done,
+      contents:cs
+    };
+  });
+
+  return {c,weeks,contents,scheduled,byType,produced,inProduction,published,attached,expectedMonth,progress,weekRows};
+}
+
+function monthlyReport(cid){
+  const r=monthlyReportData(cid);
+  if(!r)return toast('Empresa não encontrada.');
+
+  const weekBlocks=r.weekRows.map(x=>`
+    <article class="report-week-card">
+      <div class="report-week-head">
+        <div>
+          <span class="badge warn">SEMANA ${x.week.numero}</span>
+          <h3>${date(x.week.inicio)} — ${date(x.week.fim)}</h3>
+          <p>${e(x.week.objetivo||'Sem objetivo definido.')}</p>
+        </div>
+        <div class="report-week-kpis">
+          <span><b>${x.total}</b> conteúdos</span>
+          <span><b>${x.done}</b> finalizados</span>
+        </div>
+      </div>
+      <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+        <div class="mini"><b>${x.reels}</b><span>REELS</span></div>
+        <div class="mini"><b>${x.posts}</b><span>POSTS</span></div>
+        <div class="mini"><b>${x.stories}</b><span>STORIES</span></div>
+      </div>
+      <div class="report-content-list">
+        ${x.contents.map(ct=>`<div class="report-content-line"><span class="badge">${e(ct.tipo||'Conteúdo')}</span><div><b>${e(ct.titulo||'Sem título')}</b><small>${e(ct.objetivo||ct.descricao||'')}</small></div><span class="badge ${['Finalizado','Agendado','Publicado'].includes(ct.workflowStatus)?'ok':'warn'}">${e(ct.workflowStatus||'Planejamento')}</span></div>`).join('')||'<div class="empty">Nenhum conteúdo nesta semana.</div>'}
+      </div>
+    </article>`).join('');
+
+  modal('Relatório mensal da empresa',`
+    <div class="monthly-report-preview">
+      <div class="report-hero">
+        <div>
+          <span class="eyebrow">RELATÓRIO MENSAL • MOVE AGÊNCIA</span>
+          <h2>${e(r.c.nome)}</h2>
+          <p>Visão consolidada das 4 semanas de planejamento e produção.</p>
+        </div>
+        <div class="report-color" style="background:${e(r.c.cor||'#fca311')}"></div>
+      </div>
+
+      <div class="report-summary-grid">
+        <div><span>PLANEJADO NO MÊS</span><b>${r.contents.length}</b><small>meta: ${r.expectedMonth}</small></div>
+        <div><span>FINALIZADOS</span><b>${r.produced}</b><small>produção concluída</small></div>
+        <div><span>PUBLICADOS</span><b>${r.published}</b><small>já publicados</small></div>
+        <div><span>PROGRESSO</span><b>${r.progress}%</b><small>da meta mensal</small></div>
+      </div>
+
+      <div class="report-goal-card">
+        <span class="eyebrow">OBJETIVOS DA EMPRESA</span>
+        <p>${e(r.c.objetivos||'Não informado.')}</p>
+        <span class="eyebrow">LINHAS DE CONTEÚDO</span>
+        <p>${e(r.c.linhas||'Não informado.')}</p>
+      </div>
+
+      <div class="report-month-total">
+        <div><b>${r.byType.Reels}</b><span>REELS</span></div>
+        <div><b>${r.byType.Post}</b><span>POSTS</span></div>
+        <div><b>${r.byType.Stories}</b><span>STORIES</span></div>
+        <div><b>${r.attached}</b><span>MATERIAIS</span></div>
+      </div>
+
+      <div class="report-development">
+        <span class="eyebrow">DESENVOLVIMENTO DO MÊS</span>
+        <textarea id="monthlyReportDevelopment" placeholder="Descreva aqui a evolução do mês, percepção construída, campanhas realizadas, destaques, resultados qualitativos, próximos movimentos e observações para o cliente." style="min-height:180px"></textarea>
+      </div>
+
+      <div class="report-weeks">${weekBlocks||empty('Nenhuma semana cadastrada.')}</div>
+    </div>
+  `,()=>{
+    const dev=document.getElementById('monthlyReportDevelopment')?.value||'';
+    closeM();
+    monthlyReportDownload(cid,dev);
+  });
+
+  setTimeout(()=>{
+    const saveBtn=document.getElementById('saveM');
+    if(saveBtn){
+      saveBtn.innerHTML='<i class="fa fa-download"></i> Baixar relatório';
+      saveBtn.className='btn dark';
+    }
+  },20);
+}
+
+function monthlyReportDownload(cid,development=''){
+  const r=monthlyReportData(cid);
+  if(!r)return toast('Empresa não encontrada.');
+
+  const weekHTML=r.weekRows.map(x=>`
+    <section class="week">
+      <div class="week-head">
+        <div><span class="tag">SEMANA ${x.week.numero}</span><h2>${date(x.week.inicio)} — ${date(x.week.fim)}</h2><p>${e(x.week.objetivo||'')}</p></div>
+        <div class="week-count"><b>${x.total}</b><span>conteúdos</span></div>
+      </div>
+      <div class="week-kpis"><div><b>${x.reels}</b><span>Reels</span></div><div><b>${x.posts}</b><span>Posts</span></div><div><b>${x.stories}</b><span>Stories</span></div><div><b>${x.done}</b><span>Finalizados</span></div></div>
+      ${x.contents.map(ct=>`<article class="content"><div class="content-top"><span class="type">${e(ct.tipo||'Conteúdo')}</span><span class="status">${e(ct.workflowStatus||'Planejamento')}</span></div><h3>${e(ct.titulo||'Sem título')}</h3><p>${e(ct.objetivo||ct.descricao||'')}</p>${ct.roteiro?`<div class="script"><b>Desenvolvimento / roteiro</b><p>${e(ct.roteiro).replace(/\n/g,'<br>')}</p></div>`:''}</article>`).join('')}
+    </section>`).join('');
+
+  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório Mensal — ${e(r.c.nome)}</title>
+  <style>
+  *{box-sizing:border-box}body{margin:0;background:#f3f5f7;color:#171717;font-family:Arial,sans-serif}.hero{background:#111;color:#fff;padding:46px 6vw;position:relative;overflow:hidden}.hero:after{content:"";position:absolute;right:-70px;top:-70px;width:220px;height:220px;border-radius:50%;background:${e(r.c.cor||'#fca311')};opacity:.28}.hero b{color:#fca311}.hero h1{font-size:38px;margin:9px 0 5px}.hero p{color:#aaa;margin:0}.wrap{max-width:1050px;margin:auto;padding:24px}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:-42px;position:relative}.summary>div,.card,.week{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:17px}.summary b{display:block;font-size:26px}.summary span,.summary small{display:block;font-size:9px;color:#777}.summary small{margin-top:3px}.card{margin-top:14px}.label{font-size:9px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:.5px}.card p{font-size:12px;line-height:1.6}.month-total{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.month-total div{background:#111;color:#fff;border-radius:12px;padding:13px;text-align:center}.month-total b{display:block;color:#fca311;font-size:21px}.month-total span{font-size:8px;color:#aaa}.week{margin-top:14px}.week-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.week-head h2{font-size:17px;margin:7px 0 4px}.week-head p{font-size:11px;color:#666;margin:0}.tag,.type{display:inline-block;border-radius:999px;padding:5px 8px;background:#fff1cf;color:#815200;font-size:8px;font-weight:bold}.week-count{text-align:right}.week-count b{display:block;font-size:24px}.week-count span{font-size:8px;color:#888}.week-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0}.week-kpis div{background:#f7f7f8;border-radius:9px;padding:9px;text-align:center}.week-kpis b{display:block}.week-kpis span{font-size:8px;color:#888}.content{border-top:1px solid #eee;padding:14px 0}.content-top{display:flex;justify-content:space-between}.status{font-size:8px;color:#666}.content h3{font-size:13px;margin:8px 0 4px}.content>p{font-size:10px;color:#666}.script{background:#f7f7f8;border-left:3px solid #fca311;border-radius:8px;padding:10px}.script b{font-size:8px;text-transform:uppercase;color:#777}.script p{font-size:10px;line-height:1.55}.foot{text-align:center;padding:28px;color:#999;font-size:9px}@media(max-width:700px){.summary,.month-total,.week-kpis{grid-template-columns:1fr 1fr}.week-head{flex-direction:column}.hero h1{font-size:28px}}
+  </style></head><body>
+  <div class="hero"><b>MOVE AGÊNCIA</b><h1>Relatório Mensal</h1><p>${e(r.c.nome)} • Planejamento e Produção</p></div>
+  <div class="wrap">
+    <div class="summary"><div><b>${r.contents.length}</b><span>PLANEJADO</span><small>meta ${r.expectedMonth}</small></div><div><b>${r.produced}</b><span>FINALIZADOS</span><small>produção concluída</small></div><div><b>${r.published}</b><span>PUBLICADOS</span><small>já publicados</small></div><div><b>${r.progress}%</b><span>PROGRESSO</span><small>meta mensal</small></div></div>
+    <div class="card"><span class="label">OBJETIVOS</span><p>${e(r.c.objetivos||'Não informado.')}</p><span class="label">LINHAS DE CONTEÚDO</span><p>${e(r.c.linhas||'Não informado.')}</p></div>
+    <div class="month-total"><div><b>${r.byType.Reels}</b><span>REELS</span></div><div><b>${r.byType.Post}</b><span>POSTS</span></div><div><b>${r.byType.Stories}</b><span>STORIES</span></div><div><b>${r.attached}</b><span>MATERIAIS</span></div></div>
+    <div class="card"><span class="label">DESENVOLVIMENTO DO MÊS</span><p>${e(development||'Relatório consolidado das quatro semanas de planejamento e produção.').replace(/\n/g,'<br>')}</p></div>
+    ${weekHTML}
+    <div class="foot">Relatório desenvolvido pela MOVE AGÊNCIA</div>
+  </div></body></html>`;
+
+  dl(html,`MOVE_Relatorio_Mensal_${safe(r.c.nome)}.html`);
+  toast('Relatório mensal baixado.');
 }
 
 function copyCompanyData(cid){
@@ -1559,7 +2085,7 @@ function tarefas(){
         </div>
 
         <h4>${e(t.titulo||'Sem título')}</h4>
-        ${t.descricao?`<p>${e(t.descricao)}</p>`:''}
+        ${t.descricao?`<p>${e(t.descricao)}</p>`:''}${t.transferredFrom?`<div class="task-transfer-note"><i class="fa fa-arrow-right-arrow-left"></i> Enviada de <b>${e(t.transferredFrom)}</b> para <b>${e(t.transferredTo||taskSector(t))}</b></div>`:''}
 
         <div class="task-meta-pro">
           <span><i class="fa fa-calendar"></i> ${t.data?date(t.data):'Sem prazo'}</span>
@@ -1568,6 +2094,9 @@ function tarefas(){
       </div>
 
       <div class="task-actions-pro">
+        ${taskSector(t)==='Planejamento'
+          ?`<button class="btn primary sm" onclick="sendTaskToProduction('${t.id}')" title="Enviar para Produção"><i class="fa fa-clapperboard"></i> Produção</button>`
+          :`<button class="btn primary sm" onclick="sendTaskToPlanning('${t.id}')" title="Enviar para Planejamento"><i class="fa fa-lightbulb"></i> Planejamento</button>`}
         <button class="btn light sm" onclick="task('${t.id}','${TASK_SECTOR}')" title="Editar"><i class="fa fa-pen"></i></button>
         <button class="btn danger sm" onclick="deleteTask('${t.id}')" title="Excluir"><i class="fa fa-trash"></i></button>
       </div>
@@ -1604,6 +2133,47 @@ function tarefas(){
       </section>`;
 }
 
+
+
+
+
+
+
+
+
+
+
+function moveTaskToSector(taskId,targetSector){
+  const t=D.tasks.find(x=>x.id===taskId);
+  if(!t)return toast('Tarefa não encontrada.');
+
+  const current=taskSector(t);
+  if(current===targetSector)return toast(`Esta tarefa já está em ${targetSector}.`);
+
+  if(!confirm(`Enviar a tarefa "${t.title||t.titulo||'Sem título'}" de ${current} para ${targetSector}?
+
+Prioridade, empresa, prazo e descrição serão mantidos.`))return;
+
+  t.sector=targetSector;
+  t.team=targetSector;
+  t.status='Pendente';
+  t.transferredAt=new Date().toISOString();
+  t.transferredFrom=current;
+  t.transferredTo=targetSector;
+
+  save();
+  render(R);
+  toast(`Tarefa enviada para ${targetSector}.`);
+}
+
+function sendTaskToPlanning(taskId){
+  moveTaskToSector(taskId,'Planejamento');
+}
+
+function sendTaskToProduction(taskId){
+  moveTaskToSector(taskId,'Produção');
+}
+
 function task(x='',setor=TASK_SECTOR){
   let t=D.tasks.find(a=>a.id===x)||{};
   if(t.id)taskNormalize(t);
@@ -1612,12 +2182,18 @@ function task(x='',setor=TASK_SECTOR){
 
   modal(t.id?'Editar tarefa':`Nova tarefa — ${s.title}`,`<form id="f" class="fg">
     <div class="field span">
-      <label>Setor</label>
-      <div class="task-sector-fixed">
-        <span class="task-sector-icon ${setor==='planejamento'?'strategic':'production'}"><i class="fa ${s.icon}"></i></span>
-        <div><b>${s.title}</b><small>${s.subtitle} • esta tarefa não será misturada com o outro setor.</small></div>
+      <label>Enviar tarefa para qual setor?</label>
+      <div class="task-sector-choice-inline">
+        <label class="move-check-chip">
+          <input type="radio" name="setor" value="Planejamento" ${setor==='planejamento'||setor==='Planejamento'?'checked':''}>
+          <span><i class="fa fa-lightbulb"></i> Planejamento</span>
+        </label>
+        <label class="move-check-chip">
+          <input type="radio" name="setor" value="Produção" ${setor==='producao'||setor==='Produção'?'checked':''}>
+          <span><i class="fa fa-clapperboard"></i> Produção</span>
+        </label>
       </div>
-      <input type="hidden" name="setor" value="${setor}">
+      <small class="move-check-help">Ex.: Produção pode enviar “Criar legendas” para Planejamento; Planejamento pode enviar “Editar Reel” para Produção.</small>
     </div>
 
     <div class="field span"><label>Tarefa *</label><input name="titulo" value="${e(t.titulo||'')}" placeholder="Ex.: Finalizar roteiro da campanha"></div>
@@ -1634,11 +2210,12 @@ function task(x='',setor=TASK_SECTOR){
       ${['Normal','Alta'].map(v=>`<option ${t.prioridade===v?'selected':''}>${v}</option>`).join('')}
     </select></div>
 
+    <div class="field"><label>Prioridade</label><select name="priority">${MOVE_TASK_PRIORITIES.map(v=>`<option ${taskPriority(t)===v?'selected':''}>${v}</option>`).join('')}</select></div>
     <div class="field span"><label>Descrição / observações</label><textarea name="descricao" placeholder="Detalhes importantes para executar a tarefa.">${e(t.descricao||'')}</textarea></div>
   </form>`,()=>{
     const q=obj(document.getElementById('f'));
-    if(!q.titulo)return toast('Informe a tarefa.');
-    q.setor=setor;
+    if(!q.titulo)return toast('Informe a tarefa.');q.sector=q.setor||setor||'Planejamento';q.team=q.sector;
+    q.setor=q.setor||setor;
     q.feita=!!t.feita;
 
     if(t.id)Object.assign(t,q);
