@@ -102,7 +102,7 @@ async function moveLoadAfterLogin(){
   const rest=Math.max(0,3000-(Date.now()-started));
   if(rest)await moveSleep(rest);
   moveHideLoading();
-  try{await moveSyncTodayPointsFromCloud();nav();render(R||'home');moveShowTeamMessageOnce()}catch(err){console.error(err)}
+  try{moveMigrateContentLegendas();await moveSyncTodayPointsFromCloud();nav();render(R||'home');moveShowTeamMessageOnce()}catch(err){console.error(err)}
 }
 
 
@@ -791,7 +791,21 @@ if(D.finance)delete D.finance;if(D.contracts)delete D.contracts;
 
 const EL={saved:document.getElementById('saved'),title:document.getElementById('title'),restore:document.getElementById('restore'),nav:document.getElementById('nav'),modal:document.getElementById('modal')};
 
-function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[],magicPlans:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));moveSetSavedStatus('Salvo local • sincronizando...');render(R);moveScheduleSync()}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){
+function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[],magicPlans:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}
+function moveMigrateContentLegendas(){
+  let changed=false;
+  (D.contents||[]).forEach(ct=>{
+    if(ct.legenda)return;
+    const sm=(D.scheduled||[]).find(x=>x.contentId===ct.id);
+    if(sm?.legenda){
+      ct.legenda=sm.legenda;
+      changed=true;
+    }
+  });
+  if(changed)localStorage.setItem(KEY,JSON.stringify(D));
+}
+
+function save(){localStorage.setItem(KEY,JSON.stringify(D));moveSetSavedStatus('Salvo local • sincronizando...');render(R);moveScheduleSync()}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){
   const navEl=document.getElementById('nav');
   if(!navEl)return;
   navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('');
@@ -2436,7 +2450,7 @@ function content(cid,wid,x='',prefillDate=''){
     <div class="field"><label>Data da postagem</label><input type="date" name="postDate" value="${c.postDate||prefillDate||''}"></div>
     <div class="field"><label>Hora</label><input type="time" name="postTime" value="${e(c.postTime||'')}"></div>
     <div class="field span"><label>Anexar imagem, post ou Reels/vídeo</label><input type="file" id="contentFile" accept="image/*,video/*"><small class="move-check-help">${media?.fileName?`Arquivo atual: ${e(media.fileName)}. Se não escolher outro, ele será mantido.`:'O arquivo fica salvo neste navegador e entra no HTML de aprovação/planejamento.'}</small></div>
-    <div class="field span"><label>Legenda</label><textarea name="mediaLegenda">${e(media?.legenda||'')}</textarea></div>
+    <div class="field span"><label>Legenda</label><textarea name="mediaLegenda">${e(c.legenda||media?.legenda||'')}</textarea></div>
     <div class="field"><label>Status do material</label><select name="mediaStatus">${['Aguardando aprovação','Aprovado','Ajustar','Agendado','Publicado'].map(v=>`<option ${media?.status===v?'selected':''}>${v}</option>`).join('')}</select></div>
   </form>`,async()=>{
     const f=document.getElementById('f');
@@ -2446,6 +2460,7 @@ function content(cid,wid,x='',prefillDate=''){
     if(!q.titulo)return toast('Informe o título.');
     q.ordem=Number(q.ordem);
     q.workflowStatus=q.workflowStatus||c.workflowStatus||'Planejamento';
+    q.legenda=legenda;
     const fl=document.getElementById('contentFile')?.files?.[0];
     if(fl&&fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');
 
@@ -2878,7 +2893,7 @@ function agendamento(){document.getElementById('p-agendamento').innerHTML=head('
     head(c.nome,'Materiais produzidos em cards estilo post, preservando o formato original.',`<button class="btn light" onclick="agendamento()">← Empresas</button> <button class="btn primary" onclick="upload('${cid}')">+ Material / Legenda</button> <button class="btn dark" onclick="approval('${cid}')">Baixar HTML aprovação</button>`)
     +`<div style="display:grid;gap:18px">${cards||empty('Nenhum material.')}</div>`;
 }
-function upload(cid,x=''){let s=D.scheduled.find(a=>a.id===x)||{},opts=D.contents.filter(a=>a.companyId===cid).map(c=>`<option value="${c.id}" ${s.contentId===c.id?'selected':''}>${e(c.tipo)} — ${e(c.titulo)}</option>`).join('');modal('Material / Legenda',`<form id="f" class="fg"><div class="field span"><label>Conteúdo</label><select name="contentId"><option value="">Sem vínculo</option>${opts}</select></div><div class="field span"><label>Imagem ou vídeo <small style="font-weight:400;color:#888">(opcional)</small></label><input type="file" id="file" accept="image/*,video/*"><small class="move-check-help">Você pode salvar somente a legenda, sem anexar mídia.</small></div><div class="field span"><label>Legenda</label><textarea name="legenda">${e(s.legenda||'')}</textarea></div><div class="field"><label>Data</label><input type="date" name="data" value="${s.data||''}"></div><div class="field"><label>Hora</label><input type="time" name="hora" value="${e(s.hora||'')}"></div><div class="field"><label>Status</label><select name="status">${['Aguardando aprovação','Aprovado','Ajustar','Agendado','Publicado'].map(v=>`<option ${s.status===v?'selected':''}>${v}</option>`).join('')}</select></div></form>`,async()=>{let q=obj(document.getElementById('f')),fl=document.getElementById('file').files[0],mid=s.mediaId||'';if(!x&&!fl&&!String(q.legenda||'').trim())return toast('Adicione uma legenda ou selecione um arquivo.');if(fl&&fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');if(fl){mid=mid||id();await mediaPut(mid,fl);q.mediaId=mid;q.mime=fl.type;q.fileName=fl.name}else{q.mediaId=s.mediaId||'';q.mime=s.mime||'';q.fileName=s.fileName||''}if(s.id)Object.assign(s,q);else D.scheduled.push({...q,id:id(),companyId:cid});closeM();save();materials(cid)})}
+function upload(cid,x=''){let s=D.scheduled.find(a=>a.id===x)||{},opts=D.contents.filter(a=>a.companyId===cid).map(c=>`<option value="${c.id}" ${s.contentId===c.id?'selected':''}>${e(c.tipo)} — ${e(c.titulo)}</option>`).join('');modal('Material / Legenda',`<form id="f" class="fg"><div class="field span"><label>Conteúdo</label><select name="contentId"><option value="">Sem vínculo</option>${opts}</select></div><div class="field span"><label>Imagem ou vídeo <small style="font-weight:400;color:#888">(opcional)</small></label><input type="file" id="file" accept="image/*,video/*"><small class="move-check-help">Você pode salvar somente a legenda, sem anexar mídia.</small></div><div class="field span"><label>Legenda</label><textarea name="legenda">${e(s.legenda||ct?.legenda||'')}</textarea></div><div class="field"><label>Data</label><input type="date" name="data" value="${s.data||''}"></div><div class="field"><label>Hora</label><input type="time" name="hora" value="${e(s.hora||'')}"></div><div class="field"><label>Status</label><select name="status">${['Aguardando aprovação','Aprovado','Ajustar','Agendado','Publicado'].map(v=>`<option ${s.status===v?'selected':''}>${v}</option>`).join('')}</select></div></form>`,async()=>{let q=obj(document.getElementById('f')),fl=document.getElementById('file').files[0],mid=s.mediaId||'';if(!x&&!fl&&!String(q.legenda||'').trim())return toast('Adicione uma legenda ou selecione um arquivo.');if(fl&&fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');if(fl){mid=mid||id();await mediaPut(mid,fl);q.mediaId=mid;q.mime=fl.type;q.fileName=fl.name}else{q.mediaId=s.mediaId||'';q.mime=s.mime||'';q.fileName=s.fileName||''}if(s.id)Object.assign(s,q);else D.scheduled.push({...q,id:id(),companyId:cid});closeM();save();materials(cid)})}
 
 
 async function deleteScheduled(scheduledId,cid=''){
