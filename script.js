@@ -102,7 +102,7 @@ async function moveLoadAfterLogin(){
   const rest=Math.max(0,3000-(Date.now()-started));
   if(rest)await moveSleep(rest);
   moveHideLoading();
-  try{nav();render(R||'home');moveShowTeamMessageOnce()}catch(err){console.error(err)}
+  try{await moveSyncTodayPointsFromCloud();nav();render(R||'home');moveShowTeamMessageOnce()}catch(err){console.error(err)}
 }
 
 
@@ -680,6 +680,11 @@ function magicInjectCSS(){
     .move-team-message-modal{text-align:center;padding:10px 4px}.move-team-message-icon{width:58px;height:58px;margin:0 auto 15px;border-radius:17px;background:#111;color:#fca311;display:grid;place-items:center;font-size:20px}.move-team-message-modal h2{font-size:22px;letter-spacing:-.6px;margin:7px 0}.move-team-message-modal>p{max-width:560px;margin:0 auto;color:#62666d;font-size:11px;line-height:1.65}.move-team-message-rule{max-width:560px;margin:17px auto 0;padding:11px 12px;border-radius:11px;background:#fff5dc;color:#744d00;display:flex;align-items:center;gap:8px;text-align:left;font-size:9px;line-height:1.45}.move-team-message-rule i{color:#b77900}
     @media(max-width:760px){.move-employee-welcome{grid-template-columns:1fr}.move-employee-welcome-main h1{font-size:22px}}
 
+    
+    .move-employee-welcome{grid-template-columns:minmax(0,1fr) minmax(260px,340px)}.move-employee-point-card{padding:15px;border:1px solid #e7e9ed;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 8px 26px rgba(15,23,42,.04)}.move-employee-point-card b{display:block;font-size:14px;margin:4px 0 2px}.move-employee-point-card small{display:block;color:#888;font-size:8px}
+    .move-clock-modal{display:grid;gap:13px}.move-clock-status{text-align:center}.move-clock-status h2{font-size:22px;margin:5px 0 3px}.move-clock-status p{font-size:9px;color:#777;margin:0}.move-clock-camera-wrap{position:relative;max-width:460px;width:100%;aspect-ratio:4/3;margin:0 auto;border-radius:18px;overflow:hidden;background:#090909;display:grid;place-items:center}.move-clock-camera-wrap video,.move-clock-photo-preview img{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}.move-clock-camera-guide{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(0,0,0,.7);color:#fff;border-radius:10px;padding:9px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:8px}.move-clock-photo-preview{position:absolute;inset:0}.move-clock-photo-preview .btn{position:absolute;right:10px;bottom:10px}.move-clock-actions{justify-content:center}.move-clock-day-list{border-top:1px solid #eceef0;padding-top:12px}.move-clock-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.move-clock-day-head b{display:block;font-size:10px}.move-clock-day-head small{display:block;font-size:8px;color:#888;margin-top:2px}.move-clock-entries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.move-clock-entry{display:grid;grid-template-columns:46px 1fr;gap:9px;align-items:center;padding:8px;border:1px solid #e7e9ed;border-radius:11px;background:#fafbfc}.move-clock-photo{width:46px;height:46px;border-radius:10px;overflow:hidden;background:#eee;display:grid;place-items:center}.move-clock-photo img{width:100%;height:100%;object-fit:cover}.move-clock-entry b{display:block;font-size:11px;margin:4px 0 2px}.move-clock-entry small{font-size:7px;color:#888}.move-clock-home-summary{padding:11px 13px;border:1px solid #e7e9ed;border-radius:14px;background:#fff;margin-bottom:12px}.move-clock-home-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.move-clock-home-head h3{margin:4px 0 0;font-size:13px}.move-clock-home-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.move-clock-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;font-size:8px}.move-clock-pill.entry{background:#eaf8f0;color:#087443}.move-clock-pill.exit{background:#fff3d5;color:#815200}
+    @media(max-width:700px){.move-employee-welcome{grid-template-columns:1fr}.move-employee-point-card{align-items:stretch;flex-direction:column}.move-clock-entries{grid-template-columns:1fr}.move-clock-home-head{align-items:flex-start;flex-direction:column}}
+
     @media(max-width:520px){.move-magic-main-btn{width:100%}.move-magic-top-wrap{width:100%}.move-magic-drop{width:100%;position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-width:none}.magic-stats{grid-template-columns:1fr 1fr}}
   `;
   document.head.appendChild(st);
@@ -1180,34 +1185,34 @@ function movePPMonthCalendar(baseDate=new Date()){
 
 const MOVE_TEAM_MESSAGES=[
   {
-    title:'Organização antes da correria.',
-    text:'Antes de começar, veja o que realmente precisa da sua atenção. Priorize prazos, conclua o que está em andamento e evite abrir novas demandas sem necessidade.',
-    icon:'fa-list-check'
+    title:'Que seu dia seja leve e produtivo ✨',
+    text:'Que hoje você consiga avançar com tranquilidade, criatividade e boas ideias. Um passo de cada vez também leva longe.',
+    icon:'fa-sun'
   },
   {
-    title:'Planejamento bom facilita a Produção.',
-    text:'Quanto mais claro estiver o planejamento, mais rápida e melhor será a execução. Informação incompleta vira retrabalho.',
+    title:'Hoje é um novo começo 🌱',
+    text:'Que seu dia traga boas oportunidades, foco no que importa e orgulho pelo trabalho construído junto com a equipe.',
+    icon:'fa-seedling'
+  },
+  {
+    title:'Que seja um dia de boas entregas 💛',
+    text:'Faça o seu melhor dentro do possível, celebre cada avanço e lembre que consistência vale mais do que perfeição.',
+    icon:'fa-star'
+  },
+  {
+    title:'Boas ideias começam com calma ☀️',
+    text:'Que hoje você encontre espaço para criar, colaborar e transformar pequenas tarefas em grandes resultados.',
     icon:'fa-lightbulb'
   },
   {
-    title:'Prazo é compromisso.',
-    text:'Se uma entrega tem prazo, ela precisa de acompanhamento. Se houver impedimento, registre e comunique antes de virar atraso.',
-    icon:'fa-clock'
+    title:'Que seu trabalho floresça hoje 🌻',
+    text:'Desejamos um dia produtivo, organizado e cheio de boas conquistas. Cada detalhe bem feito ajuda a construir algo maior.',
+    icon:'fa-heart'
   },
   {
-    title:'Uma coisa bem feita de cada vez.',
-    text:'Não transforme tudo em urgente. Trabalhe por prioridade, finalize o que começou e mantenha o painel atualizado para toda a equipe.',
-    icon:'fa-bullseye'
-  },
-  {
-    title:'O painel precisa refletir a operação real.',
-    text:'Mudou o status? Atualize. Terminou? Conclua. Surgiu uma demanda? Registre. O MOVE só consegue organizar a equipe quando a informação está correta.',
-    icon:'fa-arrows-rotate'
-  },
-  {
-    title:'Produção não deve adivinhar.',
-    text:'Toda demanda enviada precisa chegar com objetivo, orientação, prazo e informação suficiente para ser executada sem ruído.',
-    icon:'fa-clapperboard'
+    title:'Tenha um excelente dia 🚀',
+    text:'Que não faltem energia, criatividade e disposição para transformar planejamento em movimento e movimento em resultado.',
+    icon:'fa-rocket'
   }
 ];
 
@@ -1223,12 +1228,6 @@ function moveGreetingInfo(){
 
 function moveEmployeeWelcome(){
   const g=moveGreetingInfo();
-  const cycle=movePPCycleInfo();
-  const cycleText=cycle.type==='TRANSIÇÃO'
-    ?'Hoje estamos em semana de Transição. Feche pendências e proteja o próximo ciclo.'
-    :cycle.type==='PLANEJAMENTO'
-      ?'Esta é uma semana de Planejamento. O foco é deixar a próxima Produção abastecida.'
-      :'Esta é uma semana de Produção. O foco é executar o que foi planejado e respeitar os prazos.';
 
   return `<section class="move-employee-welcome">
     <div class="move-employee-welcome-main">
@@ -1237,10 +1236,280 @@ function moveEmployeeWelcome(){
       <p>${g.dateText.charAt(0).toUpperCase()+g.dateText.slice(1)}</p>
     </div>
 
-    <div class="move-employee-welcome-cycle ${cycle.cls}">
-      <span>SEMANA ATUAL</span>
-      <b>${e(cycle.type)}</b>
-      <small>${e(cycleText)}</small>
+    <div class="move-employee-point-card">
+      <div>
+        <span class="eyebrow">REGISTRO DO DIA</span>
+        <b>Meu Ponto</b>
+        <small>Entrada e saída com registro por foto.</small>
+      </div>
+      <button class="btn dark" onclick="moveOpenTimeClock()">
+        <i class="fa fa-clock"></i> Meu Ponto
+      </button>
+    </div>
+  </section>`;
+}
+
+const MOVE_TIME_CLOCK_KEY='move_time_clock_v1';
+
+function moveLoadTimeClock(){
+  try{return JSON.parse(localStorage.getItem(MOVE_TIME_CLOCK_KEY)||'[]')}catch(_){return []}
+}
+function moveSaveTimeClock(list){
+  localStorage.setItem(MOVE_TIME_CLOCK_KEY,JSON.stringify(list));
+}
+function moveTodayKey(d=new Date()){
+  return d.toISOString().slice(0,10);
+}
+function moveTodayClockEntries(){
+  const today=moveTodayKey();
+  return moveLoadTimeClock().filter(x=>x.day===today).sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
+}
+function moveClockEntryLabel(index){
+  // Automatically interprets the sequence of the day.
+  // Supports morning-only, afternoon-only, or full commercial day.
+  return index%2===0?'Entrada':'Saída';
+}
+function moveClockNextType(){
+  const entries=moveTodayClockEntries();
+  return moveClockEntryLabel(entries.length);
+}
+function moveClockExpectedHint(){
+  const h=new Date().getHours();
+  if(h<12)return 'Horário comercial de referência: 08h às 12h.';
+  if(h<18)return 'Horário comercial de referência: 14h às 18h.';
+  return 'Registro fora do horário comercial de referência.';
+}
+function moveClockTableHTML(){
+  const rows=moveTodayClockEntries();
+  return `<div class="move-clock-day-list">
+    <div class="move-clock-day-head">
+      <div><b>Pontos de hoje</b><small>${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</small></div>
+      <span class="badge">${rows.length} registro${rows.length===1?'':'s'}</span>
+    </div>
+
+    <div class="move-clock-entries">
+      ${rows.map((x,i)=>`<article class="move-clock-entry">
+        <div class="move-clock-photo">${x.photo?`<img src="${x.photo}" alt="Foto do ponto">`:x.photoUrl?`<a href="${e(x.photoUrl)}" target="_blank" rel="noopener" title="Abrir foto no Drive"><i class="fa fa-image"></i></a>`:`<i class="fa fa-user"></i>`}</div>
+        <div>
+          <span class="badge ${x.type==='Entrada'?'ok':'warn'}">${e(x.type)}</span>
+          <b>${new Date(x.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</b>
+          <small>${new Date(x.timestamp).toLocaleDateString('pt-BR')}</small>
+        </div>
+      </article>`).join('')||`<div class="empty">Nenhum ponto registrado hoje.</div>`}
+    </div>
+  </div>`;
+}
+async function moveOpenTimeClock(){
+  await moveSyncTodayPointsFromCloud();
+  const next=moveClockNextType();
+
+  modal('Meu Ponto',`
+    <div class="move-clock-modal">
+      <div class="move-clock-status">
+        <span class="eyebrow">PRÓXIMO REGISTRO</span>
+        <h2>${e(next)}</h2>
+        <p>${e(moveClockExpectedHint())}</p>
+      </div>
+
+      <div class="move-clock-camera-wrap">
+        <video id="moveClockVideo" autoplay playsinline muted></video>
+        <canvas id="moveClockCanvas" class="hidden"></canvas>
+        <div id="moveClockPhotoPreview" class="move-clock-photo-preview hidden"></div>
+        <div class="move-clock-camera-guide">
+          <i class="fa fa-face-smile"></i>
+          <span>Olhe para a câmera e centralize seu rosto.</span>
+        </div>
+      </div>
+
+      <div class="actions move-clock-actions">
+        <button class="btn primary" type="button" onclick="moveCaptureClockPhoto()">
+          <i class="fa fa-camera"></i> Tirar foto
+        </button>
+        <button id="moveClockConfirmBtn" class="btn dark hidden" type="button" onclick="moveConfirmClock()">
+          <i class="fa fa-clock"></i> Registrar ${e(next)}
+        </button>
+      </div>
+
+      ${moveClockTableHTML()}
+    </div>
+  `);
+
+  const saveBtn=document.getElementById('saveM');
+  if(saveBtn)saveBtn.classList.add('hidden');
+
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+    window.__MOVE_CLOCK_STREAM=stream;
+    const v=document.getElementById('moveClockVideo');
+    if(v)v.srcObject=stream;
+  }catch(err){
+    console.error(err);
+    const wrap=document.querySelector('.move-clock-camera-wrap');
+    if(wrap)wrap.innerHTML=`<div class="notice red"><b>Não foi possível abrir a câmera.</b><br>Verifique a permissão do navegador.</div>`;
+  }
+}
+function moveStopClockCamera(){
+  const stream=window.__MOVE_CLOCK_STREAM;
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    window.__MOVE_CLOCK_STREAM=null;
+  }
+}
+function moveCaptureClockPhoto(){
+  const v=document.getElementById('moveClockVideo');
+  const canvas=document.getElementById('moveClockCanvas');
+  const preview=document.getElementById('moveClockPhotoPreview');
+  const btn=document.getElementById('moveClockConfirmBtn');
+  if(!v||!canvas||!preview)return;
+
+  const w=v.videoWidth||640,h=v.videoHeight||480;
+  canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(v,0,0,w,h);
+
+  const photo=canvas.toDataURL('image/jpeg',0.72);
+  window.__MOVE_CLOCK_PHOTO=photo;
+  preview.innerHTML=`<img src="${photo}" alt="Foto capturada"><button class="btn light sm" onclick="moveRetakeClockPhoto()"><i class="fa fa-rotate"></i> Tirar outra</button>`;
+  preview.classList.remove('hidden');
+  v.classList.add('hidden');
+  if(btn)btn.classList.remove('hidden');
+}
+function moveRetakeClockPhoto(){
+  window.__MOVE_CLOCK_PHOTO='';
+  document.getElementById('moveClockPhotoPreview')?.classList.add('hidden');
+  document.getElementById('moveClockVideo')?.classList.remove('hidden');
+  document.getElementById('moveClockConfirmBtn')?.classList.add('hidden');
+}
+
+async function moveRegisterPointCloud(point){
+  if(!moveApiConfigured())throw new Error('Conexão com a planilha não configurada.');
+
+  const body=new URLSearchParams();
+  body.set('action','registerPoint');
+  body.set('id',point.id);
+  body.set('day',point.day);
+  body.set('timestamp',point.timestamp);
+  body.set('type',point.type);
+  body.set('photo',point.photo);
+
+  const r=await fetch(MOVE_API_URL,{method:'POST',body,redirect:'follow'});
+  if(!r.ok)throw new Error('Falha ao registrar ponto: HTTP '+r.status);
+
+  const out=await r.json();
+  if(!out?.ok)throw new Error(out?.error||'Falha ao registrar ponto na planilha.');
+  return out.point||null;
+}
+
+async function moveFetchTodayPointsCloud(){
+  if(!moveApiConfigured())return [];
+  const day=moveTodayKey();
+  const r=await fetch(MOVE_API_URL+'?action=points&day='+encodeURIComponent(day)+'&_='+Date.now(),{
+    method:'GET',cache:'no-store',redirect:'follow'
+  });
+  if(!r.ok)return [];
+  const out=await r.json();
+  return out?.ok&&Array.isArray(out.data)?out.data:[];
+}
+
+async function moveSyncTodayPointsFromCloud(){
+  try{
+    const cloud=await moveFetchTodayPointsCloud();
+    if(!cloud.length)return;
+
+    const local=moveLoadTimeClock();
+    const byId=new Map(local.map(x=>[x.id,x]));
+
+    cloud.forEach(x=>{
+      const existing=byId.get(x.id);
+      if(existing){
+        existing.photoUrl=x.photoUrl||existing.photoUrl||'';
+        existing.timestamp=x.timestamp||existing.timestamp;
+        existing.type=x.type||existing.type;
+        existing.day=x.day||existing.day;
+        existing.synced=true;
+      }else{
+        local.push({...x,synced:true});
+      }
+    });
+
+    moveSaveTimeClock(local);
+  }catch(err){
+    console.warn('Não foi possível sincronizar pontos do dia:',err);
+  }
+}
+
+async function moveConfirmClock(){
+  const photo=window.__MOVE_CLOCK_PHOTO||'';
+  if(!photo)return toast('Tire a foto antes de registrar o ponto.');
+
+  const now=new Date();
+  const type=moveClockNextType();
+  const point={
+    id:id(),
+    day:moveTodayKey(now),
+    timestamp:now.toISOString(),
+    type,
+    photo,
+    synced:false
+  };
+
+  const confirmBtn=document.getElementById('moveClockConfirmBtn');
+  if(confirmBtn){
+    confirmBtn.disabled=true;
+    confirmBtn.innerHTML='<i class="fa fa-spinner fa-spin"></i> Registrando...';
+  }
+
+  try{
+    const cloud=await moveRegisterPointCloud(point);
+    point.synced=true;
+    point.photoUrl=cloud?.photoUrl||'';
+
+    // Keep only a lightweight local copy after cloud success.
+    const localPoint={
+      id:point.id,
+      day:point.day,
+      timestamp:point.timestamp,
+      type:point.type,
+      photo:point.photo,
+      photoUrl:point.photoUrl,
+      synced:true
+    };
+
+    const list=moveLoadTimeClock();
+    list.push(localPoint);
+    moveSaveTimeClock(list);
+
+    window.__MOVE_CLOCK_PHOTO='';
+    moveStopClockCamera();
+    closeM();
+    toast(`${type} registrada às ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}.`);
+    if(R==='home')home();
+  }catch(err){
+    console.error('Erro ao registrar ponto na nuvem:',err);
+
+    // Offline contingency: do not lose the punch; mark pending sync.
+    const list=moveLoadTimeClock();
+    list.push(point);
+    moveSaveTimeClock(list);
+
+    window.__MOVE_CLOCK_PHOTO='';
+    moveStopClockCamera();
+    closeM();
+    toast(`${type} salva neste aparelho. Sincronização com a planilha pendente.`);
+    if(R==='home')home();
+  }
+}
+function moveClockHomeSummary(){
+  const rows=moveTodayClockEntries();
+  if(!rows.length)return '';
+
+  return `<section class="move-clock-home-summary">
+    <div class="move-clock-home-head">
+      <div><span class="eyebrow">MEUS PONTOS DE HOJE</span><h3>${rows.length} registro${rows.length===1?'':'s'}</h3></div>
+      <button class="btn light sm" onclick="moveOpenTimeClock()"><i class="fa fa-clock"></i> Abrir Meu Ponto</button>
+    </div>
+    <div class="move-clock-home-pills">
+      ${rows.map(x=>`<span class="move-clock-pill ${x.type==='Entrada'?'entry':'exit'}"><b>${e(x.type)}</b>${new Date(x.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>`).join('')}
     </div>
   </section>`;
 }
@@ -1264,8 +1533,8 @@ function moveShowTeamMessageOnce(){
         <p>${e(msg.text)}</p>
 
         <div class="move-team-message-rule">
-          <i class="fa fa-check-circle"></i>
-          <span>Abra a Visão Geral, identifique a prioridade do dia e trabalhe pela ordem.</span>
+          <i class="fa fa-heart"></i>
+          <span>Que seja um dia de boas ideias, boas entregas e boas conquistas. 💛</span>
         </div>
       </div>
     `);
@@ -1300,7 +1569,7 @@ function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
       <div class="meta" style="margin-top:10px">Planejados: <b>${contentsMonth}</b> • Produzidos: <b>${scheduledMonth}</b> • Finalizados: <b>${doneTasks}</b></div>
     </div>`;
   }).join('');
-  document.getElementById('p-home').innerHTML=moveEmployeeWelcome()+movePPCycleBanner()+movePPMonthCalendar()+
+  document.getElementById('p-home').innerHTML=moveEmployeeWelcome()+moveClockHomeSummary()+movePPCycleBanner()+movePPMonthCalendar()+
     head('Visão geral','Operação sincronizada com o Google Sheets e cache local para velocidade.')
     +`<div class="grid kpis"><div class="card kpi"><i class="fa fa-building"></i><b>${D.companies.length}</b><span>empresas</span></div><div class="card kpi"><i class="fa fa-lightbulb"></i><b>${p}</b><span>planejamentos</span></div><div class="card kpi"><i class="fa fa-photo-film"></i><b>${m}</b><span>materiais produzidos</span></div><div class="card kpi"><i class="fa fa-triangle-exclamation"></i><b>${pe}</b><span>pendências</span></div></div>`
     +`<div class="card section" style="margin-top:14px"><div class="list">${pend().slice(0,8).map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge warn">${x.type}</span></div>`).join('')||empty('Tudo em dia.')}</div></div>`
