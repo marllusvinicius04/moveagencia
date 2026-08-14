@@ -684,6 +684,40 @@ function applyAuthState(){
     setTimeout(()=>document.getElementById('loginPassword')?.focus(),80);
   }
 }
+
+const MOVE_LOGIN_CACHE_KEY='move_auth_login_v1';
+
+function saveLoginCache(){
+  try{
+    localStorage.setItem(MOVE_LOGIN_CACHE_KEY,JSON.stringify({
+      logged:true,
+      savedAt:new Date().toISOString()
+    }));
+  }catch(err){}
+}
+
+function hasLoginCache(){
+  try{
+    const data=JSON.parse(localStorage.getItem(MOVE_LOGIN_CACHE_KEY)||'null');
+    return !!(data&&data.logged===true);
+  }catch(err){
+    return false;
+  }
+}
+
+function clearLoginCache(){
+  try{localStorage.removeItem(MOVE_LOGIN_CACHE_KEY)}catch(err){}
+}
+
+function restoreLoginCache(){
+  if(!hasLoginCache())return false;
+  const login=document.getElementById('loginScreen');
+  const app=document.getElementById('appShell');
+  if(login)login.style.display='none';
+  if(app)app.classList.remove('auth-hidden');
+  return true;
+}
+
 function loginAccess(ev){
   if(ev)ev.preventDefault();
   const input=document.getElementById('loginPassword');
@@ -715,6 +749,7 @@ function toggleLoginPassword(){
   if(icon)icon.className=`fa ${show?'fa-eye-slash':'fa-eye'}`;
 }
 function logoutAccess(){
+  clearLoginCache();
   sessionStorage.removeItem(MOVE_AUTH_KEY);
   window.__MOVE_CLOUD_BOOTED=false;
   applyAuthState();
@@ -725,7 +760,33 @@ if(D.finance)delete D.finance;if(D.contracts)delete D.contracts;
 
 const EL={saved:document.getElementById('saved'),title:document.getElementById('title'),restore:document.getElementById('restore'),nav:document.getElementById('nav'),modal:document.getElementById('modal')};
 
-function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[],magicPlans:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));moveSetSavedStatus('Salvo local • sincronizando...');render(R);moveScheduleSync()}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){const navEl=document.getElementById('nav');navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('')}function go(r){R=r;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+r).classList.add('active');EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';nav();render(r)}function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}function empty(t){return`<div class="empty">${t}</div>`}function render(r){({home,empresas,quadro,campanhas,pendencias,textos,agenda,tarefas,agendamento,curadoria}[r]||home)()}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
+function blank(){return{companies:[],weeks:[],contents:[],scheduled:[],tasks:[],texts:[],agenda:[],curadoria:[],campaigns:[],magicPlans:[]}}function load(){try{return Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return blank()}}function save(){localStorage.setItem(KEY,JSON.stringify(D));moveSetSavedStatus('Salvo local • sincronizando...');render(R);moveScheduleSync()}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){
+  const navEl=document.getElementById('nav');
+  if(!navEl)return;
+  navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('');
+}
+function go(r){
+  const page=document.getElementById('p-'+r);
+  if(!page){toast('Área não encontrada: '+r);return;}
+  R=r;
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  page.classList.add('active');
+  if(EL?.title)EL.title.textContent=M.find(x=>x[0]===r)?.[2]||'MOVE';
+  nav();
+  render(r);
+}
+function head(t,d,b=''){return`<div class="head"><div><h2>${t}</h2><p>${d}</p></div>${b}</div>`}
+function empty(t){return`<div class="empty">${t}</div>`}
+function render(r){
+  const routes={home,empresas,quadro,campanhas,pendencias,textos,agenda,tarefas,agendamento,curadoria};
+  const fn=routes[r]||home;
+  try{fn()}catch(err){
+    console.error('Erro ao renderizar '+r,err);
+    const page=document.getElementById('p-'+r)||document.getElementById('p-home');
+    if(page)page.innerHTML=`<div class="notice red"><b>Não foi possível abrir esta área.</b><br>${e(err.message||String(err))}</div>`;
+    toast('Erro em '+(M.find(x=>x[0]===r)?.[2]||r));
+  }
+}function modal(t,b,fn){let m=document.getElementById('modal');m.innerHTML=`<div class="modal"><div class="mh"><b>${t}</b><button class="btn light sm" onclick="closeM()">✕</button></div><div class="mb">${b}</div><div class="mf"><button class="btn light" onclick="closeM()">Cancelar</button>${fn?'<button class="btn primary" id="saveM">Salvar</button>':''}</div></div>`;m.classList.add('open');if(fn){const b=document.getElementById('saveM');if(b)b.onclick=fn}}function closeM(){const modalEl=document.getElementById('modal');modalEl.classList.remove('open');modalEl.innerHTML=''}function obj(f){let o={};new FormData(f).forEach((v,k)=>{if(!(v instanceof File))o[k]=v});return o}
 
 const OBJETIVOS_OPCOES=[
   'Vender mais',
@@ -1039,7 +1100,7 @@ function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
     </div>`;
   }).join('');
   document.getElementById('p-home').innerHTML=moveOverviewSection()+
-    head('Visão geral','Tudo salvo localmente e abrindo instantaneamente.')
+    head('Visão geral','Operação sincronizada com o Google Sheets e cache local para velocidade.')
     +`<div class="grid kpis"><div class="card kpi"><i class="fa fa-building"></i><b>${D.companies.length}</b><span>empresas</span></div><div class="card kpi"><i class="fa fa-lightbulb"></i><b>${p}</b><span>planejamentos</span></div><div class="card kpi"><i class="fa fa-photo-film"></i><b>${m}</b><span>materiais produzidos</span></div><div class="card kpi"><i class="fa fa-triangle-exclamation"></i><b>${pe}</b><span>pendências</span></div></div>`
     +`<div class="card section" style="margin-top:14px"><div class="list">${pend().slice(0,8).map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge warn">${x.type}</span></div>`).join('')||empty('Tudo em dia.')}</div></div>`
     +`<div style="margin-top:18px">${head('Demandas mensais','Cálculo por empresa usando o volume semanal x4 e as tarefas abertas.')}</div>`
@@ -2034,221 +2095,133 @@ function textos(){document.getElementById('p-textos').innerHTML=head('Meus Texto
 let TASK_SECTOR='planejamento';
 
 const TASK_SECTORS={
-  planejamento:{
-    title:'Planejamento',
-    subtitle:'Equipe Estratégica',
-    icon:'fa-lightbulb',
-    desc:'Planejamento, roteiros, campanhas, calendário, aprovações e organização estratégica.'
-  },
-  producao:{
-    title:'Produção',
-    subtitle:'Equipe Criativa / Operacional',
-    icon:'fa-clapperboard',
-    desc:'Design, edição, captação, ajustes, uploads, finalização e publicação.'
-  }
+  planejamento:{title:'Planejamento',subtitle:'Equipe Estratégica',icon:'fa-lightbulb',desc:'Planejamento, roteiros, legendas, campanhas, calendário, aprovações e organização estratégica.'},
+  producao:{title:'Produção',subtitle:'Equipe Criativa / Operacional',icon:'fa-clapperboard',desc:'Design, edição, captação, ajustes, uploads, finalização e publicação.'}
 };
+const MOVE_TASK_PRIORITIES=['Baixa','Normal','Alta','Urgente','Crítica'];
+const MOVE_TASK_PRIORITY_WEIGHT={Baixa:1,Normal:2,Alta:3,Urgente:4,'Crítica':5};
 
+function taskSectorKey(t){
+  const raw=String(t?.setor||t?.sector||t?.team||'planejamento').toLowerCase();
+  return raw.includes('produ')?'producao':'planejamento';
+}
+function taskSector(t){return taskSectorKey(t)==='producao'?'Produção':'Planejamento'}
+function taskPriority(t){
+  const p=t?.prioridade||t?.priority||'Normal';
+  return MOVE_TASK_PRIORITIES.includes(p)?p:'Normal';
+}
+function taskPriorityBadge(t){
+  const p=taskPriority(t),cls=(p==='Crítica'||p==='Urgente')?'red':p==='Alta'?'warn':p==='Baixa'?'ok':'';
+  return `<span class=\"badge ${cls}\"><i class=\"fa fa-flag\"></i> ${e(p)}</span>`;
+}
 function taskNormalize(t){
-  if(!t.setor)t.setor='planejamento';
-  if(typeof t.feita!=='boolean')t.feita=(t.status==='Concluída');
-  if(!t.data&&t.prazo)t.data=t.prazo;
+  const key=taskSectorKey(t);
+  t.setor=key;
+  t.sector=key==='producao'?'Produção':'Planejamento';
+  t.team=t.sector;
+  t.prioridade=taskPriority(t);
+  t.priority=t.prioridade;
+  if(!t.titulo&&t.title)t.titulo=t.title;
+  if(!t.title&&t.titulo)t.title=t.titulo;
+  if(!t.descricao&&t.desc)t.descricao=t.desc;
+  if(!t.desc&&t.descricao)t.desc=t.descricao;
+  if(!t.data&&(t.prazo||t.deadline))t.data=t.prazo||t.deadline;
+  if(!t.prazo&&t.data)t.prazo=t.data;
+  if(typeof t.feita!=='boolean')t.feita=['Concluída','Concluído','Finalizado'].includes(t.status);
   return t;
 }
-
+function taskSort(a,b){
+  const doneA=taskNormalize(a).feita,doneB=taskNormalize(b).feita;
+  if(doneA!==doneB)return doneA?1:-1;
+  const p=(MOVE_TASK_PRIORITY_WEIGHT[taskPriority(b)]||2)-(MOVE_TASK_PRIORITY_WEIGHT[taskPriority(a)]||2);
+  if(p)return p;
+  return String(a.data||'9999-12-31').localeCompare(String(b.data||'9999-12-31'))||String(a.hora||'').localeCompare(String(b.hora||''));
+}
+function taskDeadlineBadge(t){
+  if(t.feita||!t.data)return '';
+  const end=new Date(t.data+'T23:59:59'),now=new Date();
+  if(end<now){const days=Math.max(1,Math.ceil((now-end)/86400000));return `<span class=\"badge red\"><i class=\"fa fa-clock\"></i> ${days}d atrasada</span>`}
+  const hours=Math.ceil((end-now)/3600000);
+  if(hours<=24)return `<span class=\"badge red\"><i class=\"fa fa-clock\"></i> Vence hoje</span>`;
+  if(hours<=72)return `<span class=\"badge warn\"><i class=\"fa fa-clock\"></i> Prazo próximo</span>`;
+  return '';
+}
 function tarefas(){
   D.tasks.forEach(taskNormalize);
-  const s=TASK_SECTORS[TASK_SECTOR]||TASK_SECTORS.planejamento;
-  const list=D.tasks
-    .filter(x=>x.setor===TASK_SECTOR)
-    .sort((a,b)=>{
-      if(!!a.feita!==!!b.feita)return a.feita?1:-1;
-      return String(a.data||'9999').localeCompare(String(b.data||'9999'))||String(a.hora||'').localeCompare(String(b.hora||''));
-    });
-
-  const pendingPlan=D.tasks.filter(x=>(x.setor||'planejamento')==='planejamento'&&!taskNormalize(x).feita).length;
-  const pendingProd=D.tasks.filter(x=>x.setor==='producao'&&!taskNormalize(x).feita).length;
+  const sector=TASK_SECTORS[TASK_SECTOR]||TASK_SECTORS.planejamento;
+  const list=D.tasks.filter(t=>taskSectorKey(t)===TASK_SECTOR).sort(taskSort);
+  const pendingPlan=D.tasks.filter(t=>taskSectorKey(t)==='planejamento'&&!taskNormalize(t).feita).length;
+  const pendingProd=D.tasks.filter(t=>taskSectorKey(t)==='producao'&&!taskNormalize(t).feita).length;
 
   const cards=list.map(t=>{
     const c=D.companies.find(x=>x.id===t.companyId);
-    return `<article class="task-card-pro ${t.feita?'is-done':''}">
-      <button class="task-check-pro ${t.feita?'checked':''}" onclick="toggleTask('${t.id}')" title="${t.feita?'Reabrir tarefa':'Concluir tarefa'}">
-        <i class="fa ${t.feita?'fa-check':'fa-circle'}"></i>
-      </button>
-
-      <div class="task-content-pro">
-        <div class="task-tags-pro">
-          <span class="badge ${TASK_SECTOR==='planejamento'?'move-team-strategic':'move-team-creative'}">
-            <i class="fa ${s.icon}"></i> ${s.title}
-          </span>
-          ${c?`<span class="badge"><i class="fa fa-building"></i> ${e(c.nome)}</span>`:''}
-          ${t.prioridade==='Alta'?`<span class="badge red"><i class="fa fa-fire"></i> Alta prioridade</span>`:''}
+    return `<article class=\"task-card-pro ${t.feita?'is-done':''}\">
+      <button class=\"task-check-pro ${t.feita?'checked':''}\" onclick=\"toggleTask('${t.id}')\" title=\"${t.feita?'Reabrir tarefa':'Concluir tarefa'}\"><i class=\"fa ${t.feita?'fa-check':'fa-circle'}\"></i></button>
+      <div class=\"task-content-pro\">
+        <div class=\"task-tags-pro\">
+          <span class=\"badge ${TASK_SECTOR==='planejamento'?'move-team-strategic':'move-team-creative'}\"><i class=\"fa ${sector.icon}\"></i> ${sector.title}</span>
+          ${c?`<span class=\"badge\"><i class=\"fa fa-building\"></i> ${e(c.nome)}</span>`:''}
+          ${taskPriorityBadge(t)}${taskDeadlineBadge(t)}
         </div>
-
         <h4>${e(t.titulo||'Sem título')}</h4>
-        ${t.descricao?`<p>${e(t.descricao)}</p>`:''}${t.transferredFrom?`<div class="task-transfer-note"><i class="fa fa-arrow-right-arrow-left"></i> Enviada de <b>${e(t.transferredFrom)}</b> para <b>${e(t.transferredTo||taskSector(t))}</b></div>`:''}
-
-        <div class="task-meta-pro">
-          <span><i class="fa fa-calendar"></i> ${t.data?date(t.data):'Sem prazo'}</span>
-          ${t.hora?`<span><i class="fa fa-clock"></i> ${e(t.hora)}</span>`:''}
-        </div>
+        ${t.descricao?`<p>${e(t.descricao)}</p>`:''}
+        ${t.transferredFrom?`<div class=\"task-transfer-note\"><i class=\"fa fa-arrow-right-arrow-left\"></i> Enviada de <b>${e(t.transferredFrom)}</b> para <b>${e(t.transferredTo||taskSector(t))}</b></div>`:''}
+        <div class=\"task-meta-pro\"><span><i class=\"fa fa-calendar\"></i> ${t.data?date(t.data):'Sem prazo'}</span>${t.hora?`<span><i class=\"fa fa-clock\"></i> ${e(t.hora)}</span>`:''}</div>
       </div>
-
-      <div class="task-actions-pro">
-        ${taskSector(t)==='Planejamento'
-          ?`<button class="btn primary sm" onclick="sendTaskToProduction('${t.id}')" title="Enviar para Produção"><i class="fa fa-clapperboard"></i> Produção</button>`
-          :`<button class="btn primary sm" onclick="sendTaskToPlanning('${t.id}')" title="Enviar para Planejamento"><i class="fa fa-lightbulb"></i> Planejamento</button>`}
-        <button class="btn light sm" onclick="task('${t.id}','${TASK_SECTOR}')" title="Editar"><i class="fa fa-pen"></i></button>
-        <button class="btn danger sm" onclick="deleteTask('${t.id}')" title="Excluir"><i class="fa fa-trash"></i></button>
+      <div class=\"task-actions-pro\">
+        ${TASK_SECTOR==='planejamento'
+          ?`<button class=\"btn primary sm\" onclick=\"sendTaskToProduction('${t.id}')\"><i class=\"fa fa-clapperboard\"></i> Produção</button>`
+          :`<button class=\"btn primary sm\" onclick=\"sendTaskToPlanning('${t.id}')\"><i class=\"fa fa-lightbulb\"></i> Planejamento</button>`}
+        <button class=\"btn light sm\" onclick=\"task('${t.id}','${TASK_SECTOR}')\"><i class=\"fa fa-pen\"></i></button>
+        <button class=\"btn danger sm\" onclick=\"deleteTask('${t.id}')\"><i class=\"fa fa-trash\"></i></button>
       </div>
     </article>`;
   }).join('');
 
   document.getElementById('p-tarefas').innerHTML=
-    head('Minhas Tarefas','Escolha o setor. Planejamento e Produção possuem filas completamente independentes.')
-    +`<div class="task-sector-grid">
-        <button class="task-sector-option ${TASK_SECTOR==='planejamento'?'active':''}" onclick="TASK_SECTOR='planejamento';tarefas()">
-          <span class="task-sector-icon strategic"><i class="fa fa-lightbulb"></i></span>
-          <span class="task-sector-copy"><b>Planejamento</b><small>Equipe Estratégica</small></span>
-          <span class="task-sector-number">${pendingPlan}</span>
-        </button>
-
-        <button class="task-sector-option ${TASK_SECTOR==='producao'?'active':''}" onclick="TASK_SECTOR='producao';tarefas()">
-          <span class="task-sector-icon production"><i class="fa fa-clapperboard"></i></span>
-          <span class="task-sector-copy"><b>Produção</b><small>Equipe Criativa / Operacional</small></span>
-          <span class="task-sector-number">${pendingProd}</span>
-        </button>
-      </div>`
-
-    +`<section class="task-workspace">
-        <div class="task-workspace-head">
-          <div>
-            <span class="eyebrow">SETOR ATUAL</span>
-            <h3><i class="fa ${s.icon}"></i> ${s.title}</h3>
-            <p>${s.desc}</p>
-          </div>
-          <button class="btn primary" onclick="task('','${TASK_SECTOR}')"><i class="fa fa-plus"></i> Nova tarefa</button>
-        </div>
-
-        <div class="task-list-pro">${cards||empty(`Nenhuma tarefa em ${s.title}.`)}</div>
-      </section>`;
+    head('Minhas Tarefas','Planejamento e Produção têm filas separadas, mas podem enviar demandas entre si.')+
+    `<div class=\"task-sector-grid\">
+      <button class=\"task-sector-option ${TASK_SECTOR==='planejamento'?'active':''}\" onclick=\"TASK_SECTOR='planejamento';tarefas()\"><span class=\"task-sector-icon strategic\"><i class=\"fa fa-lightbulb\"></i></span><span class=\"task-sector-copy\"><b>Planejamento</b><small>Equipe Estratégica</small></span><span class=\"task-sector-number\">${pendingPlan}</span></button>
+      <button class=\"task-sector-option ${TASK_SECTOR==='producao'?'active':''}\" onclick=\"TASK_SECTOR='producao';tarefas()\"><span class=\"task-sector-icon production\"><i class=\"fa fa-clapperboard\"></i></span><span class=\"task-sector-copy\"><b>Produção</b><small>Equipe Criativa / Operacional</small></span><span class=\"task-sector-number\">${pendingProd}</span></button>
+    </div>`+
+    `<section class=\"task-workspace\"><div class=\"task-workspace-head\"><div><span class=\"eyebrow\">SETOR ATUAL</span><h3><i class=\"fa ${sector.icon}\"></i> ${sector.title}</h3><p>${sector.desc}</p></div><button class=\"btn primary\" onclick=\"task('','${TASK_SECTOR}')\"><i class=\"fa fa-plus\"></i> Nova tarefa</button></div><div class=\"task-list-pro\">${cards||empty(`Nenhuma tarefa em ${sector.title}.`)}</div></section>`;
 }
-
-
-
-
-
-
-
-
-
-
-
-function moveTaskToSector(taskId,targetSector){
-  const t=D.tasks.find(x=>x.id===taskId);
-  if(!t)return toast('Tarefa não encontrada.');
-
-  const current=taskSector(t);
-  if(current===targetSector)return toast(`Esta tarefa já está em ${targetSector}.`);
-
-  if(!confirm(`Enviar a tarefa "${t.title||t.titulo||'Sem título'}" de ${current} para ${targetSector}?
-
-Prioridade, empresa, prazo e descrição serão mantidos.`))return;
-
-  t.sector=targetSector;
-  t.team=targetSector;
-  t.status='Pendente';
-  t.transferredAt=new Date().toISOString();
-  t.transferredFrom=current;
-  t.transferredTo=targetSector;
-
-  save();
-  render(R);
-  toast(`Tarefa enviada para ${targetSector}.`);
+function moveTaskToSector(taskId,targetKey){
+  const t=D.tasks.find(x=>x.id===taskId);if(!t)return toast('Tarefa não encontrada.');
+  taskNormalize(t);
+  const target=String(targetKey).toLowerCase().includes('produ')?'producao':'planejamento';
+  const current=taskSectorKey(t);
+  if(current===target)return toast('Esta tarefa já está neste setor.');
+  const from=current==='producao'?'Produção':'Planejamento',to=target==='producao'?'Produção':'Planejamento';
+  if(!confirm(`Enviar a tarefa \"${t.titulo||'Sem título'}\" de ${from} para ${to}?\n\nPrioridade, empresa, prazo e descrição serão mantidos.`))return;
+  t.setor=target;t.sector=to;t.team=to;t.status='Pendente';t.feita=false;t.transferredAt=new Date().toISOString();t.transferredFrom=from;t.transferredTo=to;
+  save();TASK_SECTOR=target;tarefas();toast(`Tarefa enviada para ${to}.`);
 }
-
-function sendTaskToPlanning(taskId){
-  moveTaskToSector(taskId,'Planejamento');
-}
-
-function sendTaskToProduction(taskId){
-  moveTaskToSector(taskId,'Produção');
-}
-
+function sendTaskToPlanning(taskId){moveTaskToSector(taskId,'planejamento')}
+function sendTaskToProduction(taskId){moveTaskToSector(taskId,'producao')}
 function task(x='',setor=TASK_SECTOR){
-  let t=D.tasks.find(a=>a.id===x)||{};
-  if(t.id)taskNormalize(t);
-  setor=t.setor||setor||'planejamento';
-  const s=TASK_SECTORS[setor]||TASK_SECTORS.planejamento;
-
-  modal(t.id?'Editar tarefa':`Nova tarefa — ${s.title}`,`<form id="f" class="fg">
-    <div class="field span">
-      <label>Enviar tarefa para qual setor?</label>
-      <div class="task-sector-choice-inline">
-        <label class="move-check-chip">
-          <input type="radio" name="setor" value="Planejamento" ${setor==='planejamento'||setor==='Planejamento'?'checked':''}>
-          <span><i class="fa fa-lightbulb"></i> Planejamento</span>
-        </label>
-        <label class="move-check-chip">
-          <input type="radio" name="setor" value="Produção" ${setor==='producao'||setor==='Produção'?'checked':''}>
-          <span><i class="fa fa-clapperboard"></i> Produção</span>
-        </label>
-      </div>
-      <small class="move-check-help">Ex.: Produção pode enviar “Criar legendas” para Planejamento; Planejamento pode enviar “Editar Reel” para Produção.</small>
-    </div>
-
-    <div class="field span"><label>Tarefa *</label><input name="titulo" value="${e(t.titulo||'')}" placeholder="Ex.: Finalizar roteiro da campanha"></div>
-
-    <div class="field span"><label>Empresa</label><select name="companyId">
-      <option value="">Sem empresa específica</option>
-      ${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`<option value="${c.id}" ${t.companyId===c.id?'selected':''}>${e(c.nome)}</option>`).join('')}
-    </select></div>
-
-    <div class="field"><label>Prazo</label><input type="date" name="data" value="${t.data||t.prazo||''}"></div>
-    <div class="field"><label>Horário</label><input type="time" name="hora" value="${e(t.hora||'')}"></div>
-
-    <div class="field"><label>Prioridade</label><select name="prioridade">
-      ${['Normal','Alta'].map(v=>`<option ${t.prioridade===v?'selected':''}>${v}</option>`).join('')}
-    </select></div>
-
-    <div class="field"><label>Prioridade</label><select name="priority">${MOVE_TASK_PRIORITIES.map(v=>`<option ${taskPriority(t)===v?'selected':''}>${v}</option>`).join('')}</select></div>
-    <div class="field span"><label>Descrição / observações</label><textarea name="descricao" placeholder="Detalhes importantes para executar a tarefa.">${e(t.descricao||'')}</textarea></div>
+  let t=D.tasks.find(a=>a.id===x)||{};if(t.id)taskNormalize(t);
+  let current=t.id?taskSectorKey(t):(String(setor).toLowerCase().includes('produ')?'producao':'planejamento');
+  modal(t.id?'Editar tarefa':'Nova tarefa',`<form id=\"f\" class=\"fg\">
+    <div class=\"field span\"><label>Enviar tarefa para qual setor?</label><div class=\"task-sector-choice-inline\">
+      <label class=\"move-check-chip\"><input type=\"radio\" name=\"setor\" value=\"planejamento\" ${current==='planejamento'?'checked':''}><span><i class=\"fa fa-lightbulb\"></i> Planejamento</span></label>
+      <label class=\"move-check-chip\"><input type=\"radio\" name=\"setor\" value=\"producao\" ${current==='producao'?'checked':''}><span><i class=\"fa fa-clapperboard\"></i> Produção</span></label>
+    </div><small class=\"move-check-help\">Produção pode pedir legenda/roteiro ao Planejamento e Planejamento pode enviar demandas de execução para Produção.</small></div>
+    <div class=\"field span\"><label>Tarefa *</label><input name=\"titulo\" value=\"${e(t.titulo||'')}\" placeholder=\"Ex.: Criar as legendas dos Reels da Jacobina\"></div>
+    <div class=\"field span\"><label>Empresa</label><select name=\"companyId\"><option value=\"\">Sem empresa específica</option>${[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>`<option value=\"${c.id}\" ${t.companyId===c.id?'selected':''}>${e(c.nome)}</option>`).join('')}</select></div>
+    <div class=\"field\"><label>Prazo</label><input type=\"date\" name=\"data\" value=\"${t.data||''}\"></div>
+    <div class=\"field\"><label>Horário</label><input type=\"time\" name=\"hora\" value=\"${e(t.hora||'')}\"></div>
+    <div class=\"field\"><label>Prioridade</label><select name=\"prioridade\">${MOVE_TASK_PRIORITIES.map(v=>`<option ${taskPriority(t)===v?'selected':''}>${v}</option>`).join('')}</select></div>
+    <div class=\"field span\"><label>Descrição / observações</label><textarea name=\"descricao\">${e(t.descricao||'')}</textarea></div>
   </form>`,()=>{
-    const q=obj(document.getElementById('f'));
-    if(!q.titulo)return toast('Informe a tarefa.');q.sector=q.setor||setor||'Planejamento';q.team=q.sector;
-    q.setor=q.setor||setor;
-    q.feita=!!t.feita;
-
-    if(t.id)Object.assign(t,q);
-    else D.tasks.unshift({...q,id:id()});
-
-    closeM();
-    save();
-    TASK_SECTOR=setor;
-    tarefas();
-    toast('Tarefa salva em '+s.title+'.');
+    const q=obj(document.getElementById('f'));if(!q.titulo)return toast('Informe a tarefa.');
+    q.setor=q.setor==='producao'?'producao':'planejamento';q.sector=q.setor==='producao'?'Produção':'Planejamento';q.team=q.sector;q.priority=q.prioridade;q.feita=!!t.feita;q.title=q.titulo;q.desc=q.descricao||'';q.prazo=q.data||'';
+    if(t.id)Object.assign(t,q);else D.tasks.unshift({...q,id:id(),status:'Pendente'});
+    closeM();save();TASK_SECTOR=q.setor;tarefas();toast('Tarefa salva em '+q.sector+'.');
   });
 }
-
-function toggleTask(taskId){
-  const t=D.tasks.find(x=>x.id===taskId);
-  if(!t)return;
-  taskNormalize(t);
-  t.feita=!t.feita;
-  t.status=t.feita?'Concluída':'Pendente';
-  save();
-  tarefas();
-  toast(t.feita?'Tarefa concluída.':'Tarefa reaberta.');
-}
-
-function deleteTask(taskId){
-  const t=D.tasks.find(x=>x.id===taskId);
-  if(!t)return;
-  if(!confirm(`Excluir a tarefa "${t.titulo||'Sem título'}"?`))return;
-  D.tasks=D.tasks.filter(x=>x.id!==taskId);
-  save();
-  tarefas();
-  toast('Tarefa excluída.');
-}
+function toggleTask(taskId){const t=D.tasks.find(x=>x.id===taskId);if(!t)return;taskNormalize(t);t.feita=!t.feita;t.status=t.feita?'Concluída':'Pendente';save();tarefas();toast(t.feita?'Tarefa concluída.':'Tarefa reaberta.');}
+function deleteTask(taskId){const t=D.tasks.find(x=>x.id===taskId);if(!t)return;if(!confirm(`Excluir a tarefa \"${t.titulo||'Sem título'}\"?`))return;D.tasks=D.tasks.filter(x=>x.id!==taskId);save();tarefas();toast('Tarefa excluída.');}
 
 function agenda(){let y=cal.getFullYear(),m=cal.getMonth(),s=new Date(y,m,1-new Date(y,m,1).getDay()),days=[];for(let i=0;i<42;i++){let z=new Date(s);z.setDate(s.getDate()+i);days.push(z)}document.getElementById('p-agenda').innerHTML=head('Agenda','Calendário local.',`<button class="btn primary" onclick="eventM()">+ Compromisso</button>`)+`<div class="card section"><div style="display:flex;justify-content:space-between;margin-bottom:10px"><button class="btn light sm" onclick="cal=new Date(${y},${m-1},1);agenda()">←</button><b>${cal.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</b><button class="btn light sm" onclick="cal=new Date(${y},${m+1},1);agenda()">→</button></div><div class="calendar">${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(x=>`<b style="font-size:9px;text-align:center">${x}</b>`).join('')}${days.map(d=>{let k=d.toISOString().slice(0,10),ev=D.agenda.filter(x=>x.data===k);return`<div class="day" onclick="eventM('','${k}')"><b>${d.getDate()}</b>${ev.map(v=>`<div class="event">${e(v.hora)} ${e(v.titulo)}</div>`).join('')}</div>`}).join('')}</div></div>`}function eventM(x='',dt=''){let a=D.agenda.find(v=>v.id===x)||{};modal('Compromisso',`<form id="f" class="fg"><div class="field span"><label>Título</label><input name="titulo" value="${e(a.titulo||'')}"></div><div class="field"><label>Data</label><input type="date" name="data" value="${a.data||dt}"></div><div class="field"><label>Hora</label><input type="time" name="hora" value="${a.hora||'08:00'}"></div><div class="field span"><label>Descrição</label><textarea name="descricao">${e(a.descricao||'')}</textarea></div></form>`,()=>{let q=obj(document.getElementById('f'));if(a.id)Object.assign(a,q);else D.agenda.push({...q,id:id()});closeM();save()})}
 function agendamento(){document.getElementById('p-agendamento').innerHTML=head('Agendamento e Aprovação','Artes, vídeos, legendas e HTML para o cliente.')+`<div class="notice">Os arquivos ficam neste navegador em IndexedDB. O HTML de aprovação incorpora as mídias para o cliente abrir sem painel.</div><div class="grid companies">${D.companies.map(c=>`<div class="card company"><div class="avatar">${ini(c.nome)}</div><h3>${e(c.nome)}</h3><div class="meta">${D.scheduled.filter(x=>x.companyId===c.id).length} materiais</div><div class="actions"><button class="btn dark sm" onclick="materials('${c.id}')">Abrir</button><button class="btn light sm" onclick="approval('${c.id}')">Baixar HTML aprovação</button></div></div>`).join('')||empty('Cadastre empresa.')}</div>`}async function materials(cid){
@@ -2647,5 +2620,9 @@ function injectMoveCelebrationCSS(){
   document.head.appendChild(st);
 }
 
-try{injectMoveMultiCSS();injectMoveCalendarCSS();injectMoveCelebrationCSS();nav();render('home');}catch(err){console.error(err);document.getElementById('toast').textContent='Erro ao iniciar painel: '+err.message;document.getElementById('toast').style.display='block';}
-window.addEventListener('DOMContentLoaded',applyAuthState);
+function moveBoot(){
+  try{injectMoveMultiCSS();injectMoveCalendarCSS();injectMoveCelebrationCSS();nav();render('home');applyAuthState();}
+  catch(err){console.error('Erro ao iniciar painel',err);const t=document.getElementById('toast');if(t){t.textContent='Erro ao iniciar painel: '+err.message;t.style.display='block';}}
+}
+if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',moveBoot);else moveBoot();
+window.addEventListener('DOMContentLoaded',()=>{restoreLoginCache();});
