@@ -5,7 +5,7 @@ const MOVE_AUTH_KEY='move_local_auth_v1';
 
 
 // COLE AQUI A URL /exec GERADA AO IMPLANTAR O APPS SCRIPT COMO APLICATIVO DA WEB.
-const MOVE_API_URL='https://script.google.com/macros/s/AKfycbydd_YHx04s5iFhFXeNUXnptdztQJXv2L2Ut9bWSWrg_O_9TuTbRYa_i2Y57sxWMeiCHA/exec';
+const MOVE_API_URL='https://script.google.com/macros/s/AKfycbzrhYinwPd4i8OPVTJJMO_NNPnqUods24eZl_db4a9H-K18-nSzKm3fwyRBrHsmKNg5/exec';
 
 let MOVE_SYNC_TIMER=null;
 let MOVE_SYNCING=false;
