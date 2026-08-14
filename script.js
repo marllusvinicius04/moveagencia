@@ -658,6 +658,14 @@ function magicInjectCSS(){
     .monthly-report-preview{display:grid;gap:12px}.report-hero{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px;border-radius:14px;background:#111;color:#fff}.report-hero h2{margin:5px 0 3px}.report-hero p{margin:0;color:#aaa;font-size:9px}.report-color{width:52px;height:52px;border-radius:15px;flex:0 0 auto}.report-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.report-summary-grid>div{background:#f7f7f8;border-radius:10px;padding:10px}.report-summary-grid span{display:block;font-size:7px;color:#888;font-weight:800}.report-summary-grid b{display:block;font-size:20px;margin-top:4px}.report-summary-grid small{font-size:8px;color:#999}.report-goal-card,.report-development{border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff}.report-goal-card p{font-size:10px;line-height:1.55}.report-month-total{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.report-month-total>div{background:#111;color:#fff;border-radius:10px;padding:10px;text-align:center}.report-month-total b{display:block;font-size:18px;color:#fca311}.report-month-total span{font-size:7px;color:#aaa}.report-weeks{display:grid;gap:10px}.report-week-card{border:1px solid #e5e7eb;border-radius:13px;padding:12px;background:#fafbfc}.report-week-head{display:flex;justify-content:space-between;gap:12px}.report-week-head h3{font-size:13px;margin:6px 0 3px}.report-week-head p{font-size:9px;color:#666;margin:0}.report-week-kpis{display:flex;gap:6px}.report-week-kpis span{background:#fff;border:1px solid #eee;border-radius:8px;padding:7px;font-size:8px;color:#777}.report-week-kpis b{display:block;color:#111}.report-content-list{display:grid;gap:6px}.report-content-line{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;background:#fff;border-radius:9px;padding:8px}.report-content-line b{display:block;font-size:9px}.report-content-line small{display:block;font-size:7px;color:#888;margin-top:2px}
     @media(max-width:700px){.report-summary-grid,.report-month-total{grid-template-columns:1fr 1fr}.report-week-head{flex-direction:column}.report-content-line{grid-template-columns:auto 1fr}.report-content-line>.badge:last-child{grid-column:2}}
 
+    
+    .move-board-guide{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#111;color:#fff;border-radius:14px;margin-bottom:18px;overflow:auto}.move-board-guide>i{color:#555;font-size:10px}.move-board-guide-item{display:flex;align-items:center;gap:8px;min-width:max-content}.move-board-guide-item>span{width:28px;height:28px;border-radius:9px;background:#2a2a2a;display:grid;place-items:center;color:#fca311;font-size:10px;font-weight:900}.move-board-guide-item b{display:block;font-size:9px}.move-board-guide-item small{display:block;font-size:7px;color:#888;margin-top:2px}.move-board-guide-item.active>span{background:#fca311;color:#111}
+    .move-board-section{background:#fff;border:1px solid #e7e9ed;border-radius:18px;padding:16px;margin-top:16px;box-shadow:0 8px 28px rgba(15,23,42,.04)}.move-board-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;padding-bottom:13px;margin-bottom:13px;border-bottom:1px solid #eceef0}.move-board-section-head h2{font-size:18px;margin:4px 0 3px}.move-board-section-head p{margin:0;color:#777;font-size:9px;line-height:1.5}
+    .move-week-title-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.move-step-number{width:30px;height:30px;border-radius:9px;background:#111;color:#fca311;display:grid;place-items:center;font-size:11px;font-weight:900}.move-week-title-row h3{margin:0;font-size:14px}.move-week-purpose{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;padding-left:39px;color:#666;font-size:8px}.move-week-actions{justify-content:flex-end}.move-week-actions>.primary{min-height:34px}
+    .move-board-first-week{text-align:center;padding:34px 18px;border:1px dashed #d9dde3;border-radius:14px;background:#fafbfc}.move-board-first-icon{width:52px;height:52px;border-radius:15px;background:#111;color:#fca311;display:grid;place-items:center;margin:0 auto 12px;font-size:18px}.move-board-first-week h3{margin:0 0 5px}.move-board-first-week p{font-size:9px;color:#777;margin:0 auto 14px;max-width:440px}
+    .move-production-summary{display:flex;gap:7px;flex-wrap:wrap}.move-production-summary span{padding:7px 9px;border-radius:9px;background:#f5f6f7;font-size:8px}.danger-text{color:#b42318!important;background:#fff0ef!important}.move-production-list{display:grid;gap:8px}.move-production-simple{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid #e7e9ed;border-radius:12px;padding:11px;background:#fff}.move-production-simple.late{box-shadow:inset 3px 0 0 #d92d20}.move-production-simple.critical{box-shadow:inset 4px 0 0 #b42318;background:#fffafa}.move-production-main>strong{display:block;margin:7px 0;font-size:10px}.move-production-controls{display:flex;gap:5px;align-items:center;flex-wrap:wrap}.move-production-controls .move-status-select{width:auto;min-width:135px;margin:0}.materials-section{margin-bottom:20px}
+    @media(max-width:760px){.move-board-section-head,.move-production-simple{grid-template-columns:1fr;display:flex;flex-direction:column;align-items:stretch}.move-week-purpose{padding-left:0}.move-week-actions{justify-content:flex-start}.move-week-actions .btn{flex:1 1 auto}.move-production-controls{justify-content:flex-start}.move-board-guide{align-items:flex-start}}
+
     @media(max-width:520px){.move-magic-main-btn{width:100%}.move-magic-top-wrap{width:100%}.move-magic-drop{width:100%;position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-width:none}.magic-stats{grid-template-columns:1fr 1fr}}
   `;
   document.head.appendChild(st);
@@ -1099,7 +1107,7 @@ function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
       <div class="meta" style="margin-top:10px">Planejados: <b>${contentsMonth}</b> • Produzidos: <b>${scheduledMonth}</b> • Finalizados: <b>${doneTasks}</b></div>
     </div>`;
   }).join('');
-  document.getElementById('p-home').innerHTML=moveOverviewSection()+
+  document.getElementById('p-home').innerHTML=movePPCycleBanner()+
     head('Visão geral','Operação sincronizada com o Google Sheets e cache local para velocidade.')
     +`<div class="grid kpis"><div class="card kpi"><i class="fa fa-building"></i><b>${D.companies.length}</b><span>empresas</span></div><div class="card kpi"><i class="fa fa-lightbulb"></i><b>${p}</b><span>planejamentos</span></div><div class="card kpi"><i class="fa fa-photo-film"></i><b>${m}</b><span>materiais produzidos</span></div><div class="card kpi"><i class="fa fa-triangle-exclamation"></i><b>${pe}</b><span>pendências</span></div></div>`
     +`<div class="card section" style="margin-top:14px"><div class="list">${pend().slice(0,8).map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge warn">${x.type}</span></div>`).join('')||empty('Tudo em dia.')}</div></div>`
@@ -1383,287 +1391,281 @@ function productionSummary(cid){
 async function board(cid){
   CID=cid;
   R='quadro';
+
   const c=D.companies.find(x=>x.id===cid);
   if(!c)return quadro();
-  const ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>a.numero-b.numero),
-        done=completedWeeksCount(cid);
+
+  const ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>Number(a.numero)-Number(b.numero));
+  const done=completedWeeksCount(cid);
 
   let weeksHTML=ws.map(w=>{
     const progress=weekProgress(w,c);
-    const contents=D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>a.ordem-b.ordem);
+    const contents=D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0));
     const days=boardDays(w);
     const withoutDate=contents.filter(x=>!x.postDate||!days.some(d=>boardDateKey(d)===x.postDate));
 
-    const calendar=days.length?`<div class="move-week-calendar">
-      ${days.map(d=>{
-        const k=boardDateKey(d);
-        const dayContents=contents.filter(x=>x.postDate===k);
-        return `<div class="move-day ${dayContents.length?'has-content':''}">
-          <div class="move-day-head">
-            <div><b>${boardDayName(d)}</b><span>${d.getDate()}</span></div>
-            <button class="move-day-add" onclick="content('${cid}','${w.id}','','${k}')" title="Planejar conteúdo neste dia"><i class="fa fa-plus"></i></button>
-          </div>
-          <div class="move-day-body">
-            ${dayContents.map(ct=>{
-              const media=D.scheduled.find(s=>s.contentId===ct.id);
-              return `<article class="move-calendar-content">
-                <div class="move-calendar-tags">
-                  <span class="badge">${e(ct.tipo||'Conteúdo')}</span>
-                  <span class="badge ${contentTeam(ct)==='estrategica'?'move-team-strategic':'move-team-creative'}">${contentTeam(ct)==='estrategica'?'Estratégica':'Criativa'}</span>
-                  ${workflowBadge(ct.workflowStatus)}
-                  ${media?`<span class="badge ok move-upload-attached"><i class="fa fa-circle-check"></i> Anexado</span>`:''}
-                </div>
-                <strong>${e(ct.titulo||'Sem título')}</strong>
-                <small>${e(ct.postTime||'Sem horário')}</small>
-                <div class="actions">
-                  <button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')"><i class="fa fa-pen"></i></button>
-                  ${contentTeam(ct)==='estrategica'?`<button class="btn primary sm" onclick="sendToProduction('${ct.id}')" title="Enviar para produção"><i class="fa fa-arrow-right"></i></button>`:''}
-                  ${media
-                    ?`<button class="btn ok sm move-upload-done" onclick="upload('${cid}','${media.id}')" title="Mídia anexada — clique para editar"><i class="fa fa-circle-check"></i> Anexado</button>`
-                    :`<button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')" title="Anexar imagem ou vídeo"><i class="fa fa-paperclip"></i> Upload</button>`}
-                  <button class="btn danger sm" onclick="deleteContent('${ct.id}')"><i class="fa fa-trash"></i></button>
-                </div>
-              </article>`;
-            }).join('')||`<button class="move-empty-day" onclick="content('${cid}','${w.id}','','${k}')">+ Planejar neste dia</button>`}
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`:`<div class="notice">Defina o início e o fim da semana para visualizar o calendário. <button class="btn light sm" onclick="week('${cid}','${w.id}')">Editar semana</button></div>`;
+    const calendar=days.length
+      ?`<div class="move-week-calendar">
+        ${days.map(d=>{
+          const k=boardDateKey(d);
+          const dayContents=contents.filter(x=>x.postDate===k);
+
+          return `<div class="move-day ${dayContents.length?'has-content':''}">
+            <div class="move-day-head">
+              <div><b>${boardDayName(d)}</b><span>${d.getDate()}</span></div>
+              <button class="move-day-add" onclick="content('${cid}','${w.id}','','${k}')" title="Adicionar conteúdo neste dia">
+                <i class="fa fa-plus"></i>
+              </button>
+            </div>
+
+            <div class="move-day-body">
+              ${dayContents.map(ct=>{
+                const media=D.scheduled.find(s=>s.contentId===ct.id);
+                return `<article class="move-calendar-content">
+                  <div class="move-calendar-tags">
+                    <span class="badge">${e(ct.tipo||'Conteúdo')}</span>
+                    ${workflowBadge(ct.workflowStatus)}
+                    ${media?`<span class="badge ok"><i class="fa fa-circle-check"></i> Anexado</span>`:''}
+                  </div>
+
+                  <strong>${e(ct.titulo||'Sem título')}</strong>
+                  <small>${e(ct.postTime||'Sem horário')}</small>
+
+                  <div class="actions">
+                    <button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">
+                      <i class="fa fa-pen"></i> Editar
+                    </button>
+
+                    ${media
+                      ?`<button class="btn ok sm" onclick="upload('${cid}','${media.id}')"><i class="fa fa-circle-check"></i> Anexado</button>`
+                      :`<button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')"><i class="fa fa-paperclip"></i> Upload</button>`}
+
+                    <button class="btn danger sm" onclick="deleteContent('${ct.id}')">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </div>
+                </article>`;
+              }).join('')||`
+                <button class="move-empty-day" onclick="content('${cid}','${w.id}','','${k}')">
+                  <i class="fa fa-plus"></i> Adicionar neste dia
+                </button>
+              `}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`
+      :`<div class="notice">
+        Esta semana ainda não tem período definido.
+        <button class="btn light sm" onclick="week('${cid}','${w.id}')">Definir datas</button>
+      </div>`;
 
     return `<section class="move-calendar-week ${progress.complete?'is-complete':''}">
       <div class="move-week-top">
         <div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <h3 style="margin:0">Semana ${w.numero}</h3>
-            ${progress.complete?`<span class="move-week-done"><i class="fa fa-check"></i> Concluída</span>`:''}
+          <div class="move-week-title-row">
+            <span class="move-step-number">${w.numero}</span>
+            <div>
+              <h3>Semana ${w.numero}</h3>
+              <div class="meta">${date(w.inicio)} — ${date(w.fim)} • ${progress.created}/${progress.expected} conteúdos planejados</div>
+            </div>
+            ${progress.complete?`<span class="move-week-done"><i class="fa fa-check"></i> Planejamento completo</span>`:''}
           </div>
-          <div class="meta">${date(w.inicio)} — ${date(w.fim)} • ${progress.created}/${progress.expected} conteúdos</div>
-          <div class="meta" style="margin-top:5px"><b>Objetivo:</b> ${e(w.objetivo||'—')} • <b>Linha:</b> ${e(w.linha||'—')}</div>
+
+          <div class="move-week-purpose">
+            <span><b>Objetivo:</b> ${e(w.objetivo||'Não definido')}</span>
+            <span><b>Linha:</b> ${e(w.linha||'Não definida')}</span>
+          </div>
         </div>
-        <div class="actions">
-          <button class="btn light sm" onclick="week('${cid}','${w.id}')"><i class="fa fa-pen"></i> Semana</button>
-          <button class="btn primary sm" onclick="sendWeekToProduction('${w.id}')"><i class="fa fa-paper-plane"></i> Enviar semana para produção</button>
-          <button class="btn dark sm" onclick="weekHTML('${w.id}')"><i class="fa fa-download"></i> Baixar</button>
-          <button class="btn danger sm" onclick="deleteWeek('${w.id}')"><i class="fa fa-trash"></i></button>
+
+        <div class="actions move-week-actions">
+          <button class="btn primary" onclick="content('${cid}','${w.id}')">
+            <i class="fa fa-plus"></i> Adicionar conteúdo
+          </button>
+
+          <button class="btn light sm" onclick="week('${cid}','${w.id}')">
+            <i class="fa fa-pen"></i> Editar semana
+          </button>
+
+          <button class="btn dark sm" onclick="sendWeekToProduction('${w.id}')">
+            <i class="fa fa-paper-plane"></i> Enviar para produção
+          </button>
+
+          <button class="btn light sm" onclick="weekHTML('${w.id}')">
+            <i class="fa fa-download"></i> Baixar
+          </button>
+
+          <button class="btn danger sm" onclick="deleteWeek('${w.id}')" title="Excluir semana">
+            <i class="fa fa-trash"></i>
+          </button>
         </div>
       </div>
-      ${calendar}
-      ${withoutDate.length?`<div class="move-undated"><b>Conteúdos fora das datas desta semana</b>${withoutDate.map(ct=>`<button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">${e(ct.titulo||'Sem título')}</button>`).join('')}</div>`:''}
-    </section>`;
-  }).join('')||empty('Crie a primeira semana para montar o calendário.');
 
-  const scheduled=D.scheduled.filter(x=>x.companyId===cid).sort((a,b)=>String(a.data||'').localeCompare(String(b.data||''))||String(a.hora||'').localeCompare(String(b.hora||'')));
+      ${calendar}
+
+      ${withoutDate.length?`
+        <div class="move-undated">
+          <b><i class="fa fa-triangle-exclamation"></i> Sem data definida:</b>
+          ${withoutDate.map(ct=>`<button class="btn light sm" onclick="content('${cid}','${w.id}','${ct.id}')">${e(ct.titulo||'Sem título')}</button>`).join('')}
+        </div>
+      `:''}
+    </section>`;
+  }).join('');
+
+  if(!weeksHTML){
+    weeksHTML=`<div class="move-board-first-week">
+      <div class="move-board-first-icon"><i class="fa fa-calendar-plus"></i></div>
+      <h3>Comece criando a Semana 1</h3>
+      <p>Crie a semana, defina as datas e depois adicione os conteúdos que serão produzidos.</p>
+      <button class="btn primary" onclick="week('${cid}')"><i class="fa fa-plus"></i> Criar primeira semana</button>
+    </div>`;
+  }
+
+  const prodItems=D.contents
+    .filter(x=>x.companyId===cid&&contentTeam(x)==='criativa')
+    .sort((a,b)=>String(a.productionDeadline||a.postDate||'9999').localeCompare(String(b.productionDeadline||b.postDate||'9999')));
+
+  const prod=productionSummary(cid);
+  const prodProgress=prod.total?Math.round(prod.done/prod.total*100):0;
+
+  const productionHTML=prodItems.map(ct=>{
+    const ds=productionDeadlineState(ct);
+    const sm=D.scheduled.find(x=>x.contentId===ct.id);
+
+    return `<article class="move-production-simple ${ds.key==='critical'?'critical':['late','today'].includes(ds.key)?'late':''}">
+      <div class="move-production-main">
+        <div class="move-calendar-tags">
+          <span class="badge">${e(ct.tipo||'Conteúdo')}</span>
+          <span class="badge ${ds.cls}">${e(ds.label)}</span>
+          ${sm?`<span class="badge ok"><i class="fa fa-circle-check"></i> Mídia anexada</span>`:''}
+        </div>
+
+        <strong>${e(ct.titulo||'Sem título')}</strong>
+
+        <div class="prod-meta">
+          <span><i class="fa fa-calendar-day"></i> Prazo: <b>${ct.productionDeadline?date(ct.productionDeadline):'Não definido'}</b></span>
+          <span><i class="fa fa-user"></i> Responsável: <b>${e(ct.productionResponsible||'Não definido')}</b></span>
+        </div>
+      </div>
+
+      <div class="move-production-controls">
+        <select class="move-status-select" onchange="setWorkflowStatus('${ct.id}',this.value)">
+          ${MOVE_TEAM_STATUS.criativa.map(st=>`<option ${((ct.workflowStatus||'Fila de produção')===st)?'selected':''}>${st}</option>`).join('')}
+        </select>
+
+        <button class="btn light sm" onclick="productionControl('${ct.id}')"><i class="fa fa-sliders"></i> Prazo</button>
+        <button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')"><i class="fa fa-eye"></i> Abrir</button>
+        ${sm
+          ?`<button class="btn ok sm" onclick="upload('${cid}','${sm.id}')"><i class="fa fa-circle-check"></i> Anexado</button>`
+          :`<button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')"><i class="fa fa-paperclip"></i> Upload</button>`}
+      </div>
+    </article>`;
+  }).join('')||empty('Nenhum conteúdo foi enviado para a Produção ainda.');
+
+  const scheduled=D.scheduled
+    .filter(x=>x.companyId===cid)
+    .sort((a,b)=>String(a.data||'').localeCompare(String(b.data||''))||String(a.hora||'').localeCompare(String(b.hora||'')));
+
   let materialsHTML='';
-  for(const s of scheduled){
-    const ct=D.contents.find(x=>x.id===s.contentId)||{};
-    const u=await mediaURL(s.mediaId);
-    const preview=s.mime?.startsWith('image/')?`<img src="${u}" alt="${e(ct.titulo||s.fileName||'Material')}">`
-      :s.mime?.startsWith('video/')?`<video class="move-video-player" controls playsinline preload="metadata" src="${u}" onloadedmetadata="moveVideoCheck(this)"></video>`
-      :`<div class="move-file-placeholder"><i class="fa fa-file"></i></div>`;
+  for(const sm of scheduled){
+    const ct=D.contents.find(x=>x.id===sm.contentId)||{};
+    const u=await mediaURL(sm.mediaId);
+
+    const preview=sm.mime?.startsWith('image/')
+      ?`<img src="${u}" alt="${e(ct.titulo||sm.fileName||'Material')}">`
+      :sm.mime?.startsWith('video/')
+        ?`<video class="move-video-player" controls playsinline preload="metadata" src="${u}" onloadedmetadata="moveVideoCheck(this)"></video>`
+        :`<div class="move-file-placeholder"><i class="fa fa-file"></i></div>`;
+
     materialsHTML+=`<article class="move-board-media-card">
       <div class="move-board-media">${preview}</div>
       <div class="move-board-media-info">
-        <div style="display:flex;justify-content:space-between;gap:8px"><span class="badge">${e(ct.tipo||'Material')}</span><span class="badge ${s.status==='Aprovado'?'ok':'warn'}">${e(s.status||'Aguardando aprovação')}</span></div>
-        <h4>${e(ct.titulo||s.fileName||'Material')}</h4>
-        <div class="meta">${date(s.data)} ${e(s.hora||'')}</div>
+        <span class="badge">${e(ct.tipo||'Material')}</span>
+        <h4>${e(ct.titulo||sm.fileName||'Material')}</h4>
+        <div class="meta">${date(sm.data)} ${e(sm.hora||'')}</div>
+
         <div class="actions">
-          ${ct.id?`<button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')"><i class="fa fa-pen"></i> Editar conteúdo</button>`:''}
-          <button class="btn dark sm" onclick="upload('${cid}','${s.id}')"><i class="fa fa-paperclip"></i> Mídia</button>
-          <button class="btn danger sm" onclick="deleteScheduled('${s.id}','${cid}')" title="Excluir upload"><i class="fa fa-trash"></i> Excluir upload</button>
+          ${ct.id?`<button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')"><i class="fa fa-pen"></i> Conteúdo</button>`:''}
+          <button class="btn dark sm" onclick="upload('${cid}','${sm.id}')"><i class="fa fa-paperclip"></i> Abrir mídia</button>
+          <button class="btn danger sm" onclick="deleteScheduled('${sm.id}','${cid}')"><i class="fa fa-trash"></i></button>
         </div>
       </div>
     </article>`;
   }
 
-  const prod=productionSummary(cid);
-  const prodProgress=prod.total?Math.round(prod.done/prod.total*100):0;
-
   document.getElementById('p-quadro').innerHTML=
     head(
       c.nome,
-      'Planejamento em calendário: crie o conteúdo no dia e anexe a imagem ou o Reels no mesmo fluxo.',
-      `<span class="move-board-progress ${done===4?'is-complete':''}"><i class="fa fa-check"></i> ${done}/4 semanas concluídas</span> <button class="btn light" onclick="quadro()">← Empresas</button> <button class="btn dark" onclick="copyCompanyData('${cid}')"><i class="fa fa-copy"></i> Copiar dados</button> <button class="btn light" onclick="monthlyReport('${cid}')"><i class="fa fa-chart-column"></i> Gerar relatório mensal</button> <button class="btn primary" onclick="week('${cid}')">+ Semana</button>`
+      'Planeje primeiro. Depois envie para Produção. Os materiais ficam organizados no final.',
+      `<button class="btn light" onclick="quadro()"><i class="fa fa-arrow-left"></i> Empresas</button>
+       <button class="btn light" onclick="copyCompanyData('${cid}')"><i class="fa fa-copy"></i> Copiar dados</button>
+       <button class="btn light" onclick="monthlyReport('${cid}')"><i class="fa fa-chart-column"></i> Relatório mensal</button>
+       <button class="btn primary" onclick="week('${cid}')"><i class="fa fa-plus"></i> Nova semana</button>`
     )
-    +`<div class="move-board-calendar-wrap">${weeksHTML}</div>`
-    +`<div class="production-command ${prod.critical?'has-critical':''}">
-      <div><span class="eyebrow">CENTRAL DE PRAZOS • PRODUÇÃO</span><h3>${prod.late?`${prod.late} entrega${prod.late>1?'s':''} atrasada${prod.late>1?'s':''}`:'Produção sob controle'}</h3><p>${prod.late?'Prioridade máxima: regularizar atrasos antes de acumular novas entregas.':'Toda demanda enviada para produção passa a ser compromisso de prazo.'}</p></div>
-      <div class="production-command-kpis">
-        <div><b>${prodProgress}%</b><span>CONCLUÍDO</span></div>
-        <div class="${prod.today?'danger-kpi':''}"><b>${prod.today}</b><span>VENCEM HOJE</span></div>
-        <div class="${prod.late?'danger-kpi':''}"><b>${prod.late}</b><span>ATRASADAS</span></div>
-        <div class="${prod.critical?'danger-kpi':''}"><b>${prod.critical}</b><span>CRÍTICAS</span></div>
+
+    +`<div class="move-board-guide">
+      <div class="move-board-guide-item active">
+        <span>1</span><div><b>Planejamento</b><small>Crie semanas e conteúdos.</small></div>
+      </div>
+      <i class="fa fa-arrow-right"></i>
+      <div class="move-board-guide-item">
+        <span>2</span><div><b>Produção</b><small>Envie a semana pronta.</small></div>
+      </div>
+      <i class="fa fa-arrow-right"></i>
+      <div class="move-board-guide-item">
+        <span>3</span><div><b>Materiais</b><small>Anexe e finalize.</small></div>
       </div>
     </div>`
-    +`<div class="move-team-area">
-      <section class="move-team-column">
-        <h3>Equipe Estratégica</h3><p class="meta">Planejamento, ideias, roteiros, calendário e aprovação.</p>
-        <div class="move-team-list">${D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='estrategica').map(ct=>`<article class="move-team-card"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo||'Conteúdo')}</span>${workflowBadge(ct.workflowStatus)}${D.scheduled.some(s=>s.contentId===ct.id)?`<span class="badge ok move-upload-attached"><i class="fa fa-circle-check"></i> Anexado</span>`:''}</div><strong>${e(ct.titulo||'Sem título')}</strong><small>${date(ct.postDate)} ${e(ct.postTime||'')}</small><div class="actions"><button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')">Editar</button><button class="btn primary sm" onclick="sendToProduction('${ct.id}')">Enviar para produção</button></div></article>`).join('')||empty('Nenhum conteúdo estratégico.')}</div>
-      </section>
-      <section class="move-team-column">
-        <h3>Equipe Criativa / Operacional</h3><p class="meta">Design, edição, captação, ajustes, finalização e agendamento.</p>
-        <div class="production-rule"><i class="fa fa-triangle-exclamation"></i><div><b>REGRA OPERACIONAL</b><span>Prazo é compromisso. Conteúdo atrasado exige justificativa registrada e deve ser tratado como prioridade.</span></div></div>
-        <div class="move-team-list">${D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='criativa').map(ct=>{const ds=productionDeadlineState(ct);return `<article class="move-team-card ${ds.key==='critical'?'prod-critical-card':['late','today'].includes(ds.key)?'prod-late-card':''}"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo||'Conteúdo')}</span>${workflowBadge(ct.workflowStatus)}<span class="badge ${ds.cls}">${e(ds.label)}</span>${D.scheduled.some(s=>s.contentId===ct.id)?`<span class="badge ok move-upload-attached"><i class="fa fa-circle-check"></i> Anexado</span>`:''}</div><strong>${e(ct.titulo||'Sem título')}</strong><div class="prod-meta"><span><i class="fa fa-calendar-day"></i> Prazo: <b>${ct.productionDeadline?date(ct.productionDeadline):'Não definido'}</b></span><span><i class="fa fa-user"></i> Responsável: <b>${e(ct.productionResponsible||'Não definido')}</b></span></div>${ct.productionBlocker?`<div class="prod-blocker"><b>IMPEDIMENTO REGISTRADO</b><span>${e(ct.productionBlocker)}</span></div>`:''}<select class="move-status-select" onchange="setWorkflowStatus('${ct.id}',this.value)">${MOVE_TEAM_STATUS.criativa.map(st=>`<option ${((ct.workflowStatus||'Fila de produção')===st)?'selected':''}>${st}</option>`).join('')}</select><div class="actions"><button class="btn light sm" onclick="productionControl('${ct.id}')"><i class="fa fa-sliders"></i> Prazo / responsável</button><button class="btn light sm" onclick="content('${cid}','${ct.weekId||''}','${ct.id}')">Abrir</button>${(()=>{const sm=D.scheduled.find(x=>x.contentId===ct.id);return sm?`<button class="btn ok sm move-upload-done" onclick="upload('${cid}','${sm.id}')"><i class="fa fa-circle-check"></i> Anexado</button>`:`<button class="btn dark sm" onclick="attachContent('${cid}','${ct.id}')"><i class="fa fa-paperclip"></i> Upload</button>`})()}</div></article>`}).join('')||empty('Nenhum conteúdo em produção.')}</div>
-      </section>
-    </div>`
-    +`<div class="move-board-schedule">
-        ${head('Agendamento da empresa','As mídias anexadas aos conteúdos ficam aqui dentro do próprio Quadro Criativo.',`<button class="btn primary" onclick="upload('${cid}')"><i class="fa fa-plus"></i> Anexar material</button> <button class="btn dark" onclick="approval('${cid}')"><i class="fa fa-download"></i> Baixar aprovação</button>`)}
-        <div class="move-board-media-grid">${materialsHTML||empty('Nenhuma mídia anexada ainda.')}</div>
-      </div>`;
-}
 
-
-function monthlyReportData(cid){
-  const c=D.companies.find(x=>x.id===cid);
-  if(!c)return null;
-
-  const weeks=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>Number(a.numero)-Number(b.numero));
-  const contents=D.contents.filter(x=>x.companyId===cid);
-  const scheduled=D.scheduled.filter(x=>x.companyId===cid);
-
-  const byType={
-    Reels:contents.filter(x=>x.tipo==='Reels').length,
-    Post:contents.filter(x=>x.tipo==='Post').length,
-    Stories:contents.filter(x=>x.tipo==='Stories').length
-  };
-
-  const produced=contents.filter(x=>['Finalizado','Agendado','Publicado'].includes(x.workflowStatus)).length;
-  const inProduction=contents.filter(x=>['Fila de produção','Em produção','Ajustes'].includes(x.workflowStatus)).length;
-  const published=contents.filter(x=>x.workflowStatus==='Publicado').length;
-  const attached=scheduled.length;
-  const expectedWeekly=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0);
-  const expectedMonth=expectedWeekly*4;
-  const progress=expectedMonth?Math.min(100,Math.round(contents.length/expectedMonth*100)):0;
-
-  const weekRows=weeks.map(w=>{
-    const cs=contents.filter(x=>x.weekId===w.id);
-    const done=cs.filter(x=>['Finalizado','Agendado','Publicado'].includes(x.workflowStatus)).length;
-    return {
-      week:w,
-      total:cs.length,
-      reels:cs.filter(x=>x.tipo==='Reels').length,
-      posts:cs.filter(x=>x.tipo==='Post').length,
-      stories:cs.filter(x=>x.tipo==='Stories').length,
-      done,
-      contents:cs
-    };
-  });
-
-  return {c,weeks,contents,scheduled,byType,produced,inProduction,published,attached,expectedMonth,progress,weekRows};
-}
-
-function monthlyReport(cid){
-  const r=monthlyReportData(cid);
-  if(!r)return toast('Empresa não encontrada.');
-
-  const weekBlocks=r.weekRows.map(x=>`
-    <article class="report-week-card">
-      <div class="report-week-head">
+    +`<section class="move-board-section">
+      <div class="move-board-section-head">
         <div>
-          <span class="badge warn">SEMANA ${x.week.numero}</span>
-          <h3>${date(x.week.inicio)} — ${date(x.week.fim)}</h3>
-          <p>${e(x.week.objetivo||'Sem objetivo definido.')}</p>
+          <span class="eyebrow">ETAPA 1</span>
+          <h2>Planejamento das semanas</h2>
+          <p>Crie a semana e adicione os conteúdos no calendário. Esta é a área principal da equipe de Planejamento.</p>
         </div>
-        <div class="report-week-kpis">
-          <span><b>${x.total}</b> conteúdos</span>
-          <span><b>${x.done}</b> finalizados</span>
-        </div>
+        <span class="move-board-progress ${done===4?'is-complete':''}"><i class="fa fa-check"></i> ${done}/4 semanas completas</span>
       </div>
-      <div class="stats" style="grid-template-columns:repeat(3,1fr)">
-        <div class="mini"><b>${x.reels}</b><span>REELS</span></div>
-        <div class="mini"><b>${x.posts}</b><span>POSTS</span></div>
-        <div class="mini"><b>${x.stories}</b><span>STORIES</span></div>
-      </div>
-      <div class="report-content-list">
-        ${x.contents.map(ct=>`<div class="report-content-line"><span class="badge">${e(ct.tipo||'Conteúdo')}</span><div><b>${e(ct.titulo||'Sem título')}</b><small>${e(ct.objetivo||ct.descricao||'')}</small></div><span class="badge ${['Finalizado','Agendado','Publicado'].includes(ct.workflowStatus)?'ok':'warn'}">${e(ct.workflowStatus||'Planejamento')}</span></div>`).join('')||'<div class="empty">Nenhum conteúdo nesta semana.</div>'}
-      </div>
-    </article>`).join('');
 
-  modal('Relatório mensal da empresa',`
-    <div class="monthly-report-preview">
-      <div class="report-hero">
+      <div class="move-board-calendar-wrap">${weeksHTML}</div>
+    </section>`
+
+    +`<section class="move-board-section production-section">
+      <div class="move-board-section-head">
         <div>
-          <span class="eyebrow">RELATÓRIO MENSAL • MOVE AGÊNCIA</span>
-          <h2>${e(r.c.nome)}</h2>
-          <p>Visão consolidada das 4 semanas de planejamento e produção.</p>
+          <span class="eyebrow">ETAPA 2</span>
+          <h2>Produção</h2>
+          <p>Aqui aparecem somente os conteúdos que já foram enviados para execução.</p>
         </div>
-        <div class="report-color" style="background:${e(r.c.cor||'#fca311')}"></div>
+
+        <div class="move-production-summary">
+          <span><b>${prodProgress}%</b> concluído</span>
+          <span class="${prod.late?'danger-text':''}"><b>${prod.late}</b> atrasados</span>
+          <span><b>${prod.today}</b> vencem hoje</span>
+        </div>
       </div>
 
-      <div class="report-summary-grid">
-        <div><span>PLANEJADO NO MÊS</span><b>${r.contents.length}</b><small>meta: ${r.expectedMonth}</small></div>
-        <div><span>FINALIZADOS</span><b>${r.produced}</b><small>produção concluída</small></div>
-        <div><span>PUBLICADOS</span><b>${r.published}</b><small>já publicados</small></div>
-        <div><span>PROGRESSO</span><b>${r.progress}%</b><small>da meta mensal</small></div>
+      ${prod.late?`<div class="production-rule"><i class="fa fa-triangle-exclamation"></i><div><b>ATENÇÃO À PRODUÇÃO</b><span>Há entregas atrasadas. Elas devem ser priorizadas antes de novas demandas.</span></div></div>`:''}
+
+      <div class="move-production-list">${productionHTML}</div>
+    </section>`
+
+    +`<section class="move-board-section materials-section">
+      <div class="move-board-section-head">
+        <div>
+          <span class="eyebrow">ETAPA 3</span>
+          <h2>Materiais da empresa</h2>
+          <p>Imagens e vídeos anexados aos conteúdos ficam reunidos aqui.</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" onclick="upload('${cid}')"><i class="fa fa-plus"></i> Anexar material</button>
+          <button class="btn dark" onclick="approval('${cid}')"><i class="fa fa-download"></i> Baixar aprovação</button>
+        </div>
       </div>
 
-      <div class="report-goal-card">
-        <span class="eyebrow">OBJETIVOS DA EMPRESA</span>
-        <p>${e(r.c.objetivos||'Não informado.')}</p>
-        <span class="eyebrow">LINHAS DE CONTEÚDO</span>
-        <p>${e(r.c.linhas||'Não informado.')}</p>
-      </div>
-
-      <div class="report-month-total">
-        <div><b>${r.byType.Reels}</b><span>REELS</span></div>
-        <div><b>${r.byType.Post}</b><span>POSTS</span></div>
-        <div><b>${r.byType.Stories}</b><span>STORIES</span></div>
-        <div><b>${r.attached}</b><span>MATERIAIS</span></div>
-      </div>
-
-      <div class="report-development">
-        <span class="eyebrow">DESENVOLVIMENTO DO MÊS</span>
-        <textarea id="monthlyReportDevelopment" placeholder="Descreva aqui a evolução do mês, percepção construída, campanhas realizadas, destaques, resultados qualitativos, próximos movimentos e observações para o cliente." style="min-height:180px"></textarea>
-      </div>
-
-      <div class="report-weeks">${weekBlocks||empty('Nenhuma semana cadastrada.')}</div>
-    </div>
-  `,()=>{
-    const dev=document.getElementById('monthlyReportDevelopment')?.value||'';
-    closeM();
-    monthlyReportDownload(cid,dev);
-  });
-
-  setTimeout(()=>{
-    const saveBtn=document.getElementById('saveM');
-    if(saveBtn){
-      saveBtn.innerHTML='<i class="fa fa-download"></i> Baixar relatório';
-      saveBtn.className='btn dark';
-    }
-  },20);
+      <div class="move-board-media-grid">${materialsHTML||empty('Nenhum material anexado ainda.')}</div>
+    </section>`;
 }
-
-function monthlyReportDownload(cid,development=''){
-  const r=monthlyReportData(cid);
-  if(!r)return toast('Empresa não encontrada.');
-
-  const weekHTML=r.weekRows.map(x=>`
-    <section class="week">
-      <div class="week-head">
-        <div><span class="tag">SEMANA ${x.week.numero}</span><h2>${date(x.week.inicio)} — ${date(x.week.fim)}</h2><p>${e(x.week.objetivo||'')}</p></div>
-        <div class="week-count"><b>${x.total}</b><span>conteúdos</span></div>
-      </div>
-      <div class="week-kpis"><div><b>${x.reels}</b><span>Reels</span></div><div><b>${x.posts}</b><span>Posts</span></div><div><b>${x.stories}</b><span>Stories</span></div><div><b>${x.done}</b><span>Finalizados</span></div></div>
-      ${x.contents.map(ct=>`<article class="content"><div class="content-top"><span class="type">${e(ct.tipo||'Conteúdo')}</span><span class="status">${e(ct.workflowStatus||'Planejamento')}</span></div><h3>${e(ct.titulo||'Sem título')}</h3><p>${e(ct.objetivo||ct.descricao||'')}</p>${ct.roteiro?`<div class="script"><b>Desenvolvimento / roteiro</b><p>${e(ct.roteiro).replace(/\n/g,'<br>')}</p></div>`:''}</article>`).join('')}
-    </section>`).join('');
-
-  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório Mensal — ${e(r.c.nome)}</title>
-  <style>
-  *{box-sizing:border-box}body{margin:0;background:#f3f5f7;color:#171717;font-family:Arial,sans-serif}.hero{background:#111;color:#fff;padding:46px 6vw;position:relative;overflow:hidden}.hero:after{content:"";position:absolute;right:-70px;top:-70px;width:220px;height:220px;border-radius:50%;background:${e(r.c.cor||'#fca311')};opacity:.28}.hero b{color:#fca311}.hero h1{font-size:38px;margin:9px 0 5px}.hero p{color:#aaa;margin:0}.wrap{max-width:1050px;margin:auto;padding:24px}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:-42px;position:relative}.summary>div,.card,.week{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:17px}.summary b{display:block;font-size:26px}.summary span,.summary small{display:block;font-size:9px;color:#777}.summary small{margin-top:3px}.card{margin-top:14px}.label{font-size:9px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:.5px}.card p{font-size:12px;line-height:1.6}.month-total{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.month-total div{background:#111;color:#fff;border-radius:12px;padding:13px;text-align:center}.month-total b{display:block;color:#fca311;font-size:21px}.month-total span{font-size:8px;color:#aaa}.week{margin-top:14px}.week-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.week-head h2{font-size:17px;margin:7px 0 4px}.week-head p{font-size:11px;color:#666;margin:0}.tag,.type{display:inline-block;border-radius:999px;padding:5px 8px;background:#fff1cf;color:#815200;font-size:8px;font-weight:bold}.week-count{text-align:right}.week-count b{display:block;font-size:24px}.week-count span{font-size:8px;color:#888}.week-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0}.week-kpis div{background:#f7f7f8;border-radius:9px;padding:9px;text-align:center}.week-kpis b{display:block}.week-kpis span{font-size:8px;color:#888}.content{border-top:1px solid #eee;padding:14px 0}.content-top{display:flex;justify-content:space-between}.status{font-size:8px;color:#666}.content h3{font-size:13px;margin:8px 0 4px}.content>p{font-size:10px;color:#666}.script{background:#f7f7f8;border-left:3px solid #fca311;border-radius:8px;padding:10px}.script b{font-size:8px;text-transform:uppercase;color:#777}.script p{font-size:10px;line-height:1.55}.foot{text-align:center;padding:28px;color:#999;font-size:9px}@media(max-width:700px){.summary,.month-total,.week-kpis{grid-template-columns:1fr 1fr}.week-head{flex-direction:column}.hero h1{font-size:28px}}
-  </style></head><body>
-  <div class="hero"><b>MOVE AGÊNCIA</b><h1>Relatório Mensal</h1><p>${e(r.c.nome)} • Planejamento e Produção</p></div>
-  <div class="wrap">
-    <div class="summary"><div><b>${r.contents.length}</b><span>PLANEJADO</span><small>meta ${r.expectedMonth}</small></div><div><b>${r.produced}</b><span>FINALIZADOS</span><small>produção concluída</small></div><div><b>${r.published}</b><span>PUBLICADOS</span><small>já publicados</small></div><div><b>${r.progress}%</b><span>PROGRESSO</span><small>meta mensal</small></div></div>
-    <div class="card"><span class="label">OBJETIVOS</span><p>${e(r.c.objetivos||'Não informado.')}</p><span class="label">LINHAS DE CONTEÚDO</span><p>${e(r.c.linhas||'Não informado.')}</p></div>
-    <div class="month-total"><div><b>${r.byType.Reels}</b><span>REELS</span></div><div><b>${r.byType.Post}</b><span>POSTS</span></div><div><b>${r.byType.Stories}</b><span>STORIES</span></div><div><b>${r.attached}</b><span>MATERIAIS</span></div></div>
-    <div class="card"><span class="label">DESENVOLVIMENTO DO MÊS</span><p>${e(development||'Relatório consolidado das quatro semanas de planejamento e produção.').replace(/\n/g,'<br>')}</p></div>
-    ${weekHTML}
-    <div class="foot">Relatório desenvolvido pela MOVE AGÊNCIA</div>
-  </div></body></html>`;
-
-  dl(html,`MOVE_Relatorio_Mensal_${safe(r.c.nome)}.html`);
-  toast('Relatório mensal baixado.');
-}
-
 function copyCompanyData(cid){
   const c=D.companies.find(x=>x.id===cid);
   if(!c)return toast('Empresa não encontrada.');
