@@ -4,67 +4,132 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b0b0b">
-<title>MOVE AGÊNCIA — Local</title>
+<title>MOVE AGÊNCIA — Operação</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-
 <div id="loginScreen" class="login-screen">
   <div class="login-card">
     <div class="login-brand">MOVE<span>.</span></div>
     <div class="login-icon"><i class="fa fa-lock"></i></div>
+
     <h1>Acesso ao painel</h1>
     <p>Digite a senha para entrar no ambiente interno da MOVE.</p>
 
     <form id="loginForm" class="login-form" onsubmit="return loginAccess(event)">
       <label for="loginPassword">Senha de acesso</label>
+
       <div class="login-password-wrap">
-        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Digite sua senha" required>
-        <button type="button" class="login-eye" onclick="toggleLoginPassword()" aria-label="Mostrar ou ocultar senha">
+        <input
+          id="loginPassword"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Digite sua senha"
+          required
+        >
+
+        <button
+          type="button"
+          class="login-eye"
+          onclick="toggleLoginPassword()"
+          aria-label="Mostrar ou ocultar senha"
+        >
           <i class="fa fa-eye"></i>
         </button>
       </div>
-      <button class="btn primary login-submit" type="submit"><i class="fa fa-arrow-right-to-bracket"></i> Entrar</button>
+
+      <button class="btn primary login-submit" type="submit">
+        <i class="fa fa-arrow-right-to-bracket"></i>
+        Entrar
+      </button>
+
       <div id="loginError" class="login-error"></div>
     </form>
   </div>
 </div>
 
 <div id="appShell" class="active auth-hidden">
+
   <aside class="side">
     <div class="brand">MOVE<span>.</span></div>
+
     <nav class="nav" id="nav"></nav>
-    <div class="foot">MOVE LOCAL<br>Sem planilha • sem servidor<br>Dados salvos neste navegador.</div>
+
+    <div class="foot">
+      MOVE OPERAÇÃO<br>
+      Planejamento + Produção<br>
+      Sincronizado com Google Sheets.
+    </div>
   </aside>
 
   <main class="main">
+
     <header class="top">
       <div>
         <h1 id="title">Início</h1>
-        <small id="saved">Salvo localmente</small>
+        <small id="saved">Conectando ao banco...</small>
       </div>
 
       <div class="top-actions">
-        <button class="btn light sm" onclick="backup()"><i class="fa fa-download"></i> Backup</button>
-        <button class="btn light sm" onclick="restorePick()"><i class="fa fa-upload"></i> Restaurar</button>
-        <input id="restore" class="hidden" type="file" accept=".json">
+        <!-- Planner Mágico e botão Sair são adicionados dinamicamente pelo script.js -->
+
+        <button class="btn light sm" onclick="backup()">
+          <i class="fa fa-download"></i>
+          Backup
+        </button>
+
+        <button class="btn light sm" onclick="restorePick()">
+          <i class="fa fa-upload"></i>
+          Restaurar
+        </button>
+
+        <input
+          id="restore"
+          class="hidden"
+          type="file"
+          accept=".json,application/json"
+        >
       </div>
     </header>
 
     <div class="wrap">
+
+      <!-- VISÃO GERAL + CICLO P+P -->
       <section class="page active" id="p-home"></section>
+
+      <!-- EMPRESAS -->
       <section class="page" id="p-empresas"></section>
+
+      <!-- QUADRO CRIATIVO / PLANEJAMENTO MANUAL -->
       <section class="page" id="p-quadro"></section>
+
+      <!-- PLANNER MÁGICO / PLANEJAMENTO SEPARADO -->
+      <section class="page" id="p-magicplanner"></section>
+
+      <!-- CAMPANHAS -->
       <section class="page" id="p-campanhas"></section>
+
+      <!-- PENDÊNCIAS -->
       <section class="page" id="p-pendencias"></section>
+
+      <!-- TEXTOS / LEGENDAS -->
       <section class="page" id="p-textos"></section>
+
+      <!-- AGENDA -->
       <section class="page" id="p-agenda"></section>
+
+      <!-- TAREFAS: PLANEJAMENTO + PRODUÇÃO -->
       <section class="page" id="p-tarefas"></section>
+
+      <!-- ÁREA TÉCNICA DE AGENDAMENTO/MÍDIAS -->
       <section class="page" id="p-agendamento"></section>
+
+      <!-- CURADORIA -->
       <section class="page" id="p-curadoria"></section>
+
     </div>
   </main>
 </div>
@@ -74,5 +139,6 @@
 
 <script src="script.js"></script>
 <script async src="https://www.instagram.com/embed.js"></script>
+
 </body>
 </html>
