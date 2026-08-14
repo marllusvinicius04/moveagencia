@@ -666,6 +666,15 @@ function magicInjectCSS(){
     .move-production-summary{display:flex;gap:7px;flex-wrap:wrap}.move-production-summary span{padding:7px 9px;border-radius:9px;background:#f5f6f7;font-size:8px}.danger-text{color:#b42318!important;background:#fff0ef!important}.move-production-list{display:grid;gap:8px}.move-production-simple{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid #e7e9ed;border-radius:12px;padding:11px;background:#fff}.move-production-simple.late{box-shadow:inset 3px 0 0 #d92d20}.move-production-simple.critical{box-shadow:inset 4px 0 0 #b42318;background:#fffafa}.move-production-main>strong{display:block;margin:7px 0;font-size:10px}.move-production-controls{display:flex;gap:5px;align-items:center;flex-wrap:wrap}.move-production-controls .move-status-select{width:auto;min-width:135px;margin:0}.materials-section{margin-bottom:20px}
     @media(max-width:760px){.move-board-section-head,.move-production-simple{grid-template-columns:1fr;display:flex;flex-direction:column;align-items:stretch}.move-week-purpose{padding-left:0}.move-week-actions{justify-content:flex-start}.move-week-actions .btn{flex:1 1 auto}.move-production-controls{justify-content:flex-start}.move-board-guide{align-items:flex-start}}
 
+    
+    .move-real-calendar-card{background:#fff;border:1px solid #e7e9ed;border-radius:18px;padding:16px;margin-bottom:18px;box-shadow:0 8px 28px rgba(15,23,42,.04)}
+    .move-real-calendar-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}.move-real-calendar-head h2{font-size:19px;margin:4px 0 3px}.move-real-calendar-head p{margin:0;color:#777;font-size:9px}.move-real-calendar-legend{display:flex;gap:10px;flex-wrap:wrap}.move-real-calendar-legend span{display:flex;align-items:center;gap:5px;font-size:8px;font-weight:800;color:#666}.move-real-calendar-legend i{width:9px;height:9px;border-radius:3px;display:block}.legend-transition i{background:#d92d20}.legend-planning i{background:#12b76a}.legend-production i{background:#2e5aac}
+    .move-real-cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}.move-real-cal-weekdays span{text-align:center;font-size:7px;font-weight:900;color:#8a8f96;letter-spacing:.6px}
+    .move-real-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.move-real-cal-day{min-height:76px;border-radius:11px;padding:8px;border:1px solid transparent;position:relative;overflow:hidden}.move-real-cal-day.empty{background:#fafbfc;border-color:#f0f1f3}.move-real-cal-day.transition{background:#fff1ef;border-color:#f3c2bc}.move-real-cal-day.planning{background:#edfdf3;border-color:#bde9cc}.move-real-cal-day.production{background:#eef4ff;border-color:#c7d7fb}.move-real-cal-day.today{box-shadow:0 0 0 3px rgba(252,163,17,.22);border-color:#fca311}.move-real-cal-number{font-size:12px;font-weight:900;color:#111}.move-real-cal-type{position:absolute;left:8px;right:8px;bottom:8px;font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:.35px}.transition .move-real-cal-type{color:#b42318}.planning .move-real-cal-type{color:#087443}.production .move-real-cal-type{color:#244c97}
+    .move-real-calendar-rule{display:flex;align-items:center;gap:8px;margin-top:12px;padding:9px 10px;border-radius:10px;background:#111;color:#c7c7c7;font-size:8px}.move-real-calendar-rule i{color:#fca311}.move-real-calendar-rule b{color:#fff}
+    @media(max-width:760px){.move-real-calendar-head{align-items:flex-start;flex-direction:column}.move-real-cal-grid{gap:4px}.move-real-cal-day{min-height:64px;padding:6px}.move-real-cal-type{font-size:6px;left:6px;right:6px;bottom:6px}.move-real-cal-number{font-size:10px}}
+    @media(max-width:520px){.move-real-calendar-card{padding:11px}.move-real-calendar-legend{gap:7px}.move-real-cal-day{min-height:52px;border-radius:8px}.move-real-cal-type{font-size:5px;letter-spacing:0}.move-real-cal-weekdays span{font-size:6px}}
+
     @media(max-width:520px){.move-magic-main-btn{width:100%}.move-magic-top-wrap{width:100%}.move-magic-drop{width:100%;position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-width:none}.magic-stats{grid-template-columns:1fr 1fr}}
   `;
   document.head.appendChild(st);
@@ -1085,6 +1094,84 @@ function moveOverviewSection(){
   </section>`;
 }
 
+
+function movePPWeekTypeForDate(dateObj){
+  const d=new Date(dateObj.getFullYear(),dateObj.getMonth(),dateObj.getDate());
+  const transitionEnd=new Date(2026,7,16,23,59,59);
+  const cycleStart=new Date(2026,7,17,0,0,0);
+
+  if(d<=transitionEnd){
+    return {type:'TRANSIÇÃO',cls:'transition',label:'Transição'};
+  }
+
+  const days=Math.floor((d-cycleStart)/86400000);
+  const weekIndex=Math.floor(days/7);
+  const planning=weekIndex%2===0;
+
+  return planning
+    ?{type:'PLANEJAMENTO',cls:'planning',label:'Planejamento'}
+    :{type:'PRODUÇÃO',cls:'production',label:'Produção'};
+}
+
+function movePPMonthCalendar(baseDate=new Date()){
+  const year=baseDate.getFullYear();
+  const month=baseDate.getMonth();
+  const first=new Date(year,month,1);
+  const last=new Date(year,month+1,0);
+
+  // Monday-first calendar
+  let startDay=(first.getDay()+6)%7;
+  const totalCells=Math.ceil((startDay+last.getDate())/7)*7;
+  const monthName=baseDate.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+
+  let cells='';
+  for(let i=0;i<totalCells;i++){
+    const dayNum=i-startDay+1;
+
+    if(dayNum<1||dayNum>last.getDate()){
+      cells+=`<div class="move-real-cal-day empty"></div>`;
+      continue;
+    }
+
+    const d=new Date(year,month,dayNum);
+    const info=movePPWeekTypeForDate(d);
+    const today=new Date();
+    const isToday=d.getFullYear()===today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate();
+
+    cells+=`<div class="move-real-cal-day ${info.cls} ${isToday?'today':''}">
+      <div class="move-real-cal-number">${dayNum}</div>
+      <div class="move-real-cal-type">${info.label}</div>
+    </div>`;
+  }
+
+  return `<section class="move-real-calendar-card">
+    <div class="move-real-calendar-head">
+      <div>
+        <span class="eyebrow">CALENDÁRIO OPERACIONAL</span>
+        <h2>${monthName.charAt(0).toUpperCase()+monthName.slice(1)}</h2>
+        <p>As cores mostram automaticamente qual é o tipo de semana do ciclo P + P.</p>
+      </div>
+
+      <div class="move-real-calendar-legend">
+        <span class="legend-transition"><i></i> Transição</span>
+        <span class="legend-planning"><i></i> Planejamento</span>
+        <span class="legend-production"><i></i> Produção</span>
+      </div>
+    </div>
+
+    <div class="move-real-cal-weekdays">
+      <span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span><span>DOM</span>
+    </div>
+
+    <div class="move-real-cal-grid">${cells}</div>
+
+    <div class="move-real-calendar-rule">
+      <i class="fa fa-lock"></i>
+      <span>Ordem fixa: <b>Planejamento → Produção → Planejamento → Produção</b>. Atrasos não alteram o ciclo.</span>
+    </div>
+  </section>`;
+}
+
 function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
   const demandCards=[...D.companies].sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>{
     const weekly=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0)+Number(c.captacoes||0);
@@ -1107,7 +1194,7 @@ function home(){let p=D.contents.length,m=D.scheduled.length,pe=pend().length;
       <div class="meta" style="margin-top:10px">Planejados: <b>${contentsMonth}</b> • Produzidos: <b>${scheduledMonth}</b> • Finalizados: <b>${doneTasks}</b></div>
     </div>`;
   }).join('');
-  document.getElementById('p-home').innerHTML=movePPCycleBanner()+
+  document.getElementById('p-home').innerHTML=movePPCycleBanner()+movePPMonthCalendar()+
     head('Visão geral','Operação sincronizada com o Google Sheets e cache local para velocidade.')
     +`<div class="grid kpis"><div class="card kpi"><i class="fa fa-building"></i><b>${D.companies.length}</b><span>empresas</span></div><div class="card kpi"><i class="fa fa-lightbulb"></i><b>${p}</b><span>planejamentos</span></div><div class="card kpi"><i class="fa fa-photo-film"></i><b>${m}</b><span>materiais produzidos</span></div><div class="card kpi"><i class="fa fa-triangle-exclamation"></i><b>${pe}</b><span>pendências</span></div></div>`
     +`<div class="card section" style="margin-top:14px"><div class="list">${pend().slice(0,8).map(x=>`<div class="item"><div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${e(x.detail)}</small></div><span class="badge warn">${x.type}</span></div>`).join('')||empty('Tudo em dia.')}</div></div>`
