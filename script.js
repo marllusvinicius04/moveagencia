@@ -685,6 +685,10 @@ function magicInjectCSS(){
     .move-clock-modal{display:grid;gap:13px}.move-clock-status{text-align:center}.move-clock-status h2{font-size:22px;margin:5px 0 3px}.move-clock-status p{font-size:9px;color:#777;margin:0}.move-clock-camera-wrap{position:relative;max-width:460px;width:100%;aspect-ratio:4/3;margin:0 auto;border-radius:18px;overflow:hidden;background:#090909;display:grid;place-items:center}.move-clock-camera-wrap video,.move-clock-photo-preview img{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}.move-clock-camera-guide{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(0,0,0,.7);color:#fff;border-radius:10px;padding:9px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:8px}.move-clock-photo-preview{position:absolute;inset:0}.move-clock-photo-preview .btn{position:absolute;right:10px;bottom:10px}.move-clock-actions{justify-content:center}.move-clock-day-list{border-top:1px solid #eceef0;padding-top:12px}.move-clock-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.move-clock-day-head b{display:block;font-size:10px}.move-clock-day-head small{display:block;font-size:8px;color:#888;margin-top:2px}.move-clock-entries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.move-clock-entry{display:grid;grid-template-columns:46px 1fr;gap:9px;align-items:center;padding:8px;border:1px solid #e7e9ed;border-radius:11px;background:#fafbfc}.move-clock-photo{width:46px;height:46px;border-radius:10px;overflow:hidden;background:#eee;display:grid;place-items:center}.move-clock-photo img{width:100%;height:100%;object-fit:cover}.move-clock-entry b{display:block;font-size:11px;margin:4px 0 2px}.move-clock-entry small{font-size:7px;color:#888}.move-clock-home-summary{padding:11px 13px;border:1px solid #e7e9ed;border-radius:14px;background:#fff;margin-bottom:12px}.move-clock-home-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.move-clock-home-head h3{margin:4px 0 0;font-size:13px}.move-clock-home-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.move-clock-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;font-size:8px}.move-clock-pill.entry{background:#eaf8f0;color:#087443}.move-clock-pill.exit{background:#fff3d5;color:#815200}
     @media(max-width:700px){.move-employee-welcome{grid-template-columns:1fr}.move-employee-point-card{align-items:stretch;flex-direction:column}.move-clock-entries{grid-template-columns:1fr}.move-clock-home-head{align-items:flex-start;flex-direction:column}}
 
+    
+    .move-board-company-reference,.move-week-company-reference{background:#fff;border:1px solid #e7e9ed;border-radius:16px;padding:14px;margin:14px 0;box-shadow:0 7px 22px rgba(15,23,42,.035)}.move-board-company-ref-head h3,.move-week-ref-head h3{margin:4px 0 3px;font-size:15px}.move-board-company-ref-head p,.move-week-ref-head p{margin:0;color:#777;font-size:8px}.move-board-company-ref-grid,.move-week-ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.move-board-company-ref-grid>div,.move-week-ref-grid>div{background:#f7f8fa;border-radius:10px;padding:10px}.move-board-company-ref-grid span,.move-week-ref-grid span{display:block;font-size:7px;font-weight:900;color:#777;letter-spacing:.45px}.move-board-company-ref-grid p,.move-week-ref-grid p{font-size:9px;line-height:1.55;margin:5px 0 0;color:#3f444a}.move-board-company-ref-grid .span,.move-week-ref-grid .span{grid-column:1/-1}
+    @media(max-width:650px){.move-board-company-ref-grid,.move-week-ref-grid{grid-template-columns:1fr}.move-board-company-ref-grid .span,.move-week-ref-grid .span{grid-column:auto}}
+
     @media(max-width:520px){.move-magic-main-btn{width:100%}.move-magic-top-wrap{width:100%}.move-magic-drop{width:100%;position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-width:none}.magic-stats{grid-template-columns:1fr 1fr}}
   `;
   document.head.appendChild(st);
@@ -1934,14 +1938,18 @@ async function board(cid){
           </div>
 
           <div class="move-week-purpose">
-            <span><b>Objetivo:</b> ${e(w.objetivo||'Não definido')}</span>
-            <span><b>Linha:</b> ${e(w.linha||'Não definida')}</span>
+            <span><b>Objetivos da Semana:</b> ${e(w.objetivo||'Não definido')}</span>
+            <span><b>Linha de conteúdo:</b> ${e(w.linha||'Não definida')}</span>
           </div>
         </div>
 
         <div class="actions move-week-actions">
           <button class="btn primary" onclick="content('${cid}','${w.id}')">
             <i class="fa fa-plus"></i> Adicionar conteúdo
+          </button>
+
+          <button class="btn light sm" onclick="copyWeekData('${w.id}')">
+            <i class="fa fa-copy"></i> Copiar dados da semana
           </button>
 
           <button class="btn light sm" onclick="week('${cid}','${w.id}')">
@@ -2078,6 +2086,36 @@ async function board(cid){
       </div>
     </div>`
 
+
+    +`<section class="move-board-company-reference">
+      <div class="move-board-company-ref-head">
+        <div>
+          <span class="eyebrow">REFERÊNCIA DA EMPRESA</span>
+          <h3>Base para o Planejamento</h3>
+          <p>Estas informações vêm do cadastro da empresa e servem como guia para todas as semanas.</p>
+        </div>
+      </div>
+
+      <div class="move-board-company-ref-grid">
+        <div>
+          <span>TOM DE COMUNICAÇÃO</span>
+          <p>${e(c.tons||'Não informado.')}</p>
+        </div>
+        <div>
+          <span>LINHAS DE CONTEÚDO</span>
+          <p>${e(c.linhas||'Não informado.')}</p>
+        </div>
+        <div class="span">
+          <span>OBJETIVOS GERAIS</span>
+          <p>${e(c.objetivos||'Não informado.')}</p>
+        </div>
+        <div class="span">
+          <span>VOLUME SEMANAL</span>
+          <p>${Number(c.reels||0)} Reels • ${Number(c.posts||0)} Posts • ${Number(c.stories||0)} Stories</p>
+        </div>
+      </div>
+    </section>`
+
     +`<section class="move-board-section">
       <div class="move-board-section-head">
         <div>
@@ -2128,6 +2166,65 @@ async function board(cid){
       <div class="move-board-media-grid">${materialsHTML||empty('Nenhum material anexado ainda.')}</div>
     </section>`;
 }
+
+async function copyWeekData(weekId){
+  const w=D.weeks.find(x=>x.id===weekId);
+  if(!w)return toast('Semana não encontrada.');
+
+  const c=D.companies.find(x=>x.id===w.companyId)||{};
+  const contents=D.contents.filter(x=>x.weekId===w.id);
+
+  const counts={
+    Reels:contents.filter(x=>x.tipo==='Reels').length,
+    Post:contents.filter(x=>x.tipo==='Post').length,
+    Stories:contents.filter(x=>x.tipo==='Stories').length
+  };
+
+  const txt=`EMPRESA: ${c.nome||'—'}
+
+SEMANA ${w.numero||'—'}
+PERÍODO: ${date(w.inicio)} a ${date(w.fim)}
+
+OBJETIVOS DA SEMANA:
+${w.objetivo||'Não definido.'}
+
+LINHA DE CONTEÚDO DA SEMANA:
+${w.linha||'Não definida.'}
+
+REFERÊNCIAS DA EMPRESA
+
+TOM DE COMUNICAÇÃO:
+${c.tons||'Não informado.'}
+
+OBJETIVOS GERAIS DA EMPRESA:
+${c.objetivos||'Não informado.'}
+
+LINHAS DE CONTEÚDO:
+${c.linhas||'Não informado.'}
+
+QUANTIDADE SEMANAL CONTRATADA:
+${Number(c.reels||0)} Reels • ${Number(c.posts||0)} Posts • ${Number(c.stories||0)} Stories
+
+CONTEÚDOS JÁ CRIADOS NESTA SEMANA:
+${counts.Reels} Reels • ${counts.Post} Posts • ${counts.Stories} Stories
+
+CONTEÚDOS:
+${contents.length?contents.map((ct,i)=>`${i+1}. ${ct.tipo||'Conteúdo'} — ${ct.titulo||'Sem título'}${ct.objetivo?`\nObjetivo: ${ct.objetivo}`:''}`).join('\n\n'):'Nenhum conteúdo criado ainda.'}`;
+
+  try{
+    await navigator.clipboard.writeText(txt);
+    toast('Dados da semana copiados.');
+  }catch(_){
+    const ta=document.createElement('textarea');
+    ta.value=txt;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    toast('Dados da semana copiados.');
+  }
+}
+
 function copyCompanyData(cid){
   const c=D.companies.find(x=>x.id===cid);
   if(!c)return toast('Empresa não encontrada.');
