@@ -5,7 +5,7 @@ const MOVE_AUTH_KEY='move_local_auth_v1';
 
 
 // COLE AQUI A URL /exec GERADA AO IMPLANTAR O APPS SCRIPT COMO APLICATIVO DA WEB.
-const MOVE_API_URL='https://script.google.com/macros/s/AKfycbzrhYinwPd4i8OPVTJJMO_NNPnqUods24eZl_db4a9H-K18-nSzKm3fwyRBrHsmKNg5/exec';
+const MOVE_API_URL='https://script.google.com/macros/s/AKfycbxeBzi-dAxWo3uK34nbFHZjFO9-fBCBgyT_IP3Q7NpEhvcbV8F0apSwVat77hEEgyGKcA/exec';
 
 let MOVE_SYNC_TIMER=null;
 let MOVE_SYNCING=false;
@@ -102,7 +102,7 @@ async function moveLoadAfterLogin(){
   const rest=Math.max(0,3000-(Date.now()-started));
   if(rest)await moveSleep(rest);
   moveHideLoading();
-  try{moveMigrateContentLegendas();await moveSyncTodayPointsFromCloud();nav();render(R||'home');moveShowTeamMessageOnce()}catch(err){console.error(err)}
+  try{moveMigrateContentLegendas();await moveSyncTodayPointsFromCloud();nav();render(R||'home');moveShowTeamMessageOnce();moveSyncClientMedia()}catch(err){console.error(err)}
 }
 
 
@@ -1653,6 +1653,52 @@ Essa ação não pode ser desfeita.`;
   empresas();
   toast('Empresa excluída.');
 }
+
+function moveClientCodeFromName(name){
+  let x=String(name||'CLIENTE').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+  x=x.replace(/[^A-Z0-9 ]/g,' ').trim().split(/\s+/)[0]||'CLIENTE';
+  return x+'123';
+}
+async function moveCopyText(txt,msg='Copiado.'){
+  try{await navigator.clipboard.writeText(String(txt||''));toast(msg)}
+  catch(_){const ta=document.createElement('textarea');ta.value=String(txt||'');document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast(msg)}
+}
+function moveClientFeedbackFor(itemId){
+  const arr=(D.clientFeedback||[]).filter(x=>String(x.itemId)===String(itemId)).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+  return arr[0]||null;
+}
+function moveClientFeedbackBadge(itemId){
+  const f=moveClientFeedbackFor(itemId);if(!f)return'';
+  return `<span class="badge ${f.action==='Aprovado'?'ok':'warn'}"><i class="fa ${f.action==='Aprovado'?'fa-circle-check':'fa-rotate-left'}"></i> Cliente: ${e(f.action)}</span>${f.note?`<small class="move-client-note">${e(f.note)}</small>`:''}`;
+}
+async function moveUploadMediaToClientCloud(sm){
+  if(!sm?.mediaId||sm.cloudUrl||!moveApiConfigured())return sm;
+  const dataUrl=await mediaData(sm.mediaId);
+  if(!dataUrl)return sm;
+  const body=new URLSearchParams();
+  body.set('action','uploadClientMedia');
+  body.set('companyId',sm.companyId||'');
+  body.set('scheduledId',sm.id||'');
+  body.set('contentId',sm.contentId||'');
+  body.set('fileName',sm.fileName||'material');
+  body.set('mime',sm.mime||'');
+  body.set('dataUrl',dataUrl);
+  const r=await fetch(MOVE_API_URL,{method:'POST',body,redirect:'follow'});
+  const out=await r.json();
+  if(!out?.ok)throw new Error(out?.error||'Falha ao enviar material para o portal do cliente.');
+  Object.assign(sm,out.media||{});
+  return sm;
+}
+async function moveSyncClientMedia(){
+  const pending=(D.scheduled||[]).filter(x=>x.mediaId&&!x.cloudUrl);
+  if(!pending.length)return;
+  for(const sm of pending){
+    try{await moveUploadMediaToClientCloud(sm)}catch(err){console.warn('Mídia do cliente pendente:',err)}
+  }
+  localStorage.setItem(KEY,JSON.stringify(D));
+  moveScheduleSync(120);
+}
+
 function company(x=''){
   let c=D.companies.find(a=>a.id===x)||{};
   modal('Empresa',`<form id="f" class="fg">
@@ -1678,6 +1724,15 @@ function company(x=''){
     ${multiSelectField('objetivos','Objetivos',OBJETIVOS_OPCOES,c.objetivos||'')}
     ${multiSelectField('linhas','Linhas de conteúdo',LINHAS_CONTEUDO_OPCOES,c.linhas||'')}
 
+    <div class="field span">
+      <label>Código de acesso do Painel do Cliente</label>
+      <div style="display:flex;gap:8px">
+        <input name="clientCode" value="${e(c.clientCode||moveClientCodeFromName(c.nome||''))}" placeholder="Ex.: DEGUSTAR123" style="flex:1">
+        <button type="button" class="btn light" onclick="moveCopyText(document.querySelector('[name=clientCode]').value,'Código copiado.')"><i class="fa fa-copy"></i> Copiar</button>
+      </div>
+      <small class="move-check-help">O cliente entra no portal usando somente este código.</small>
+    </div>
+
     <div class="field"><label>Reels/semana</label><input type="number" name="reels" value="${c.reels||0}"></div>
     <div class="field"><label>Posts/semana</label><input type="number" name="posts" value="${c.posts||0}"></div>
     <div class="field"><label>Stories/semana</label><input type="number" name="stories" value="${c.stories||0}"></div>
@@ -1687,6 +1742,7 @@ function company(x=''){
     if(!q.nome)return toast('Informe o nome.');
     ['reels','posts','stories','captacoes'].forEach(k=>q[k]=Number(q[k]||0));
     q.cor=String(q.cor||'#fca311').trim();
+    q.clientCode=String(q.clientCode||moveClientCodeFromName(q.nome)).trim().toUpperCase();
     if(c.id)Object.assign(c,q);
     else D.companies.push({...q,id:id()});
     closeM();
@@ -1906,6 +1962,7 @@ async function board(cid){
                     <span class="badge">${e(ct.tipo||'Conteúdo')}</span>
                     ${workflowBadge(ct.workflowStatus)}
                     ${media?`<span class="badge ok"><i class="fa fa-circle-check"></i> Anexado</span>`:''}
+                    ${moveClientFeedbackBadge(ct.id)}
                   </div>
 
                   <strong>${e(ct.titulo||'Sem título')}</strong>
@@ -2489,6 +2546,7 @@ function content(cid,wid,x='',prefillDate=''){
         media.mediaId=mid;
         media.mime=fl.type;
         media.fileName=fl.name;
+        try{await moveUploadMediaToClientCloud(media)}catch(err){console.warn(err)}
       }
     }
 
@@ -2518,7 +2576,9 @@ function attachContent(cid,contentId){
     if(fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');
     const mid=id();
     await mediaPut(mid,fl);
-    D.scheduled.push({...q,id:id(),companyId:cid,contentId,mediaId:mid,mime:fl.type,fileName:fl.name});
+    const newMedia={...q,id:id(),companyId:cid,contentId,mediaId:mid,mime:fl.type,fileName:fl.name};
+    D.scheduled.push(newMedia);
+    try{await moveUploadMediaToClientCloud(newMedia)}catch(err){console.warn(err);toast('Mídia salva. Envio ao portal do cliente ficará pendente.')}
     closeM();save();await board(cid);toast('Mídia anexada ao conteúdo.');
   });
 }
@@ -2593,6 +2653,7 @@ function campanhas(){
         <span class="badge warn"><i class="fa fa-building"></i> ${e(co?.nome||'Empresa removida')}</span>
         <span class="badge">${total} criativo(s)</span>
       </div>
+      <div>${moveClientFeedbackBadge(c.id)}</div>
       <h3>${e(c.nome||'Campanha sem nome')}</h3>
       <p class="campaign-idea">${e(c.ideia||'Sem ideia descrita.')}</p>
       <div class="campaign-objective"><b>Objetivo</b><span>${e(c.objetivo||'—')}</span></div>
@@ -3000,6 +3061,14 @@ function backup(){dl(JSON.stringify(D,null,2),'MOVE_Backup_'+new Date().toISOStr
 function mediaDB(){return new Promise((ok,no)=>{let r=indexedDB.open('MOVE_MEDIA',1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('m'))r.result.createObjectStore('m')};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}async function mediaPut(k,v){let db=await mediaDB();return new Promise((ok,no)=>{let t=db.transaction('m','readwrite');t.objectStore('m').put(v,k);t.oncomplete=ok;t.onerror=()=>no(t.error)})}async function mediaGet(k){if(!k)return null;let db=await mediaDB();return new Promise((ok,no)=>{let r=db.transaction('m').objectStore('m').get(k);r.onsuccess=()=>ok(r.result||null);r.onerror=()=>no(r.error)})}async function mediaURL(k){let b=await mediaGet(k);return b?URL.createObjectURL(b):''}async function mediaData(k){let b=await mediaGet(k);if(!b)return'';return new Promise((ok,no)=>{let r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(b)})}
 
 
+
+function injectMoveClientPortalCSS(){
+  if(document.getElementById('move-client-portal-css'))return;
+  const st=document.createElement('style');st.id='move-client-portal-css';
+  st.textContent=`.move-client-code{display:flex;align-items:center;gap:5px;margin-top:8px;padding:7px 8px;border-radius:8px;background:#f7f7f8;font-size:8px}.move-client-code>i{color:#9a6100}.move-client-code span{color:#777}.move-client-code b{font-size:9px}.move-client-code button{margin-left:auto;border:0;background:transparent;cursor:pointer}.move-client-note{display:block;background:#fff5dc;color:#775000;padding:5px 7px;border-radius:6px;margin-top:4px;font-size:7px;max-width:260px}`;
+  document.head.appendChild(st);
+}
+
 function injectMoveTikTokCSS(){if(document.getElementById('move-tiktok-css'))return;const st=document.createElement('style');st.id='move-tiktok-css';st.textContent=`.tiktok-reelbox{min-height:520px;background:#000;border-radius:12px;overflow:hidden}.tiktok-player{display:block;width:100%;height:620px;border:0;background:#000}.tiktok-invalid{min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:8px;color:#777;background:#f7f7f8}.tiktok-invalid i{font-size:28px;color:#111}.tiktok-invalid b{color:#111}.tiktok-invalid span{font-size:9px;max-width:300px;line-height:1.5}.move-caption-only{min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#777;background:#f7f7f8;width:100%}.move-caption-only i{font-size:22px;color:#fca311}.move-caption-only span{font-size:9px;font-weight:800}@media(max-width:700px){.tiktok-player{height:560px}.tiktok-reelbox{min-height:460px}}`;document.head.appendChild(st)}
 
 function injectMoveMultiCSS(){
@@ -3266,7 +3335,7 @@ function injectMoveCelebrationCSS(){
 }
 
 function moveBoot(){
-  try{injectMoveTikTokCSS();injectMoveMultiCSS();injectMoveCalendarCSS();injectMoveCelebrationCSS();nav();render('home');applyAuthState();}
+  try{injectMoveClientPortalCSS();injectMoveTikTokCSS();injectMoveMultiCSS();injectMoveCalendarCSS();injectMoveCelebrationCSS();nav();render('home');applyAuthState();}
   catch(err){console.error('Erro ao iniciar painel',err);const t=document.getElementById('toast');if(t){t.textContent='Erro ao iniciar painel: '+err.message;t.style.display='block';}}
 }
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',moveBoot);else moveBoot();
