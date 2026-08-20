@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0d0d0f">
+  <title>MOVE — Portal do Cliente</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section id="login" class="login login-auth">
+    <div class="auth-shell"><div class="brand auth-brand"><span class="brand-mark">M</span> MOVE AGÊNCIA</div><form id="loginForm" class="auth-card"><div class="auth-lock">⌑</div><h1>Acesso do cliente</h1><p class="auth-sub">Entre no portal para acompanhar os planejamentos e materiais da sua marca.</p><div class="field"><label for="accessCode">Seu código de acesso</label><div class="code-wrap"><div class="auth-input"><span>⌨</span><input id="accessCode" autocomplete="one-time-code" placeholder="DIGITE SEU CÓDIGO" required></div><button id="loginBtn" class="btn btn-brand" type="submit">Entrar no painel →</button></div></div><div id="loginError" class="login-error"></div><div class="auth-secure"><span>●</span> Acesso seguro e exclusivo da sua empresa</div></form><div class="auth-footer">Não sabe seu código? Fale com seu atendimento.<br><b>MOVE AGÊNCIA • Portal do Cliente</b></div></div>
+  </section>
+  <section id="app" class="app hidden">
+    <aside id="sidebar" class="sidebar"><div class="brand"><span class="brand-mark">M</span> MOVE</div><div class="client-pill"><small>Conta conectada</small><b id="sideCompany">Cliente</b></div><nav class="nav" id="nav"><button data-page="home" class="active"><span class="nav-icon">⌂</span>Visão geral</button><button data-page="planning"><span class="nav-icon">◇</span>Planejamentos</button><button data-page="materials"><span class="nav-icon">▣</span>Materiais</button><button data-page="campaigns"><span class="nav-icon">◎</span>Campanhas</button><button data-page="calendar"><span class="nav-icon">□</span>Calendário</button></nav><div class="sidebar-foot"><button class="btn btn-light" style="width:100%" onclick="logout()">Sair do painel</button></div></aside>
+    <main class="main"><header class="topbar"><div style="display:flex;gap:11px;align-items:center"><button class="btn btn-light mobile-menu" onclick="toggleMenu()">☰</button><div><h2 id="pageTitle">Visão geral</h2><small id="today"></small></div></div><div class="top-actions"><span id="sync" class="sync">Dados sincronizados</span><button class="btn btn-dark btn-sm" onclick="loadPortal(true)">↻ Atualizar</button></div></header><div id="view" class="content"></div></main>
+  </section>
+  <div id="modal" class="modal hidden"></div><div id="toast" class="toast hidden"></div>
+  <script src="script.js"></script>
+</body>
+</html>
