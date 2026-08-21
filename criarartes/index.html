@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DesignFlow Studio V13.1 — Canva Magic Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-loading" id="appLoading">
+  <div class="loading-card">
+    <div class="loading-spinner"></div>
+    <strong id="loadingTitle">Carregando dados da empresa...</strong>
+    <small id="loadingText">Aplicando identidade visual, logo, fontes e configurações do Brand Kit.</small>
+    <div class="loading-progress"><span></span></div>
+  </div>
+</div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="logo"></div><div>DesignFlow Studio</div><span class="badge">V13.1 • MAGIC PRO</span></div>
+    <div class="top-actions">
+      <button class="btn ghost" id="btnSave">Salvar projeto</button>
+      <button class="btn" id="btnVariant">↻ Nova composição</button>
+      <button class="btn primary" id="btnGenerate">✨ Gerar com IA</button>
+      <button class="btn success" id="btnExport">Baixar PNG</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar">
+      <div class="section">
+        <h3>Projeto</h3>
+        <div class="stack">
+          <input class="input" id="projectName" placeholder="Nome do projeto" value="Campanha Social Media" />
+          <div class="company-manager">
+            <div class="company-manager-title"><strong>Empresas / Brand Kit</strong><span>GESTÃO</span></div>
+            <button class="company-create-btn" id="btnNewCompany">＋ CADASTRAR NOVA EMPRESA</button>
+            <div class="company-row" style="margin-top:10px"><select class="select" id="companySelect"><option value="">Selecione uma empresa cadastrada</option></select></div>
+            <div class="company-current"><span class="company-current-dot" id="companyCurrentDot"></span><div class="company-current-copy"><b id="companyCurrentName">Nenhuma empresa selecionada</b><small id="companyCurrentMeta">Cadastre ou selecione uma marca</small></div></div>
+            <div class="company-tools" style="margin-top:8px"><button class="btn mini" id="btnEditCompany">✎ Editar empresa</button><button class="btn mini" id="btnDeleteCompany">🗑 Excluir</button></div>
+          </div>
+          <select class="select" id="formatSelect"><option value="feed">Feed 1080×1350</option><option value="story">Stories 1080×1920</option></select>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Conteúdo</h3>
+        <div class="tabs"><button class="tab active">Uploads</button><button class="tab">Texto</button><button class="tab">Marca</button><button class="tab">Layouts</button></div>
+        <div class="stack" style="margin-top:12px">
+          <label class="btn" style="text-align:center">Adicionar imagens<input id="imageInput" type="file" accept="image/*" multiple hidden></label>
+          <label class="btn" style="text-align:center">Importar CSV<input id="csvInput" type="file" accept=".csv,text/csv" hidden></label>
+          <div class="assets" id="assets"></div>
+        </div>
+      </div>
+
+
+      <div class="section">
+        <h3>✨ Ferramentas mágicas</h3>
+        <div class="magic-panel">
+          <div class="magic-hero">
+            <strong>Diretor de Arte IA</strong>
+            <small>Ferramentas automáticas para melhorar composição, contraste, hierarquia e organização.</small>
+          </div>
+          <div class="magic-grid">
+            <button class="magic-btn primary-magic" id="magicDesign"><b>✨ Design Mágico</b><span>Refaz a arte inteira com a melhor composição.</span></button>
+            <button class="magic-btn" id="magicBalance"><b>⚖️ Equilibrar</b><span>Corrige proporções, respiros e alinhamentos.</span></button>
+            <button class="magic-btn" id="magicContrast"><b>◐ Contraste</b><span>Melhora leitura usando as cores da marca.</span></button>
+            <button class="magic-btn" id="magicHierarchy"><b>Aa Hierarquia</b><span>Recalibra título, subtítulo, destaque e CTA.</span></button>
+            <button class="magic-btn" id="magicLogo"><b>◎ Logo Smart</b><span>Reposiciona a logo sem colidir com textos.</span></button>
+            <button class="magic-btn" id="magicPalette"><b>🎨 Paleta Smart</b><span>Aplica principal, secundária e contraste com equilíbrio.</span></button>
+            <button class="magic-btn" id="magicSpacing"><b>↕ Respiro</b><span>Padroniza espaçamentos como um designer.</span></button>
+            <button class="magic-btn" id="magicClean"><b>✦ Simplificar</b><span>Remove excesso visual e deixa mais premium.</span></button>
+          </div>
+          <div class="magic-status" id="magicStatus">Pronto para otimizar a arte atual.</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Arte atual</h3>
+        <div class="stack">
+          <div class="field"><label>Título</label><textarea class="textarea" id="titleInput">Seu conteúdo merece mais impacto.</textarea></div>
+          <div class="field"><label>Subtítulo</label><textarea class="textarea" id="subtitleInput">Design inteligente, leitura rápida e composição profissional.</textarea></div>
+          <div class="field"><label>Destaque</label><input class="input" id="highlightInput" value="DESIGN PROFISSIONAL"></div>
+          <div class="field"><label>CTA</label><input class="input" id="ctaInput" value="Saiba mais"></div>
+          <button class="btn" id="btnApplyText">Aplicar texto</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="stage-wrap">
+      <div class="toolbar">
+        <button class="tool" data-add="title">T Texto</button>
+        <button class="tool" data-add="subtitle">Aa Subtexto</button>
+        <button class="tool" data-add="shape">◼ Elemento</button>
+        <button class="tool" id="btnDelete">Excluir</button>
+      </div>
+      <div class="stage-shell"><div id="stage" class="stage"><div class="overlay"></div><div class="safe"></div></div></div>
+      <div class="zoom"><span class="muted">Zoom</span><input id="zoomRange" type="range" min="55" max="125" value="100"><span id="zoomValue">100%</span></div>
+    </section>
+
+    <aside class="inspector">
+      <div class="section">
+        <h3>Identidade visual</h3>
+        <div class="cards">
+          <div class="card"><div class="row"><strong id="brandName">Nenhuma empresa</strong><span class="badge">Brand Kit</span></div><div class="muted" id="brandStyle">Cadastre uma empresa para aplicar o Brand Kit</div></div>
+          <div class="palette" id="palette"></div>
+        </div>
+      </div>
+      <div class="section">
+        <h3>Elemento selecionado</h3>
+        <div class="stack">
+          <div class="field"><label>Tipo</label><input class="input" id="elType" disabled></div>
+          <div class="field"><label>Fonte</label><select class="select" id="fontFamily"><option>Inter</option><option>Montserrat</option><option>Poppins</option><option>Manrope</option><option>DM Sans</option><option>Plus Jakarta Sans</option><option>Outfit</option><option>Roboto</option><option>Arial</option><option>Georgia</option></select></div>
+          <div class="field"><label>Tamanho</label><input class="input" id="fontSize" type="number" min="10" max="160"></div>
+          <div class="field"><label>Peso</label><select class="select" id="fontWeight"><option value="400">Regular</option><option value="600">Semibold</option><option value="700">Bold</option><option value="800">Extra Bold</option><option value="900">Black</option></select></div>
+          <div class="field"><label>Cor</label><input class="input" id="fontColor" type="color" value="#ffffff"></div>
+          <div class="field"><label>Opacidade</label><input id="opacity" type="range" min="10" max="100" value="100"></div>
+          <div class="field"><label>Alinhamento</label><select class="select" id="textAlign"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></div>
+        </div>
+      </div>
+      <div class="section">
+        <h3>Composição</h3>
+        <div class="stack">
+          <select class="select" id="layoutSelect">
+            <option value="auto">✨ Automático inteligente — sem repetir</option>
+            <option value="bottom">Headline inferior</option>
+            <option value="left">Editorial esquerdo</option>
+            <option value="right">Editorial direito</option>
+            <option value="center">Central premium</option>
+            <option value="card">Card translúcido inferior</option>
+            <option value="top-left">Superior esquerdo</option>
+            <option value="top-right">Superior direito</option>
+            <option value="glass-left">Glass esquerdo</option>
+            <option value="glass-right">Glass direito</option>
+            <option value="split-left">Painel lateral esquerdo</option>
+            <option value="split-right">Painel lateral direito</option>
+            <option value="poster-left">Poster editorial esquerdo</option>
+            <option value="poster-right">Poster editorial direito</option>
+            <option value="bottom-center">Impacto inferior central</option>
+            <option value="top-center">Impacto superior central</option>
+            <option value="lower-left">Bloco inferior esquerdo</option>
+            <option value="lower-right">Bloco inferior direito</option>
+            <option value="upper-left">Bloco alto esquerdo</option>
+            <option value="upper-right">Bloco alto direito</option>
+            <option value="minimal-left">Minimal esquerdo</option>
+            <option value="minimal-right">Minimal direito</option>
+            <option value="ribbon-left">Faixa editorial esquerda</option>
+            <option value="ribbon-right">Faixa editorial direita</option>
+            <option value="diagonal-left">Diagonal esquerda</option>
+            <option value="diagonal-right">Diagonal direita</option>
+          </select>
+          <div class="design-toggle">
+            <div><label>Não repetir composição no lote</label><small>Em 10 artes, usa 10 modelos diferentes e escolhe cada um conforme a área livre da foto.</small></div>
+            <input id="randomBatch" type="checkbox" checked>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn" id="btnReflow" style="flex:1">Reorganizar arte</button>
+            <span class="analysis-pill" id="analysisStatus">Foto não analisada</span>
+          </div>
+          <div class="card" style="margin-top:2px"><div class="muted"><b style="color:#fff">100 modelos internos</b><br>O CSV envia o conteúdo. O motor escolhe uma composição segura e diferente para cada arte do lote, evitando o rosto/assunto principal.</div></div>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal-backdrop" id="companyModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="companyModalTitle">
+    <div class="modal-head"><h2 id="companyModalTitle">Cadastrar empresa</h2><button class="btn ghost" id="btnCloseCompany">✕</button></div>
+    <div class="modal-body">
+      <div class="modal-grid">
+        <div class="field full"><label>Nome da empresa *</label><input class="input" id="companyNameInput" placeholder="Ex.: Laben Clínica"></div>
+        <div class="field"><label>Cor principal</label><div class="color-field"><input type="color" id="companyPrimaryColor" value="#00c217"><input class="input" id="companyPrimaryText" value="#00c217"></div></div>
+        <div class="field"><label>Cor secundária</label><div class="color-field"><input type="color" id="companySecondaryColor" value="#ffffff"><input class="input" id="companySecondaryText" value="#ffffff"></div></div>
+        <div class="field"><label>Cor dos textos</label><div class="color-field"><input type="color" id="companyTextColor" value="#ffffff"><input class="input" id="companyTextText" value="#ffffff"></div></div>
+        <div class="field"><label>Cor de contraste / blur</label><div class="color-field"><input type="color" id="companyContrastColor" value="#111827"><input class="input" id="companyContrastText" value="#111827"></div></div>
+        <div class="field"><label>Estilo visual</label><select class="select" id="companyStyleInput"><option>Profissional / Clean</option><option>Moderno / Premium</option><option>Comercial / Impactante</option><option>Institucional</option><option>Editorial</option><option>Minimalista</option><option>Elegante / Luxo</option><option>Jovem / Criativo</option></select></div>
+        <div class="field"><label>Fonte de títulos</label><select class="select" id="companyFontTitle"><option>Inter</option><option>Montserrat</option><option>Poppins</option><option>Manrope</option><option>DM Sans</option><option>Plus Jakarta Sans</option><option>Outfit</option><option>Roboto</option><option>Arial</option><option>Georgia</option></select></div>
+        <div class="field"><label>Fonte de textos</label><select class="select" id="companyFontBody"><option>Inter</option><option>Montserrat</option><option>Poppins</option><option>Manrope</option><option>DM Sans</option><option>Plus Jakarta Sans</option><option>Outfit</option><option>Roboto</option><option>Arial</option><option>Georgia</option></select></div>
+        <div class="field full"><label>Logo da empresa</label><label class="logo-drop" id="companyLogoDrop"><span id="companyLogoHint">Clique para enviar PNG, JPG ou SVG</span><img id="companyLogoPreview" hidden><input id="companyLogoInput" type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden></label></div>
+      </div>
+    </div>
+    <div class="modal-actions"><button class="btn" id="btnResetCompany">Limpar</button><div class="right"><button class="btn ghost" id="btnCancelCompany">Cancelar</button><button class="btn primary" id="btnSaveCompany">Salvar empresa</button></div></div>
+  </div>
+</div>
+
+
+<script src="script.js"></script>
+</body>
+</html>
