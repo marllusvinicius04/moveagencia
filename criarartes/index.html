@@ -59,6 +59,29 @@
       </div>
 
 
+
+      <div class="section add-tools-section">
+        <h3>Adicionar</h3>
+        <div class="add-tools-grid">
+          <button class="add-tool-card" data-add="title">
+            <span class="add-tool-icon">T</span>
+            <span><b>Título</b><small>Texto principal</small></span>
+          </button>
+          <button class="add-tool-card" data-add="subtitle">
+            <span class="add-tool-icon">Aa</span>
+            <span><b>Texto</b><small>Subtexto livre</small></span>
+          </button>
+          <button class="add-tool-card" data-add="shape">
+            <span class="add-tool-icon">◆</span>
+            <span><b>Elemento</b><small>Forma visual</small></span>
+          </button>
+          <button class="add-tool-card delete-tool" id="btnDelete">
+            <span class="add-tool-icon">⌫</span>
+            <span><b>Excluir</b><small>Item selecionado</small></span>
+          </button>
+        </div>
+      </div>
+
       <div class="section">
         <h3>✨ Ferramentas mágicas</h3>
         <div class="magic-panel">
@@ -93,13 +116,7 @@
     </aside>
 
     <section class="stage-wrap">
-      <div class="toolbar">
-        <button class="tool" data-add="title">T Texto</button>
-        <button class="tool" data-add="subtitle">Aa Subtexto</button>
-        <button class="tool" data-add="shape">◼ Elemento</button>
-        <button class="tool" id="btnDelete">Excluir</button>
-      </div>
-      <div class="stage-shell"><div id="stage" class="stage"><div class="overlay"></div><div class="safe"></div></div></div>
+<div class="stage-shell"><div id="stage" class="stage"><div class="overlay"></div><div class="safe"></div></div></div>
       <div class="zoom"><span class="muted">Zoom</span><input id="zoomRange" type="range" min="55" max="125" value="100"><span id="zoomValue">100%</span></div>
     </section>
 
