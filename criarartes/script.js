@@ -1145,8 +1145,43 @@ $('#btnExport').onclick=async()=>{
 
   // Clona a arte sem tocar no editor.
   const clone=stage.cloneNode(true);
+  clone.classList.add('export-clean');
   clone.querySelectorAll('.selected,.multi-selected').forEach(x=>x.classList.remove('selected','multi-selected'));
   clone.querySelectorAll('.handle').forEach(x=>x.remove());
+
+  // A área de segurança é apenas uma referência visual do editor.
+  // Remove qualquer guia criada como elemento HTML antes de gerar o PNG.
+  clone.querySelectorAll([
+    '.safe-area',
+    '.safe-area-guide',
+    '.safe-guide',
+    '.margin-guide',
+    '.margins-guide',
+    '.guide',
+    '.guides',
+    '[data-guide]',
+    '[data-safe-area]',
+    '[data-export="false"]'
+  ].join(',')).forEach(x=>x.remove());
+
+  // Também desativa guias desenhadas por CSS com ::before ou ::after.
+  // Esta regra vale somente para o clone usado na exportação.
+  const exportGuardStyle=document.createElement('style');
+  exportGuardStyle.dataset.exportGuard='true';
+  exportGuardStyle.textContent=`
+    .stage.export-clean::before,
+    .stage.export-clean::after,
+    #stage.export-clean::before,
+    #stage.export-clean::after {
+      content: none !important;
+      display: none !important;
+      border: 0 !important;
+      outline: 0 !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+  `;
+  document.head.appendChild(exportGuardStyle);
 
   // O clone usa EXATAMENTE as dimensões lógicas da área de trabalho.
   Object.assign(clone.style,{
@@ -1226,22 +1261,26 @@ $('#btnExport').onclick=async()=>{
   document.body.appendChild(clone);
   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 
-  const canvas=await html2canvas(clone,{
-    backgroundColor:null,
-    useCORS:true,
-    allowTaint:true,
-    logging:false,
-    scale:exportScale,
-    width:w,
-    height:h,
-    scrollX:0,
-    scrollY:0,
-    windowWidth:document.documentElement.clientWidth,
-    windowHeight:document.documentElement.clientHeight,
-    imageTimeout:0
-  });
-
-  clone.remove();
+  let canvas;
+  try{
+    canvas=await html2canvas(clone,{
+      backgroundColor:null,
+      useCORS:true,
+      allowTaint:true,
+      logging:false,
+      scale:exportScale,
+      width:w,
+      height:h,
+      scrollX:0,
+      scrollY:0,
+      windowWidth:document.documentElement.clientWidth,
+      windowHeight:document.documentElement.clientHeight,
+      imageTimeout:0
+    });
+  }finally{
+    clone.remove();
+    exportGuardStyle.remove();
+  }
 
   // Segurança: se navegador devolver algum pixel diferente da resolução alvo,
   // normaliza sem alterar a proporção.
