@@ -2019,8 +2019,8 @@ async function board(cid){
             <i class="fa fa-plus"></i> Adicionar conteúdo
           </button>
 
-          <button class="btn light sm" onclick="copyWeekData('${w.id}')">
-            <i class="fa fa-copy"></i> Copiar dados da semana
+          <button class="btn light sm" onclick="generateWeekCSV('${w.id}')" title="Copiar os dados necessários para criar os CSVs dos Posts e Stories desta semana">
+            <i class="fa fa-file-csv"></i> Gerar CSV
           </button>
 
           <button class="btn light sm" onclick="week('${cid}','${w.id}')">
@@ -2251,20 +2251,19 @@ function monthlyReport(cid){
   try{dl(report,`MOVE_Relatorio_Mensal_${safe(r.c.nome)}.html`);toast('Relatório mensal baixado.')}catch(err){console.error(err);toast('Não foi possível baixar o relatório.');}
 }
 
-async function copyWeekData(weekId){
+async function generateWeekCSV(weekId){
   const w=D.weeks.find(x=>x.id===weekId);
   if(!w)return toast('Semana não encontrada.');
 
   const c=D.companies.find(x=>x.id===w.companyId)||{};
-  const contents=D.contents.filter(x=>x.weekId===w.id);
-
-  const counts={
-    Reels:contents.filter(x=>x.tipo==='Reels').length,
-    Post:contents.filter(x=>x.tipo==='Post').length,
-    Stories:contents.filter(x=>x.tipo==='Stories').length
-  };
+  const csvContents=D.contents
+    .filter(x=>x.weekId===w.id&&['Post','Stories'].includes(x.tipo))
+    .sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0));
 
   const txt=`EMPRESA: ${c.nome||'—'}
+
+SOBRE A EMPRESA:
+${c.sobre||'Não informado.'}
 
 SEMANA ${w.numero||'—'}
 PERÍODO: ${date(w.inicio)} a ${date(w.fim)}
@@ -2275,7 +2274,14 @@ ${w.objetivo||'Não definido.'}
 LINHA DE CONTEÚDO DA SEMANA:
 ${w.linha||'Não definida.'}
 
-REFERÊNCIAS DA EMPRESA
+QUANTIDADE DE CONTEÚDOS SEMANAIS:
+Reels: ${Number(c.reels||0)}
+Posts: ${Number(c.posts||0)}
+Stories: ${Number(c.stories||0)}
+Captações: ${Number(c.captacoes||0)}
+
+COR DA EMPRESA:
+${c.cor||'Não informada.'}
 
 TOM DE COMUNICAÇÃO:
 ${c.tons||'Não informado.'}
@@ -2286,18 +2292,12 @@ ${c.objetivos||'Não informado.'}
 LINHAS DE CONTEÚDO:
 ${c.linhas||'Não informado.'}
 
-QUANTIDADE SEMANAL CONTRATADA:
-${Number(c.reels||0)} Reels • ${Number(c.posts||0)} Posts • ${Number(c.stories||0)} Stories
-
-CONTEÚDOS JÁ CRIADOS NESTA SEMANA:
-${counts.Reels} Reels • ${counts.Post} Posts • ${counts.Stories} Stories
-
-CONTEÚDOS:
-${contents.length?contents.map((ct,i)=>`${i+1}. ${ct.tipo||'Conteúdo'} — ${ct.titulo||'Sem título'}${ct.objetivo?`\nObjetivo: ${ct.objetivo}`:''}`).join('\n\n'):'Nenhum conteúdo criado ainda.'}`;
+POSTS E STORIES PARA CRIAR OS CSVs:
+${csvContents.length?csvContents.map((ct,i)=>`${i+1}. TIPO: ${ct.tipo}\nTEMA/TÍTULO: ${ct.titulo||'Sem título'}\nIDEIA PROPOSTA: ${ct.descricao||ct.ideia||ct.objetivo||ct.titulo||'Não informada.'}`).join('\n\n'):'Nenhum Post ou Stories criado nesta semana.'}`;
 
   try{
     await navigator.clipboard.writeText(txt);
-    toast('Dados da semana copiados.');
+    toast('Dados para os CSVs copiados.');
   }catch(_){
     const ta=document.createElement('textarea');
     ta.value=txt;
@@ -2305,7 +2305,7 @@ ${contents.length?contents.map((ct,i)=>`${i+1}. ${ct.tipo||'Conteúdo'} — ${ct
     ta.select();
     document.execCommand('copy');
     ta.remove();
-    toast('Dados da semana copiados.');
+    toast('Dados para os CSVs copiados.');
   }
 }
 
