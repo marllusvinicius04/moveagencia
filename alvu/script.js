@@ -1,6 +1,6 @@
 const ACCESS_PASSWORD='021MAX';
 // DEPOIS DE IMPLANTAR O APPS SCRIPT, COLE A URL /exec ABAIXO:
-const API_URL='https://script.google.com/macros/s/AKfycbxMvqLfsGUtAwO_GlA_5L7Mip7t8fx1blq7wy9DhqpQ5HJXjaNa3g67j6kpKc2mn1zR/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbyX-mTSObVXyZu7ZjPaFs1eShCVdIQwhuprRZLf0Ce25ULRtyjzZJFUrEYRx6pRhU4P/exec';
 const API_SECRET='021MAX';
 const PAYEE={key:'57293143000156',name:'MARLLUS VINICIUS S ARARUJO',city:'URUCUI',bank:'MERCADO PAGO'};
 let DB={clients:[],debts:[],transactions:[],settings:{}},PAGE='dashboard';
