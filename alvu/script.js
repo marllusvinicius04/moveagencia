@@ -3,7 +3,7 @@ const ACCESS_PASSWORD='021MAX';
 // IMPORTANTE: use SOMENTE a URL pura. Não use [URL](URL).
 const API_URL='https://script.google.com/macros/s/AKfycbxXnuPhQ3eMqgDf2FHJ_2RsqFACSF6gXaphhUXCvEr7YhO5AB_WwSvh3Binh3HvsR49/exec';
 const API_SECRET='021MAX';
-const PAYEE={key:'57293143000156',name:'MARLLUS VINICIUS S ARAUJO',city:'URUCUI',bank:'MERCADO PAGO'};
+const PAYEE={key:'57293143000156',name:'MARLLUS VINICIUS SILVA ARAUJO',city:'URUCUI PIAUI',bank:'MERCADO PAGO'};
 
 let DB={clients:[],debts:[],transactions:[],settings:{},emailLog:[]},PAGE='dashboard';
 
@@ -141,6 +141,10 @@ function toast(t){const x=$('#toast');x.textContent=t;x.classList.remove('hide')
 
 function status(c){
   if(c.status==='Pago')return{key:'paid',label:'Pago • próximo '+br(c.nextDue)};
+  if(c.status==='Parcial'){
+    const pago=Number(c.cyclePaid||0),total=Number(c.monthly||0);
+    return{key:'pending',label:'Pago parcial • '+money(pago)+' de '+money(total)};
+  }
   const d=dayDiff(c.nextDue);
   return d<0?{key:'late',label:Math.abs(d)+' dia(s) atrasado'}:{key:'pending',label:d===0?'Vence hoje':d+' dia(s) para vencer'};
 }
@@ -192,14 +196,67 @@ function addMonth(date){const d=new Date(date+'T12:00:00'),day=d.getDate();d.set
 async function markPaid(id){
   const c=DB.clients.find(x=>x.id===id);if(!c)return;
   if(c.status==='Pago')return toast('Este ciclo já está marcado como pago.');
-  if(!confirm('Registrar pagamento de '+c.company+'?'))return;
-  loading('Registrando e dividindo pagamento...');
-  DB.transactions.push({id:uid(),date:today(),type:'Entrada',category:'Mensalidade',description:'Mensalidade — '+c.company,value:Number(c.monthly),clientId:c.id});
-  c.lastPaidAt=new Date().toISOString();
-  c.lastPaidDue=c.nextDue;
-  c.nextDue=addMonth(c.nextDue);
-  c.status='Pago';
-  await save();hideLoading();toast('Pago. Valor dividido em 40% / 40% / 20%.');
+
+  const total=Number(c.monthly||0);
+  const jaPago=Number(c.cyclePaid||0);
+  const restante=Math.max(0,total-jaPago);
+
+  modal('Registrar pagamento — '+c.company,`
+    <form id="paymentForm" class="form-grid">
+      <div class="field span">
+        <label>Como o cliente pagou?</label>
+        <select name="paymentMode" id="paymentMode">
+          <option value="full">Pago completo</option>
+          <option value="partial">Pago parcelado</option>
+        </select>
+      </div>
+      <div class="field span" id="partialPaymentField" style="display:none">
+        <label>Quanto o cliente pagou agora?</label>
+        <input type="number" step="0.01" min="0.01" max="${restante}" name="partialValue" placeholder="Ex.: 350,00">
+        <small>Mensalidade: ${money(total)}${jaPago>0?' • já recebido neste ciclo: '+money(jaPago):''}</small>
+      </div>
+    </form>`,async()=>{
+      const fd=new FormData($('#paymentForm'));
+      const mode=fd.get('paymentMode');
+      let value=mode==='full'?restante:Number(fd.get('partialValue'));
+
+      if(restante<=0)return toast('Não há valor restante neste ciclo.');
+      if(!Number.isFinite(value)||value<=0)return toast('Informe um valor de pagamento válido.');
+      if(value>restante)return toast('O valor informado é maior que o restante da mensalidade.');
+
+      loading('Registrando pagamento...');
+      DB.transactions.push({
+        id:uid(),
+        date:today(),
+        type:'Entrada',
+        category:'Mensalidade',
+        description:(mode==='partial'?'Pagamento parcelado — ':'Mensalidade — ')+c.company,
+        value,
+        clientId:c.id,
+        paymentMode:mode
+      });
+
+      c.cyclePaid=jaPago+value;
+
+      if(mode==='full'||c.cyclePaid>=total){
+        c.lastPaidAt=new Date().toISOString();
+        c.lastPaidDue=c.nextDue;
+        c.nextDue=addMonth(c.nextDue);
+        c.status='Pago';
+        c.cyclePaid=0;
+      }else{
+        c.status='Parcial';
+      }
+
+      closeModal();
+      await save();
+      hideLoading();
+      toast(c.status==='Pago'?'Pagamento completo registrado. Valor dividido em 40% / 40% / 20%.':'Pagamento parcial registrado: '+money(value)+'.');
+    });
+
+  $('#paymentMode').onchange=e=>{
+    $('#partialPaymentField').style.display=e.target.value==='partial'?'block':'none';
+  };
 }
 function markPending(id){const c=DB.clients.find(x=>x.id===id);if(!c)return;c.status='Pendente';save();toast('Situação alterada para pendente.');}
 function removeClient(id){if(!confirm('Excluir esta empresa?'))return;DB.clients=DB.clients.filter(x=>x.id!==id);save();}
@@ -216,7 +273,7 @@ function message(c){
 function tlv(id,value){value=String(value);return id+String(value.length).padStart(2,'0')+value;}
 function clean(s,max){return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9 $%*+\-./:]/gi,' ').toUpperCase().trim().slice(0,max);}
 function crc16(s){let crc=0xffff;for(let i=0;i<s.length;i++){crc^=s.charCodeAt(i)<<8;for(let j=0;j<8;j++)crc=(crc&0x8000)?(crc<<1)^0x1021:crc<<1;crc&=0xffff;}return crc.toString(16).toUpperCase().padStart(4,'0');}
-function pixPayload(value,txid){const gui=tlv('00','BR.GOV.BCB.PIX'),key=tlv('01',PAYEE.key),mai=tlv('26',gui+key),base=tlv('00','01')+tlv('01','12')+mai+tlv('52','0000')+tlv('53','986')+tlv('54',Number(value).toFixed(2))+tlv('58','BR')+tlv('59',clean(PAYEE.name,25))+tlv('60',clean(PAYEE.city,15))+tlv('62',tlv('05',clean(txid||'ALVU',25)))+'6304';return base+crc16(base);}
+function pixPayload(value,txid){const gui=tlv('00','BR.GOV.BCB.PIX'),key=tlv('01',String(PAYEE.key).replace(/\D/g,'')),mai=tlv('26',gui+key),base=tlv('00','01')+tlv('01','11')+mai+tlv('52','0000')+tlv('53','986')+tlv('54',Number(value).toFixed(2))+tlv('58','BR')+tlv('59',clean(PAYEE.name,25))+tlv('60',clean(PAYEE.city,15))+tlv('62',tlv('05',clean(txid||'ALVU',25)))+'6304';return base+crc16(base);}
 
 function charge(id){
   const c=DB.clients.find(x=>x.id===id);
@@ -231,9 +288,131 @@ function charge(id){
 
 async function copyText(t){await navigator.clipboard.writeText(t);toast('Copiado.');}
 async function sendEmail(id){loading('Enviando cobrança por e-mail...');try{await request('sendCharge',{clientId:id},'POST');toast('E-mail enviado.');}catch(e){toast(e.message);}finally{hideLoading();}}
-async function downloadPdf(id){loading('Gerando carnê em PDF...');try{const o=await request('paymentPdf',{clientId:id},'POST'),a=document.createElement('a');a.href='data:application/pdf;base64,'+o.base64;a.download=o.filename;a.click();toast('PDF gerado.');}catch(e){toast(e.message);}finally{hideLoading();}}
+async function downloadPdf(id){
+  const c=DB.clients.find(x=>x.id===id);
+  if(!c)return toast('Empresa não encontrada.');
+  const pix=pixPayload(c.monthly,'ALVU'+c.id.slice(0,12));
+  loading('Gerando carnê em PDF...');
+  try{
+    const o=await request('paymentPdf',{
+      clientId:id,
+      pixPayload:pix,
+      pixKey:PAYEE.key,
+      pixName:PAYEE.name,
+      pixBank:PAYEE.bank,
+      pixCity:PAYEE.city
+    },'POST'),
+    a=document.createElement('a');
+    a.href='data:application/pdf;base64,'+o.base64;
+    a.download=o.filename;
+    a.click();
+    toast('PDF gerado.');
+  }catch(e){toast(e.message);}finally{hideLoading();}
+}
 
-function debts(){const open=DB.debts.reduce((s,x)=>s+Math.max(0,Number(x.total)-Number(x.paid||0)),0);return `<div class="section-head"><div><h3>Dívidas da agência</h3><p>Saldo devedor total: <b>${money(open)}</b></p></div><button class="btn primary" onclick="debtForm()">+ Nova dívida</button></div><div class="grid">${DB.debts.map(d=>{const left=Math.max(0,Number(d.total)-Number(d.paid||0)),pct=Math.min(100,Number(d.paid||0)/Number(d.total||1)*100);return `<article class="card"><span class="badge ${left?'pending':'paid'}">${left?'Em aberto':'Quitada'}</span><h4>${esc(d.creditor)}</h4><p>${esc(d.description)}</p><b>${money(left)} restantes</b><div class="bar"><i style="width:${pct}%"></i></div><p>Pago ${money(d.paid)} de ${money(d.total)} • vence ${br(d.due)}</p><div class="actions"><button class="btn primary small" onclick="payDebt('${d.id}')">Abater valor</button><button class="btn light small" onclick="debtForm('${d.id}')">Editar</button><button class="btn danger small" onclick="removeDebt('${d.id}')">Excluir</button></div></article>`;}).join('')||'<div class="card">Nenhuma dívida cadastrada.</div>'}</div>`;}
+function debts(){
+  const open=DB.debts.reduce((s,x)=>s+Math.max(0,Number(x.total)-Number(x.paid||0)),0);
+  return `<div class="section-head"><div><h3>Dívidas da agência</h3><p>Saldo devedor total: <b>${money(open)}</b></p></div><div class="actions"><button class="btn dark" onclick="paymentAdvisor()">Assessor de pagamentos</button><button class="btn primary" onclick="debtForm()">+ Nova dívida</button></div></div><div class="grid">${DB.debts.map(d=>{const left=Math.max(0,Number(d.total)-Number(d.paid||0)),pct=Math.min(100,Number(d.paid||0)/Number(d.total||1)*100);return `<article class="card"><span class="badge ${left?'pending':'paid'}">${left?'Em aberto':'Quitada'}</span><h4>${esc(d.creditor)}</h4><p>${esc(d.description)}</p><b>${money(left)} restantes</b><div class="bar"><i style="width:${pct}%"></i></div><p>Pago ${money(d.paid)} de ${money(d.total)} • vence ${br(d.due)}</p><div class="actions"><button class="btn primary small" onclick="payDebt('${d.id}')">Abater valor</button><button class="btn light small" onclick="debtForm('${d.id}')">Editar</button><button class="btn danger small" onclick="removeDebt('${d.id}')">Excluir</button></div></article>`;}).join('')||'<div class="card">Nenhuma dívida cadastrada.</div>'}</div>`;
+}
+
+function advisorPlan(baseValue){
+  const base=Math.max(0,Number(baseValue||0));
+  const split={company:base*.4,debts:base*.4,prolabore:base*.2};
+  let available=split.debts;
+  const debtPlan=DB.debts
+    .map(d=>({...d,left:Math.max(0,Number(d.total)-Number(d.paid||0))}))
+    .filter(d=>d.left>0)
+    .sort((a,b)=>String(a.due||'9999-12-31').localeCompare(String(b.due||'9999-12-31')))
+    .map(d=>{
+      const suggested=Math.min(d.left,available);
+      available=Math.max(0,available-suggested);
+      return{id:d.id,creditor:d.creditor,due:d.due,left:d.left,suggested};
+    });
+  return{base,split,debtPlan,unusedDebtReserve:available};
+}
+
+function renderAdvisorResult(baseValue){
+  const plan=advisorPlan(baseValue);
+  const target=$('#advisorResult');
+  if(!target)return;
+  target.innerHTML=`
+    <div class="grid" style="margin-top:14px">
+      <div class="card"><small>40% Empresa</small><h4>${money(plan.split.company)}</h4></div>
+      <div class="card"><small>40% Dívidas</small><h4>${money(plan.split.debts)}</h4></div>
+      <div class="card"><small>20% Pró-labore</small><h4>${money(plan.split.prolabore)}</h4></div>
+    </div>
+    <div class="table-wrap" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Dívida</th><th>Vencimento</th><th>Saldo</th><th>Pagamento sugerido</th></tr></thead>
+        <tbody>${plan.debtPlan.map(d=>`<tr><td><b>${esc(d.creditor)}</b></td><td>${br(d.due)}</td><td>${money(d.left)}</td><td><b>${money(d.suggested)}</b></td></tr>`).join('')||'<tr><td colspan="4">Nenhuma dívida em aberto.</td></tr>'}</tbody>
+      </table>
+    </div>
+    ${plan.unusedDebtReserve>0?`<p style="margin-top:10px">Reserva de dívidas que sobra após quitar/abater as dívidas abertas: <b>${money(plan.unusedDebtReserve)}</b></p>`:''}
+    <p style="color:var(--muted);font-size:11px;margin-top:10px">A prioridade é dada às dívidas com vencimento mais próximo. Nada é lançado até você confirmar.</p>`;
+}
+
+function paymentAdvisor(){
+  const received=DB.transactions.filter(x=>x.type==='Entrada').reduce((s,x)=>s+Number(x.value||0),0);
+  modal('Assessor de pagamentos',`
+    <form id="advisorForm" class="form-grid">
+      <div class="field span">
+        <label>Qual valor deseja organizar?</label>
+        <select id="advisorSource" name="source">
+          <option value="received">Usar todo o valor recebido (${money(received)})</option>
+          <option value="custom">Informar outro valor</option>
+        </select>
+      </div>
+      <div class="field span" id="advisorCustomField" style="display:none">
+        <label>Valor disponível para gestão</label>
+        <input id="advisorCustomValue" type="number" min="0.01" step="0.01" placeholder="Ex.: 5.000,00">
+      </div>
+    </form>
+    <div id="advisorResult"></div>
+    <div class="actions" style="justify-content:flex-end;margin-top:17px">
+      <button class="btn primary" id="advisorApplyBtn">Registrar pagamentos sugeridos</button>
+    </div>`);
+
+  const source=$('#advisorSource'),customField=$('#advisorCustomField'),custom=$('#advisorCustomValue');
+  const currentBase=()=>source.value==='received'?received:Number(custom.value||0);
+  const refresh=()=>renderAdvisorResult(currentBase());
+
+  source.onchange=()=>{
+    customField.style.display=source.value==='custom'?'block':'none';
+    refresh();
+  };
+  custom.oninput=refresh;
+  refresh();
+
+  $('#advisorApplyBtn').onclick=async()=>{
+    const plan=advisorPlan(currentBase());
+    if(plan.base<=0)return toast('Informe um valor válido para organizar.');
+    const payments=plan.debtPlan.filter(d=>d.suggested>0);
+    if(!payments.length)return toast('Não há pagamento de dívida sugerido para registrar.');
+    if(!confirm('Registrar '+payments.length+' pagamento(s) de dívida totalizando '+money(payments.reduce((s,x)=>s+x.suggested,0))+'?'))return;
+
+    payments.forEach(p=>{
+      const d=DB.debts.find(x=>x.id===p.id);
+      if(!d)return;
+      d.paid=Number(d.paid||0)+p.suggested;
+      DB.transactions.push({
+        id:uid(),
+        date:today(),
+        type:'Saída',
+        category:'Dívidas',
+        bucket:'Dívidas',
+        description:'Assessor de pagamentos — '+d.creditor,
+        value:p.suggested,
+        debtId:d.id,
+        advisor:true
+      });
+    });
+    closeModal();
+    loading('Registrando plano de pagamentos...');
+    await save();
+    hideLoading();
+    toast('Plano do assessor registrado com sucesso.');
+  };
+}
 
 function debtForm(id=''){
   const d=DB.debts.find(x=>x.id===id)||{};
