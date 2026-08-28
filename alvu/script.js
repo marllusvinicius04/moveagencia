@@ -275,39 +275,71 @@ function clean(s,max){return String(s).normalize('NFD').replace(/[\u0300-\u036f]
 function crc16(s){let crc=0xffff;for(let i=0;i<s.length;i++){crc^=s.charCodeAt(i)<<8;for(let j=0;j<8;j++)crc=(crc&0x8000)?(crc<<1)^0x1021:crc<<1;crc&=0xffff;}return crc.toString(16).toUpperCase().padStart(4,'0');}
 function pixPayload(value,txid){const gui=tlv('00','BR.GOV.BCB.PIX'),key=tlv('01',String(PAYEE.key).replace(/\D/g,'')),mai=tlv('26',gui+key),base=tlv('00','01')+tlv('01','11')+mai+tlv('52','0000')+tlv('53','986')+tlv('54',Number(value).toFixed(2))+tlv('58','BR')+tlv('59',clean(PAYEE.name,25))+tlv('60',clean(PAYEE.city,15))+tlv('62',tlv('05',clean(txid||'ALVU',25)))+'6304';return base+crc16(base);}
 
+function carneData(c){
+  const paid=Number(c.cyclePaid||0);
+  const total=Number(c.monthly||0);
+  const value=Math.max(0,total-paid)||total;
+  const pix=pixPayload(value,'ALVU'+c.id.slice(0,12));
+  const qr='https://quickchart.io/qr?size=420&margin=1&text='+encodeURIComponent(pix);
+  const ref=new Date((c.nextDue||today())+'T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).toUpperCase();
+  return{paid,total,value,pix,qr,ref};
+}
+
+function carnePreviewHtml(c){
+  const d=carneData(c),late=dayDiff(c.nextDue)<0;
+  return `
+  <div style="max-width:760px;margin:auto;background:#fff;border:1px solid #dce4ea;border-radius:20px;overflow:hidden;box-shadow:0 14px 38px rgba(6,35,55,.12);font-family:Arial,sans-serif;color:#102d3f">
+    <div style="background:linear-gradient(135deg,#082d46,#0b4566);padding:24px 28px;color:#fff;display:flex;justify-content:space-between;gap:20px;align-items:center">
+      <div><div style="font-size:11px;letter-spacing:3px;font-weight:800;color:#d5aa63">ALVU FINANCEIRO</div><div style="font-size:27px;font-weight:900;margin-top:6px">CARNÊ DE PAGAMENTO</div><div style="font-size:12px;opacity:.82;margin-top:4px">Documento de cobrança • pagamento via Pix</div></div>
+      <div style="background:#fff;color:#0a3e5b;padding:12px 16px;border-radius:13px;text-align:center;min-width:125px"><div style="font-size:9px;font-weight:800;letter-spacing:1px">VENCIMENTO</div><div style="font-size:18px;font-weight:900;margin-top:4px">${br(c.nextDue)}</div></div>
+    </div>
+    <div style="padding:22px 26px">
+      <div style="display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:10px;margin-bottom:16px">
+        <div style="background:#f5f8fa;border:1px solid #e3e9ed;padding:14px;border-radius:12px"><small style="font-size:9px;color:#6b7c88;font-weight:800">CLIENTE</small><div style="font-size:14px;font-weight:900;margin-top:5px">${esc(c.company)}</div><div style="font-size:10px;color:#526672;margin-top:3px">${esc(c.responsible||'Responsável não informado')}</div></div>
+        <div style="background:#f5f8fa;border:1px solid #e3e9ed;padding:14px;border-radius:12px"><small style="font-size:9px;color:#6b7c88;font-weight:800">REFERÊNCIA</small><div style="font-size:13px;font-weight:900;margin-top:5px">${d.ref}</div><div style="font-size:10px;color:#526672;margin-top:3px">${esc(c.service||'Serviços contratados')}</div></div>
+        <div style="background:${late?'#fff1ee':'#eef9f4'};border:1px solid ${late?'#f3c7bd':'#cbe9dc'};padding:14px;border-radius:12px"><small style="font-size:9px;color:${late?'#a33c2b':'#19734e'};font-weight:800">VALOR DESTA PARCELA</small><div style="font-size:22px;font-weight:900;margin-top:5px;color:${late?'#982f20':'#0d6a48'}">${money(d.value)}</div>${d.paid>0?`<div style="font-size:9px;margin-top:3px">Já recebido: ${money(d.paid)}</div>`:''}</div>
+      </div>
+      <div style="border-radius:15px;background:linear-gradient(90deg,#0a3550 0 38%,#f7faf9 38%);border:1px solid #dce7e2;display:grid;grid-template-columns:.65fr 1fr;overflow:hidden;margin-bottom:16px">
+        <div style="padding:18px;color:#fff"><div style="font-size:12px;color:#e1bb78;font-weight:900">PAGUE EM DIA</div><div style="font-size:11px;line-height:1.5;margin-top:6px;opacity:.92">Mantenha seu contrato regular e evite pendências no financeiro.</div></div>
+        <div style="padding:18px 20px;display:flex;gap:18px;align-items:center;justify-content:space-around"><div style="text-align:center"><div style="font-size:20px">✓</div><b style="font-size:10px">CONTRATO REGULAR</b></div><div style="text-align:center"><div style="font-size:20px">🔒</div><b style="font-size:10px">PIX SEGURO</b></div><div style="text-align:center"><div style="font-size:20px">⚡</div><b style="font-size:10px">BAIXA RÁPIDA</b></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:190px 1fr;gap:20px;border:1px solid #dce4e9;border-radius:14px;padding:18px;align-items:center">
+        <div style="text-align:center"><div style="font-size:10px;font-weight:900;color:#087b54;margin-bottom:8px">ESCANEIE PARA PAGAR</div><div style="background:#fff;border:7px solid #0f9c70;border-radius:12px;padding:6px;display:inline-block"><img src="${d.qr}" style="width:145px;height:145px;display:block" alt="QR Code Pix"></div></div>
+        <div><small style="font-size:9px;color:#697b86;font-weight:800">PIX COPIA E COLA</small><div style="margin-top:6px;background:#eef7f3;border:1px solid #cfe8dc;border-radius:9px;padding:9px;font-size:9px;word-break:break-all;max-height:60px;overflow:auto">${esc(d.pix)}</div><div style="margin-top:12px;font-size:12px"><b>Chave Pix:</b> ${PAYEE.key}</div><div style="margin-top:5px;font-size:11px"><b>Recebedor:</b> ${PAYEE.name}</div><div style="margin-top:5px;font-size:11px"><b>Instituição:</b> ${PAYEE.bank}</div><div style="margin-top:5px;font-size:11px"><b>Cidade:</b> URUÇUÍ - PIAUÍ</div></div>
+      </div>
+      <div style="border-top:1px dashed #9aabb5;margin:20px -4px 0;padding:15px 4px 0;display:flex;justify-content:space-between;gap:14px;align-items:center"><div><small style="font-size:9px;color:#6b7d88;font-weight:800">FICHA DA PARCELA</small><div style="font-size:13px;font-weight:900;margin-top:4px">${esc(c.company)} • ${d.ref}</div><div style="font-size:10px;color:#5c6e79;margin-top:3px">Vencimento ${br(c.nextDue)} • Pagamento via Pix</div></div><div style="text-align:right"><small style="font-size:9px;color:#6b7d88;font-weight:800">VALOR</small><div style="font-size:19px;font-weight:900;color:#0a3f5c">${money(d.value)}</div></div></div>
+    </div>
+    <div style="background:#082d46;color:#d9e7ee;padding:11px 26px;text-align:center;font-size:9px;letter-spacing:.3px">ALVU FINANCEIRO • COBRANÇA DIGITAL • GUARDE ESTE DOCUMENTO ATÉ A CONFIRMAÇÃO DO PAGAMENTO</div>
+  </div>`;
+}
+
 function charge(id){
   const c=DB.clients.find(x=>x.id===id);
   if(!c)return toast('Empresa não encontrada.');
-  const pix=pixPayload(c.monthly,'ALVU'+c.id.slice(0,12));
-  const qr='https://quickchart.io/qr?size=300&text='+encodeURIComponent(pix);
-  const msg=message(c);
-  modal('Cobrança — '+c.company,`<div class="pix-box"><img src="${qr}" alt="QR Code Pix"><h3>${money(c.monthly)}</h3><p>Vencimento: ${br(c.nextDue)}</p><div class="pix-code">${pix}</div><div class="actions" style="justify-content:center;margin-top:13px"><button class="btn light" id="copyPixBtn">Copiar Pix</button><button class="btn light" id="copyMsgBtn">Copiar mensagem</button><button class="btn primary" onclick="downloadPdf('${c.id}')">Baixar PDF</button><button class="btn dark" onclick="sendEmail('${c.id}')">Enviar e-mail</button></div></div>`);
-  $('#copyPixBtn').onclick=()=>copyText(pix);
+  const d=carneData(c),msg=message(c);
+  modal('Carnê — '+c.company,`${carnePreviewHtml(c)}<div class="actions" style="justify-content:center;margin-top:16px"><button class="btn light" id="copyPixBtn">Copiar Pix</button><button class="btn light" id="copyMsgBtn">Copiar mensagem</button><button class="btn primary" onclick="downloadPdf('${c.id}')">Imprimir / Salvar PDF</button><button class="btn dark" onclick="sendEmail('${c.id}')">Enviar e-mail</button></div>`);
+  $('#copyPixBtn').onclick=()=>copyText(d.pix);
   $('#copyMsgBtn').onclick=()=>copyText(msg);
 }
 
 async function copyText(t){await navigator.clipboard.writeText(t);toast('Copiado.');}
 async function sendEmail(id){loading('Enviando cobrança por e-mail...');try{await request('sendCharge',{clientId:id},'POST');toast('E-mail enviado.');}catch(e){toast(e.message);}finally{hideLoading();}}
+
+function carneDocumentHtml(c){
+  const body=carnePreviewHtml(c);
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Carnê - ${esc(c.company)}</title><style>*{box-sizing:border-box}body{margin:0;padding:18px;background:#eef2f4;font-family:Arial,sans-serif}@page{size:A4;margin:10mm}@media print{body{background:#fff;padding:0}button{display:none!important}}</style></head><body>${body}<div style="max-width:760px;margin:14px auto;text-align:center"><button onclick="window.print()" style="border:0;border-radius:10px;padding:12px 18px;background:#0a4566;color:#fff;font-weight:800;cursor:pointer">Imprimir / Salvar em PDF</button></div></body></html>`;
+}
+
 async function downloadPdf(id){
   const c=DB.clients.find(x=>x.id===id);
   if(!c)return toast('Empresa não encontrada.');
-  const pix=pixPayload(c.monthly,'ALVU'+c.id.slice(0,12));
-  loading('Gerando carnê em PDF...');
-  try{
-    const o=await request('paymentPdf',{
-      clientId:id,
-      pixPayload:pix,
-      pixKey:PAYEE.key,
-      pixName:PAYEE.name,
-      pixBank:PAYEE.bank,
-      pixCity:PAYEE.city
-    },'POST'),
-    a=document.createElement('a');
-    a.href='data:application/pdf;base64,'+o.base64;
-    a.download=o.filename;
-    a.click();
-    toast('PDF gerado.');
-  }catch(e){toast(e.message);}finally{hideLoading();}
+  const w=window.open('','_blank');
+  if(!w)return toast('Permita pop-ups para gerar o carnê.');
+  w.document.open();
+  w.document.write(carneDocumentHtml(c));
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(),700);
 }
 
 function debts(){
