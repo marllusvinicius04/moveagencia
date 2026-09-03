@@ -102,7 +102,7 @@ async function moveLoadAfterLogin(){
   const rest=Math.max(0,3000-(Date.now()-started));
   if(rest)await moveSleep(rest);
   moveHideLoading();
-  try{moveMigrateContentLegendas();await moveSyncTodayPointsFromCloud();nav();render(R||'home');moveShowTeamMessageOnce();moveSyncClientMedia()}catch(err){console.error(err)}
+  try{moveMigrateContentLegendas();moveCleanOrphanJSONCommitments();await moveSyncTodayPointsFromCloud();nav();render(R||'home');moveShowTeamMessageOnce();moveSyncClientMedia()}catch(err){console.error(err)}
 }
 
 
@@ -909,13 +909,56 @@ function movePPCycleInfo(now=new Date()){
 }
 function movePPClock(){const el=document.getElementById('movePPClock');if(!el)return;const now=new Date();el.textContent=now.toLocaleString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 function movePPCycleBanner(){const c=movePPCycleInfo();setTimeout(()=>{movePPClock();if(window.__movePPClockTimer)clearInterval(window.__movePPClockTimer);window.__movePPClockTimer=setInterval(movePPClock,1000)},0);return `<section class="move-pp-cycle ${c.cls}"><div class="move-pp-main"><div class="move-pp-icon"><i class="fa ${c.icon}"></i></div><div class="move-pp-copy"><span class="move-pp-label">OPERAÇÃO SEMANAL CONTÍNUA</span><h2>${e(c.type)}</h2><div id="movePPClock" class="move-pp-clock">Carregando data e hora...</div><p>${e(c.instruction)}</p></div></div><div class="move-pp-next"><span>REGRA DE PROTEÇÃO</span><b>${e(c.nextType)}</b><small>Próxima segunda: ${date(c.nextDate)}</small></div><div class="move-pp-rule"><i class="fa fa-shield-halved"></i><div><b>PLANEJAR → EXECUTAR → PROTEGER</b><span>A semana não termina zerada: a primeira publicação da próxima semana deve ficar pronta quando a frequência da empresa exigir.</span></div></div></section>`;}
+
+
+function moveCleanOrphanJSONCommitments(){
+  const activeIds=new Set((D.magicPlans||[]).map(p=>p.id));
+  const orphanContentIds=new Set(
+    (D.contents||[])
+      .filter(ct=>ct.magicSource&&!activeIds.has(ct.magicSource))
+      .map(ct=>ct.id)
+  );
+
+  D.contents=(D.contents||[]).filter(ct=>!ct.magicSource||activeIds.has(ct.magicSource));
+  D.tasks=(D.tasks||[]).filter(t=>
+    (!t.magicSource||activeIds.has(t.magicSource)) &&
+    !orphanContentIds.has(t.contentId)
+  );
+  D.scheduled=(D.scheduled||[]).filter(s=>
+    (!s.magicSource||activeIds.has(s.magicSource)) &&
+    !orphanContentIds.has(s.contentId)
+  );
+  D.weeks=(D.weeks||[]).filter(w=>
+    !w.magicSource ||
+    activeIds.has(w.magicSource) ||
+    (D.contents||[]).some(ct=>ct.weekId===w.id)
+  );
+}
+
+function moveHasActiveImportedJSON(){
+  return (D.magicPlans||[]).some(p=>
+    p?.data?.plannerVersion==='MOVE_CREATIVE_V2' &&
+    Array.isArray(p?.data?.empresas) &&
+    p.data.empresas.length
+  );
+}
+
+function moveImportedOperationalContents(){
+  if(!moveHasActiveImportedJSON())return [];
+  const activeIds=new Set((D.magicPlans||[])
+    .filter(p=>p?.data?.plannerVersion==='MOVE_CREATIVE_V2')
+    .map(p=>p.id));
+  return (D.contents||[]).filter(ct=>ct.magicSource&&activeIds.has(ct.magicSource));
+}
+
 function moveOperationalOverview(){
   const today=new Date(); today.setHours(0,0,0,0);
   const in7=new Date(today); in7.setDate(in7.getDate()+7);
 
   const companies=D.companies||[];
-  const contents=D.contents||[];
-  const tasks=D.tasks||[];
+  const hasImportedJSON=moveHasActiveImportedJSON();
+  const contents=hasImportedJSON?moveImportedOperationalContents():[];
+  const tasks=hasImportedJSON?(D.tasks||[]):(D.tasks||[]).filter(t=>!t.magicSource&&!t.planId);
 
   const planningTasks=tasks.filter(t=>taskSector(t)==='Planejamento');
   const productionTasks=tasks.filter(t=>taskSector(t)==='Produção');
@@ -1434,7 +1477,15 @@ function moveShowTeamMessageOnce(){
 }
 
 function moveTodayKey(){return moveDateKeyLocal(new Date())}
-function moveMissionPriorityWeight(p){return {'Obrigatória':3,'Meta':2,'Adiantamento':1}[p]||2}
+function moveMissionPriorityWeight(p){
+  if(!moveHasActiveImportedJSON()){
+    return `<section class="card section">
+      <span class="eyebrow">MISSÃO DO DIA</span>
+      <h3 style="margin:7px 0">Nenhum compromisso de planejamento</h3>
+      <p class="meta">Importe um JSON do Planejamento Criativo para gerar as demandas e compromissos da operação.</p>
+    </section>`;
+  }
+return {'Obrigatória':3,'Meta':2,'Adiantamento':1}[p]||2}
 function moveContentDone(ct){return ['Finalizado','Agendado','Publicado'].includes(ct?.workflowStatus)}
 function moveTodayMissionItems(){
   const today=moveTodayKey(),items=[];
