@@ -401,6 +401,60 @@ function magicImportIntoOperation(parsed,planId){
   });
   return {created,updated};
 }
+
+function magicRemovePlanArtifacts(planId,{removePlanRecord=false}={}){
+  if(!planId)return {contents:0,weeks:0,tasks:0,scheduled:0};
+
+  const removedContents=(D.contents||[]).filter(x=>x.magicSource===planId);
+  const removedContentIds=new Set(removedContents.map(x=>x.id));
+  const removedMagicContentIds=new Set(removedContents.map(x=>x.magicContentId).filter(Boolean));
+
+  const beforeScheduled=(D.scheduled||[]).length;
+  D.scheduled=(D.scheduled||[]).filter(x=>
+    x.magicSource!==planId &&
+    !removedContentIds.has(x.contentId) &&
+    !removedMagicContentIds.has(x.magicContentId)
+  );
+
+  const beforeTasks=(D.tasks||[]).length;
+  D.tasks=(D.tasks||[]).filter(x=>
+    x.magicSource!==planId &&
+    x.planId!==planId &&
+    !removedContentIds.has(x.contentId) &&
+    !removedMagicContentIds.has(x.magicContentId)
+  );
+
+  const beforeContents=(D.contents||[]).length;
+  D.contents=(D.contents||[]).filter(x=>x.magicSource!==planId);
+
+  const beforeWeeks=(D.weeks||[]).length;
+  D.weeks=(D.weeks||[]).filter(w=>{
+    if(w.magicSource!==planId)return true;
+    // Se a semana passou a ter conteúdo manual ou de outro planejamento, preserva a semana.
+    return (D.contents||[]).some(ct=>ct.weekId===w.id);
+  });
+
+  if(Array.isArray(D.executionLog)){
+    D.executionLog=D.executionLog.filter(log=>
+      log.magicSource!==planId &&
+      log.planId!==planId &&
+      !removedContentIds.has(log.contentId) &&
+      !removedMagicContentIds.has(log.magicContentId)
+    );
+  }
+
+  if(removePlanRecord){
+    D.magicPlans=(D.magicPlans||[]).filter(x=>x.id!==planId);
+  }
+
+  return {
+    contents:beforeContents-(D.contents||[]).length,
+    weeks:beforeWeeks-(D.weeks||[]).length,
+    tasks:beforeTasks-(D.tasks||[]).length,
+    scheduled:beforeScheduled-(D.scheduled||[]).length
+  };
+}
+
 async function magicImportFile(file){
   if(!file)return;
   moveShowLoading('Montando a semana operacional...');
@@ -408,6 +462,12 @@ async function magicImportFile(file){
     const raw=await file.text();const parsed=JSON.parse(raw);magicValidatePlan(parsed);
     const existing=(D.magicPlans||[]).find(x=>x.data?.plannerVersion==='MOVE_CREATIVE_V2'&&x.periodo?.inicio===parsed.periodo?.inicio);
     const planId=existing?.id||id();
+
+    // Se já existir um JSON para o mesmo período, ele é SUBSTITUÍDO por completo.
+    // Primeiro apagamos somente tudo que o JSON anterior criou na operação.
+    // Conteúdos, tarefas e semanas manuais permanecem intactos.
+    if(existing)magicRemovePlanArtifacts(planId);
+
     const plan={id:planId,importedAt:new Date().toISOString(),title:parsed.titulo||'Planejamento Criativo',periodo:parsed.periodo||{},sourceFile:file.name||'planner.json',data:parsed};
     if(existing)Object.assign(existing,plan);else D.magicPlans.unshift(plan);
     const result=magicImportIntoOperation(parsed,planId);
@@ -434,7 +494,7 @@ function magicPlannerPage(openId=''){
     const totalContents=companies.reduce((n,c)=>n+(c.conteudos?.length||0),0);
     return `<article class="card magic-run-card ${openId===p.id?'active':''}"><div class="magic-run-top"><div><span class="badge warn"><i class="fa fa-brain"></i> SETOR DE PLANEJAMENTO</span><h3>${e(p.title)}</h3><div class="meta">${date(p.periodo?.inicio)} — ${date(p.periodo?.fim)} • Importado em ${new Date(p.importedAt).toLocaleString('pt-BR')}</div></div><div class="actions"><button class="btn primary sm" onclick="magicOpenPlan('${p.id}')"><i class="fa fa-eye"></i> Abrir</button><button class="btn light sm" onclick="magicDownload('${p.id}')"><i class="fa fa-download"></i> JSON</button><button class="btn danger sm" onclick="magicDelete('${p.id}')"><i class="fa fa-trash"></i></button></div></div><div class="stats magic-stats"><div class="mini"><b>${companies.length}</b><span>EMPRESAS</span></div><div class="mini"><b>${totalContents}</b><span>DEMANDAS</span></div><div class="mini"><b>${companies.reduce((n,c)=>n+(c.conteudos||[]).filter(x=>x.isReserve).length,0)}</b><span>RESERVAS</span></div><div class="mini"><b>${companies.reduce((n,c)=>n+(c.conteudos||[]).filter(x=>x.requiresCapture).length,0)}</b><span>CAPTAÇÕES</span></div></div></article>`;
   }).join('');
-  page.innerHTML=head('Planejamento Criativo','O cérebro da operação: gera a semana e entrega para Produção executar.',`<button class="btn light" onclick="magicCopyPrompt()"><i class="fa fa-copy"></i> Copiar prompt semanal</button><button class="btn primary" onclick="magicPickUpload()"><i class="fa fa-file-arrow-up"></i> Importar JSON</button>`)+`<div class="notice"><b>Fluxo operacional:</b> Planejamento Criativo → JSON → semana criada automaticamente → Produção executa → próxima publicação fica protegida.</div><div class="magic-runs">${runs||empty('Nenhum planejamento semanal importado ainda.')}</div>`;
+  page.innerHTML=head('Planejamento Criativo','O cérebro da operação: cada JSON ativo alimenta a semana e a Produção. Excluir o JSON remove tudo que ele criou.',`<button class="btn light" onclick="magicCopyPrompt()"><i class="fa fa-copy"></i> Copiar prompt semanal</button><button class="btn primary" onclick="magicPickUpload()"><i class="fa fa-file-arrow-up"></i> Importar JSON</button>`)+`<div class="notice"><b>Fluxo operacional:</b> Planejamento Criativo → JSON → semana criada automaticamente → Produção executa → próxima publicação fica protegida.</div><div class="magic-runs">${runs||empty('Nenhum planejamento semanal importado ainda.')}</div>`;
 }
 function magicOpenPlan(planId){
   const p=(D.magicPlans||[]).find(x=>x.id===planId);if(!p)return toast('Planejamento não encontrado.');
@@ -468,11 +528,17 @@ function magicDownload(planId){
 function magicDelete(planId){
   const p=(D.magicPlans||[]).find(x=>x.id===planId);
   if(!p)return;
-  if(!confirm(`Excluir "${p.title||'Planejamento Criativo'}"?\n\nAs demandas já sincronizadas com Produção serão mantidas. Exclua-as no quadro se também quiser removê-las.`))return;
-  D.magicPlans=D.magicPlans.filter(x=>x.id!==planId);
+
+  if(!confirm(
+    `Excluir "${p.title||'Planejamento Criativo'}"?\n\n`+
+    `Isso apagará também TODAS as metas, conteúdos, demandas, agendamentos e semanas criadas por este JSON.\n\n`+
+    `Conteúdos e tarefas criados manualmente não serão apagados.`
+  ))return;
+
+  const removed=magicRemovePlanArtifacts(planId,{removePlanRecord:true});
   save();
   magicPlannerPage();
-  toast('Planejamento Criativo excluído.');
+  toast(`JSON excluído • ${removed.contents} demandas e ${removed.weeks} semanas removidas.`);
 }
 function magicInjectCSS(){
   if(document.getElementById('move-magic-css'))return;
