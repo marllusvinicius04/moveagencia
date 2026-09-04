@@ -508,6 +508,90 @@ function magicEditContent(planId,companyId,weekId,contentId){
   if(!ct)return toast('Conteúdo não encontrado.');
   modal('Editar conteúdo do Planejamento',`<form id="magicEditForm" class="fg"><div class="field"><label>Tipo</label><select name="tipo">${['Reels','Post','Stories'].map(v=>`<option ${ct.tipo===v?'selected':''}>${v}</option>`).join('')}</select></div><div class="field"><label>Postagem</label><input type="date" name="postDate" value="${e(ct.postDate||'')}"></div><div class="field"><label>Produzir em</label><input type="date" name="productionDate" value="${e(ct.productionDate||'')}"></div><div class="field"><label>Prioridade</label><select name="prioridade">${['Obrigatória','Meta','Adiantamento'].map(v=>`<option ${ct.prioridade===v?'selected':''}>${v}</option>`).join('')}</select></div><div class="field span"><label>Título</label><input name="titulo" value="${e(ct.titulo||'')}"></div><div class="field span"><label>Ideia</label><textarea name="ideia">${e(ct.ideia||'')}</textarea></div><div class="field span"><label>Objetivo</label><textarea name="objetivo">${e(ct.objetivo||'')}</textarea></div><div class="field span"><label>Roteiro / estrutura</label><textarea name="roteiro" style="min-height:360px">${e(ct.roteiro||'')}</textarea></div><div class="field span"><label>Legenda</label><textarea name="legenda" style="min-height:170px">${e(ct.legenda||'')}</textarea></div><div class="field span"><label>Direção criativa</label><textarea name="direcaoCriativa">${e(ct.direcaoCriativa||'')}</textarea></div></form>`,()=>{const q=obj(document.getElementById('magicEditForm'));Object.assign(ct,q);magicImportIntoOperation(p.data,p.id);closeM();save();magicCompanyDetail(planId,companyId);toast('Conteúdo atualizado também na Produção.');});
 }
+
+function magicDeleteContent(planId,companyId,contentId){
+  const p=(D.magicPlans||[]).find(x=>x.id===planId);
+  const ep=p?.data?.empresas?.find(x=>x.companyId===companyId);
+  const ct=ep?.conteudos?.find(x=>x.id===contentId);
+  if(!p||!ep||!ct)return toast('Conteúdo não encontrado.');
+
+  if(!confirm(`Excluir a ideia \"${ct.titulo||'Sem título'}\"?\n\nEla também será removida da Produção e das metas/compromissos vinculados.`))return;
+
+  ep.conteudos=ep.conteudos.filter(x=>x.id!==contentId);
+
+  const op=(D.contents||[]).find(x=>x.magicSource===planId&&x.companyId===companyId&&x.magicContentId===contentId);
+  if(op){
+    const opId=op.id;
+    D.contents=(D.contents||[]).filter(x=>x.id!==opId);
+    D.tasks=(D.tasks||[]).filter(x=>x.contentId!==opId&&x.magicContentId!==contentId);
+    D.scheduled=(D.scheduled||[]).filter(x=>x.contentId!==opId&&x.magicContentId!==contentId);
+    if(Array.isArray(D.executionLog))D.executionLog=D.executionLog.filter(x=>x.contentId!==opId&&x.magicContentId!==contentId);
+  }
+
+  moveCleanOrphanJSONCommitments();
+  save();
+  magicCompanyDetail(planId,companyId);
+  toast('Ideia excluída do Planejamento e da Produção.');
+}
+
+function magicAddContent(planId,companyId){
+  const p=(D.magicPlans||[]).find(x=>x.id===planId);
+  const ep=p?.data?.empresas?.find(x=>x.companyId===companyId);
+  if(!p||!ep)return toast('Planejamento da empresa não encontrado.');
+
+  const today=moveDateKeyLocal(new Date());
+  const defaultPost=(p.periodo?.inicio&&p.periodo?.inicio>=today)?p.periodo.inicio:today;
+
+  modal('Adicionar ideia de conteúdo',`<form id="magicAddForm" class="fg">
+    <div class="field"><label>Tipo</label><select name="tipo"><option>Reels</option><option>Post</option><option>Stories</option></select></div>
+    <div class="field"><label>Prioridade</label><select name="prioridade"><option>Obrigatória</option><option selected>Meta</option><option>Adiantamento</option></select></div>
+    <div class="field"><label>Produzir em</label><input type="date" name="productionDate" value="${e(defaultPost)}" required></div>
+    <div class="field"><label>Publicar em</label><input type="date" name="postDate" value="${e(defaultPost)}" required></div>
+    <div class="field"><label>Horário</label><input type="time" name="postTime" value="12:00"></div>
+    <div class="field"><label>Precisa de captação?</label><select name="requiresCapture"><option value="false">Não</option><option value="true">Sim</option></select></div>
+    <div class="field span"><label>Título</label><input name="titulo" placeholder="Nome/tema do conteúdo" required></div>
+    <div class="field span"><label>Ideia / proposta</label><textarea name="ideia" placeholder="O que será produzido e qual é a ideia criativa"></textarea></div>
+    <div class="field span"><label>Objetivo</label><textarea name="objetivo" placeholder="O que esse conteúdo precisa gerar"></textarea></div>
+    <div class="field span"><label>Linha editorial</label><input name="linhaEditorial" placeholder="Ex.: Oferta, Autoridade, Conexão, Engajamento"></div>
+    <div class="field span"><label>Roteiro / estrutura</label><textarea name="roteiro" style="min-height:300px" placeholder="Para Reel falado: GANCHO VISUAL, GANCHO FALA, FALA 01, FALA 02..."></textarea></div>
+    <div class="field span"><label>Legenda</label><textarea name="legenda" style="min-height:150px"></textarea></div>
+    <div class="field span"><label>Direção criativa</label><textarea name="direcaoCriativa"></textarea></div>
+    <div class="field"><label>Reserva futura?</label><select name="isReserve"><option value="false">Não</option><option value="true">Sim</option></select></div>
+  </form>`,()=>{
+    const q=obj(document.getElementById('magicAddForm'));
+    if(!q.titulo||!q.postDate||!q.productionDate)return toast('Preencha título, produção e publicação.');
+    if(q.productionDate>q.postDate)return toast('A data de produção não pode ser depois da publicação.');
+
+    const ct={
+      id:'manual_'+id(),
+      tipo:q.tipo||'Post',
+      titulo:q.titulo||'',
+      ideia:q.ideia||'',
+      objetivo:q.objetivo||'',
+      linhaEditorial:q.linhaEditorial||'',
+      roteiro:q.roteiro||'',
+      legenda:q.legenda||'',
+      postDate:q.postDate||'',
+      postTime:q.postTime||'',
+      productionDate:q.productionDate||'',
+      requiresCapture:String(q.requiresCapture)==='true',
+      prioridade:q.prioridade||'Meta',
+      isReserve:String(q.isReserve)==='true',
+      productionStatusInicial:'Fila de produção',
+      direcaoCriativa:q.direcaoCriativa||'',
+      observacoes:'Adicionado manualmente no Planejamento Criativo'
+    };
+
+    ep.conteudos=Array.isArray(ep.conteudos)?ep.conteudos:[];
+    ep.conteudos.push(ct);
+    magicImportIntoOperation(p.data,p.id);
+    closeM();
+    save();
+    magicCompanyDetail(planId,companyId);
+    toast('Nova ideia adicionada e enviada para Produção.');
+  });
+}
+
 function magicClientDownload(planId,companyId=''){
   const p=(D.magicPlans||[]).find(x=>x.id===planId);if(!p)return toast('Planejamento não encontrado.');
   const empresas=companyId?(p.data?.empresas||[]).filter(x=>x.companyId===companyId):(p.data?.empresas||[]);
@@ -518,8 +602,8 @@ function magicClientDownload(planId,companyId=''){
 function magicCompanyDetail(planId,companyId){
   const p=(D.magicPlans||[]).find(x=>x.id===planId),ep=p?.data?.empresas?.find(x=>x.companyId===companyId);if(!p||!ep)return toast('Plano da empresa não encontrado.');
   const c=D.companies.find(x=>x.id===companyId),page=magicEnsurePage();
-  const items=[...(ep.conteudos||[])].sort((a,b)=>String(a.postDate||'').localeCompare(String(b.postDate||''))).map(ct=>`<article class="magic-content-card ${ct.isReserve?'magic-reserve':''}"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo)}</span><span class="badge ${ct.prioridade==='Obrigatória'?'red':ct.prioridade==='Adiantamento'?'ok':'warn'}">${e(ct.prioridade||'Meta')}</span>${ct.isReserve?'<span class="badge ok">RESERVA</span>':''}${ct.requiresCapture?'<span class="badge">CAPTAÇÃO</span>':''}</div><h4>${e(ct.titulo)}</h4><p><b>Ideia:</b> ${e(ct.ideia||'')}</p><p><b>Objetivo:</b> ${e(ct.objetivo||'')}</p><div class="magic-script"><b>ROTEIRO / ESTRUTURA</b><pre>${e(ct.roteiro||'')}</pre></div>${ct.legenda?`<div class="magic-script"><b>LEGENDA</b><pre>${e(ct.legenda)}</pre></div>`:''}<div class="meta"><b>Produzir:</b> ${date(ct.productionDate)} • <b>Publicar:</b> ${date(ct.postDate)} ${e(ct.postTime||'')}</div><div class="actions"><button class="btn light sm" onclick="magicEditContent('${planId}','${companyId}','','${ct.id}')"><i class="fa fa-pen"></i> Editar</button><button class="btn dark sm" onclick="board('${companyId}')"><i class="fa fa-clapperboard"></i> Abrir Produção</button></div></article>`).join('');
-  page.innerHTML=head(ep.empresa||c?.nome||'Empresa',ep.propostaSemana||'',`<button class="btn light" onclick="magicOpenPlan('${planId}')"><i class="fa fa-arrow-left"></i> Voltar</button><button class="btn dark" onclick="magicClientDownload('${planId}','${companyId}')"><i class="fa fa-download"></i> Versão da empresa</button>`)+`<div class="card section magic-direction"><span class="eyebrow">PROPOSTA DA SEMANA</span><p>${e(ep.propostaSemana||'—')}</p><div class="meta"><b>Objetivo:</b> ${e(ep.objetivoSemana||'—')} • <b>Linha:</b> ${e(ep.linhaSemana||'—')}</div></div><div style="margin-top:18px">${head('Demandas da semana','Cada card já está pronto para a equipe executar.')}</div><div class="magic-content-list">${items||empty('Sem conteúdos.')}</div>`;
+  const items=[...(ep.conteudos||[])].sort((a,b)=>String(a.postDate||'').localeCompare(String(b.postDate||''))).map(ct=>`<article class="magic-content-card ${ct.isReserve?'magic-reserve':''}"><div class="move-calendar-tags"><span class="badge">${e(ct.tipo)}</span><span class="badge ${ct.prioridade==='Obrigatória'?'red':ct.prioridade==='Adiantamento'?'ok':'warn'}">${e(ct.prioridade||'Meta')}</span>${ct.isReserve?'<span class="badge ok">RESERVA</span>':''}${ct.requiresCapture?'<span class="badge">CAPTAÇÃO</span>':''}</div><h4>${e(ct.titulo)}</h4><p><b>Ideia:</b> ${e(ct.ideia||'')}</p><p><b>Objetivo:</b> ${e(ct.objetivo||'')}</p><div class="magic-script"><b>ROTEIRO / ESTRUTURA</b><pre>${e(ct.roteiro||'')}</pre></div>${ct.legenda?`<div class="magic-script"><b>LEGENDA</b><pre>${e(ct.legenda)}</pre></div>`:''}<div class="meta"><b>Produzir:</b> ${date(ct.productionDate)} • <b>Publicar:</b> ${date(ct.postDate)} ${e(ct.postTime||'')}</div><div class="actions"><button class="btn light sm" onclick="magicEditContent('${planId}','${companyId}','','${ct.id}')"><i class="fa fa-pen"></i> Editar</button><button class="btn danger sm" onclick="magicDeleteContent('${planId}','${companyId}','${ct.id}')"><i class="fa fa-trash"></i> Excluir</button><button class="btn dark sm" onclick="board('${companyId}')"><i class="fa fa-clapperboard"></i> Abrir Produção</button></div></article>`).join('');
+  page.innerHTML=head(ep.empresa||c?.nome||'Empresa',ep.propostaSemana||'',`<button class="btn light" onclick="magicOpenPlan('${planId}')"><i class="fa fa-arrow-left"></i> Voltar</button><button class="btn primary" onclick="magicAddContent('${planId}','${companyId}')"><i class="fa fa-plus"></i> Adicionar ideia</button><button class="btn dark" onclick="magicClientDownload('${planId}','${companyId}')"><i class="fa fa-download"></i> Versão da empresa</button>`)+`<div class="card section magic-direction"><span class="eyebrow">PROPOSTA DA SEMANA</span><p>${e(ep.propostaSemana||'—')}</p><div class="meta"><b>Objetivo:</b> ${e(ep.objetivoSemana||'—')} • <b>Linha:</b> ${e(ep.linhaSemana||'—')}</div></div><div style="margin-top:18px">${head('Demandas da semana','Cada card já está pronto para a equipe executar.')}</div><div class="magic-content-list">${items||empty('Sem conteúdos.')}</div>`;
 }
 function magicDownload(planId){
   const p=(D.magicPlans||[]).find(x=>x.id===planId);
