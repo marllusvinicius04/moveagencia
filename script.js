@@ -102,7 +102,7 @@ async function moveLoadAfterLogin(){
   const rest=Math.max(0,3000-(Date.now()-started));
   if(rest)await moveSleep(rest);
   moveHideLoading();
-  try{moveMigrateContentLegendas();moveCleanOrphanJSONCommitments();await moveSyncTodayPointsFromCloud();nav();render(R||'home');moveShowTeamMessageOnce();moveSyncClientMedia()}catch(err){console.error(err)}
+  try{moveMigrateContentLegendas();moveNormalizePlanningState();localStorage.setItem(KEY,JSON.stringify(D));await moveSyncTodayPointsFromCloud();nav();render(R||'home');moveShowTeamMessageOnce();moveSyncClientMedia()}catch(err){console.error(err)}
 }
 
 
@@ -471,6 +471,7 @@ async function magicImportFile(file){
     const plan={id:planId,importedAt:new Date().toISOString(),title:parsed.titulo||'Planejamento Criativo',periodo:parsed.periodo||{},sourceFile:file.name||'planner.json',data:parsed};
     if(existing)Object.assign(existing,plan);else D.magicPlans.unshift(plan);
     const result=magicImportIntoOperation(parsed,planId);
+    moveNormalizePlanningState();
     save();await moveSleep(400);moveHideLoading();
     toast(`Semana criada: ${result.created} novas demandas e ${result.updated} atualizadas.`);
     magicPlannerPage(planId);
@@ -536,6 +537,7 @@ function magicDelete(planId){
   ))return;
 
   const removed=magicRemovePlanArtifacts(planId,{removePlanRecord:true});
+  moveNormalizePlanningState();
   save();
   magicPlannerPage();
   toast(`JSON excluído • ${removed.contents} demandas e ${removed.weeks} semanas removidas.`);
@@ -750,7 +752,7 @@ function moveMigrateContentLegendas(){
   if(changed)localStorage.setItem(KEY,JSON.stringify(D));
 }
 
-function save(){localStorage.setItem(KEY,JSON.stringify(D));moveSetSavedStatus('Salvo local • sincronizando...');render(R);moveScheduleSync()}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){
+function save(){moveNormalizePlanningState();localStorage.setItem(KEY,JSON.stringify(D));moveSetSavedStatus('Salvo local • sincronizando...');render(R);moveScheduleSync()}function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}function e(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}function date(v){if(!v)return'—';return new Date(String(v).slice(0,10)+'T12:00').toLocaleDateString('pt-BR')}function ini(n){return String(n||'M').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()}function toast(x){let t=document.getElementById('toast');t.textContent=x;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}function nav(){
   const navEl=document.getElementById('nav');
   if(!navEl)return;
   navEl.innerHTML=M.map(x=>`<button class="${R===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="fa ${x[1]}"></i>${x[2]}</button>`).join('');
@@ -911,44 +913,73 @@ function movePPClock(){const el=document.getElementById('movePPClock');if(!el)re
 function movePPCycleBanner(){const c=movePPCycleInfo();setTimeout(()=>{movePPClock();if(window.__movePPClockTimer)clearInterval(window.__movePPClockTimer);window.__movePPClockTimer=setInterval(movePPClock,1000)},0);return `<section class="move-pp-cycle ${c.cls}"><div class="move-pp-main"><div class="move-pp-icon"><i class="fa ${c.icon}"></i></div><div class="move-pp-copy"><span class="move-pp-label">OPERAÇÃO SEMANAL CONTÍNUA</span><h2>${e(c.type)}</h2><div id="movePPClock" class="move-pp-clock">Carregando data e hora...</div><p>${e(c.instruction)}</p></div></div><div class="move-pp-next"><span>REGRA DE PROTEÇÃO</span><b>${e(c.nextType)}</b><small>Próxima segunda: ${date(c.nextDate)}</small></div><div class="move-pp-rule"><i class="fa fa-shield-halved"></i><div><b>PLANEJAR → EXECUTAR → PROTEGER</b><span>A semana não termina zerada: a primeira publicação da próxima semana deve ficar pronta quando a frequência da empresa exigir.</span></div></div></section>`;}
 
 
-function moveCleanOrphanJSONCommitments(){
-  const activeIds=new Set((D.magicPlans||[]).map(p=>p.id));
-  const orphanContentIds=new Set(
-    (D.contents||[])
-      .filter(ct=>ct.magicSource&&!activeIds.has(ct.magicSource))
-      .map(ct=>ct.id)
-  );
-
-  D.contents=(D.contents||[]).filter(ct=>!ct.magicSource||activeIds.has(ct.magicSource));
-  D.tasks=(D.tasks||[]).filter(t=>
-    (!t.magicSource||activeIds.has(t.magicSource)) &&
-    !orphanContentIds.has(t.contentId)
-  );
-  D.scheduled=(D.scheduled||[]).filter(s=>
-    (!s.magicSource||activeIds.has(s.magicSource)) &&
-    !orphanContentIds.has(s.contentId)
-  );
-  D.weeks=(D.weeks||[]).filter(w=>
-    !w.magicSource ||
-    activeIds.has(w.magicSource) ||
-    (D.contents||[]).some(ct=>ct.weekId===w.id)
-  );
+function moveActivePlanIds(){
+  return new Set((D.magicPlans||[])
+    .filter(p=>p?.data?.plannerVersion==='MOVE_CREATIVE_V2'&&Array.isArray(p?.data?.empresas)&&p.data.empresas.length)
+    .map(p=>p.id));
 }
 
 function moveHasActiveImportedJSON(){
-  return (D.magicPlans||[]).some(p=>
-    p?.data?.plannerVersion==='MOVE_CREATIVE_V2' &&
-    Array.isArray(p?.data?.empresas) &&
-    p.data.empresas.length
-  );
+  return moveActivePlanIds().size>0;
 }
 
+function moveNormalizePlanningState(){
+  const activeIds=moveActivePlanIds();
+
+  // Tudo que foi criado automaticamente por um JSON que já não existe é apagado.
+  const orphanContents=(D.contents||[]).filter(ct=>ct.magicSource&&!activeIds.has(ct.magicSource));
+  const orphanContentIds=new Set(orphanContents.map(ct=>ct.id));
+  const orphanMagicIds=new Set(orphanContents.map(ct=>ct.magicContentId).filter(Boolean));
+
+  D.contents=(D.contents||[]).filter(ct=>!ct.magicSource||activeIds.has(ct.magicSource));
+  D.tasks=(D.tasks||[]).filter(t=>
+    (!t.magicSource||activeIds.has(t.magicSource))&&
+    (!t.planId||activeIds.has(t.planId))&&
+    !orphanContentIds.has(t.contentId)&&
+    !orphanMagicIds.has(t.magicContentId)
+  );
+  D.scheduled=(D.scheduled||[]).filter(x=>
+    (!x.magicSource||activeIds.has(x.magicSource))&&
+    !orphanContentIds.has(x.contentId)&&
+    !orphanMagicIds.has(x.magicContentId)
+  );
+  D.weeks=(D.weeks||[]).filter(w=>{
+    if(!w.magicSource)return true;
+    if(activeIds.has(w.magicSource))return true;
+    return (D.contents||[]).some(ct=>ct.weekId===w.id&&!ct.magicSource);
+  });
+  D.executionLog=(D.executionLog||[]).filter(log=>
+    (!log.magicSource||activeIds.has(log.magicSource))&&
+    (!log.planId||activeIds.has(log.planId))&&
+    !orphanContentIds.has(log.contentId)&&
+    !orphanMagicIds.has(log.magicContentId)
+  );
+
+  // Regra absoluta: sem JSON ativo, nenhuma demanda automática sobrevive em cache/estado.
+  if(!activeIds.size){
+    D.contents=(D.contents||[]).filter(ct=>!ct.magicSource);
+    D.weeks=(D.weeks||[]).filter(w=>!w.magicSource);
+    D.tasks=(D.tasks||[]).filter(t=>!t.magicSource&&!t.planId);
+    D.scheduled=(D.scheduled||[]).filter(x=>!x.magicSource);
+    D.executionLog=(D.executionLog||[]).filter(x=>!x.magicSource&&!x.planId&&x.kind!=='content');
+  }
+
+  return activeIds;
+}
+
+// Compatibilidade com chamadas antigas.
+function moveCleanOrphanJSONCommitments(){moveNormalizePlanningState()}
+
 function moveImportedOperationalContents(){
-  if(!moveHasActiveImportedJSON())return [];
-  const activeIds=new Set((D.magicPlans||[])
-    .filter(p=>p?.data?.plannerVersion==='MOVE_CREATIVE_V2')
-    .map(p=>p.id));
+  const activeIds=moveActivePlanIds();
+  if(!activeIds.size)return [];
   return (D.contents||[]).filter(ct=>ct.magicSource&&activeIds.has(ct.magicSource));
+}
+
+function moveImportedOperationalWeeks(companyId=''){
+  const activeIds=moveActivePlanIds();
+  if(!activeIds.size)return [];
+  return (D.weeks||[]).filter(w=>w.magicSource&&activeIds.has(w.magicSource)&&(!companyId||w.companyId===companyId));
 }
 
 function moveOperationalOverview(){
@@ -958,7 +989,7 @@ function moveOperationalOverview(){
   const companies=D.companies||[];
   const hasImportedJSON=moveHasActiveImportedJSON();
   const contents=hasImportedJSON?moveImportedOperationalContents():[];
-  const tasks=hasImportedJSON?(D.tasks||[]):(D.tasks||[]).filter(t=>!t.magicSource&&!t.planId);
+  const tasks=hasImportedJSON?(D.tasks||[]):[];
 
   const planningTasks=tasks.filter(t=>taskSector(t)==='Planejamento');
   const productionTasks=tasks.filter(t=>taskSector(t)==='Produção');
@@ -1477,30 +1508,35 @@ function moveShowTeamMessageOnce(){
 }
 
 function moveTodayKey(){return moveDateKeyLocal(new Date())}
-function moveMissionPriorityWeight(p){
-  if(!moveHasActiveImportedJSON()){
-    return `<section class="card section">
-      <span class="eyebrow">MISSÃO DO DIA</span>
-      <h3 style="margin:7px 0">Nenhum compromisso de planejamento</h3>
-      <p class="meta">Importe um JSON do Planejamento Criativo para gerar as demandas e compromissos da operação.</p>
-    </section>`;
-  }
-return {'Obrigatória':3,'Meta':2,'Adiantamento':1}[p]||2}
+function moveMissionPriorityWeight(p){return {'Obrigatória':3,'Meta':2,'Adiantamento':1}[p]||2}
 function moveContentDone(ct){return ['Finalizado','Agendado','Publicado'].includes(ct?.workflowStatus)}
 function moveTodayMissionItems(){
+  if(!moveHasActiveImportedJSON())return [];
   const today=moveTodayKey(),items=[];
-  (D.contents||[]).forEach(ct=>{
+
+  moveImportedOperationalContents().forEach(ct=>{
     if(moveContentDone(ct))return;
     const prod=ct.productionDate||ct.productionDeadline||ct.postDate||'';
     if(!prod)return;
-    const due=prod<=today,soon=!due&&prod<=moveDateKeyLocal(new Date(Date.now()+2*86400000));
+    const soonLimit=new Date();soonLimit.setDate(soonLimit.getDate()+2);
+    const due=prod<=today,soon=!due&&prod<=moveDateKeyLocal(soonLimit);
     if(due||soon||ct.isReserve){
       const c=D.companies.find(x=>x.id===ct.companyId);
-      let priority=ct.missionPriority||'Meta';if(prod<today)priority='Obrigatória';
+      let priority=ct.missionPriority||'Meta';
+      if(prod<today)priority='Obrigatória';
       items.push({kind:'content',id:ct.id,company:c?.nome||'Empresa',title:ct.titulo||'Conteúdo',type:ct.requiresCapture?'Captação / produção':ct.tipo||'Produção',priority,date:prod,late:prod<today,reserve:!!ct.isReserve});
     }
   });
-  (D.tasks||[]).forEach(t=>{taskNormalize(t);if(t.feita)return;const dt=t.data||'';if(!dt||dt<=today){const c=D.companies.find(x=>x.id===t.companyId);items.push({kind:'task',id:t.id,company:c?.nome||'Minhas Tarefas',title:t.titulo||'Tarefa',type:'Tarefa',priority:dt&&dt<today?'Obrigatória':(taskPriority(t)==='Crítica'||taskPriority(t)==='Urgente'?'Obrigatória':'Meta'),date:dt,late:!!dt&&dt<today});}});
+
+  // Minhas Tarefas só entram na Missão do Dia quando existe um planejamento JSON ativo.
+  (D.tasks||[]).forEach(t=>{
+    taskNormalize(t);if(t.feita)return;
+    const dt=t.data||'';
+    if(!dt||dt<=today){
+      const c=D.companies.find(x=>x.id===t.companyId);
+      items.push({kind:'task',id:t.id,company:c?.nome||'Minhas Tarefas',title:t.titulo||'Tarefa',type:'Tarefa',priority:dt&&dt<today?'Obrigatória':(taskPriority(t)==='Crítica'||taskPriority(t)==='Urgente'?'Obrigatória':'Meta'),date:dt,late:!!dt&&dt<today});
+    }
+  });
   return items.sort((a,b)=>Number(b.late)-Number(a.late)||moveMissionPriorityWeight(b.priority)-moveMissionPriorityWeight(a.priority)||String(a.date||'').localeCompare(String(b.date||'')));
 }
 function moveMissionOpen(kind,itemId){if(kind==='task'){TASK_SECTOR=taskSectorKey(D.tasks.find(x=>x.id===itemId)||{});go('tarefas');return;}const ct=D.contents.find(x=>x.id===itemId);if(ct)board(ct.companyId);}
@@ -1513,6 +1549,7 @@ function moveMissionPostpone(kind,itemId){
   modal('Reprogramar demanda',`<form id="movePostponeForm" class="fg"><div class="field span"><label>Por que não será concluída hoje?</label><select name="reason"><option>Cliente não disponibilizou material</option><option>Captação não aconteceu</option><option>Dependência externa</option><option>Prioridade alterada</option><option>Não consegui concluir</option></select></div><div class="field span"><label>Nova data *</label><input type="date" name="newDate" required></div></form>`,()=>{const q=obj(document.getElementById('movePostponeForm'));if(!q.newDate)return toast('Escolha a nova data.');if(kind==='task'){const t=D.tasks.find(x=>x.id===itemId);if(t){t.data=q.newDate;t.prazo=q.newDate;t.postponeReason=q.reason;t.postponedCount=Number(t.postponedCount||0)+1;}}else{const ct=D.contents.find(x=>x.id===itemId);if(ct){ct.productionDate=q.newDate;ct.productionDeadline=q.newDate;ct.postponeReason=q.reason;ct.postponedCount=Number(ct.postponedCount||0)+1;}}D.executionLog=D.executionLog||[];D.executionLog.unshift({id:id(),at:new Date().toISOString(),action:'postponed',kind,itemId,reason:q.reason,newDate:q.newDate});closeM();save();home();toast('Demanda reprogramada e registrada.');});
 }
 function moveMissionPanel(){
+  if(!moveHasActiveImportedJSON())return `<section class="move-mission"><div class="move-mission-head"><div><span class="eyebrow">MISSÃO DO DIA</span><h2>Nenhum compromisso ativo</h2><p>Importe um JSON no Planejamento Criativo para gerar demandas, metas e compromissos da operação.</p></div><div class="move-mission-score"><b>0</b><span>compromissos</span></div></div></section>`;
   const items=moveTodayMissionItems(),required=items.filter(x=>x.priority==='Obrigatória'),meta=items.filter(x=>x.priority==='Meta'),advance=items.filter(x=>x.priority==='Adiantamento');
   const completedToday=(D.executionLog||[]).filter(x=>String(x.at||'').slice(0,10)===moveTodayKey()&&x.action==='completed').length;
   const postponedToday=(D.executionLog||[]).filter(x=>String(x.at||'').slice(0,10)===moveTodayKey()&&x.action==='postponed').length;
@@ -1520,11 +1557,16 @@ function moveMissionPanel(){
   return `<section class="move-mission"><div class="move-mission-head"><div><span class="eyebrow">MISSÃO DO DIA</span><h2>Hoje tem ${items.length} compromisso${items.length===1?'':'s'} para executar</h2><p>Se entrou aqui, não some: conclua ou reprograma com motivo registrado.</p></div><div class="move-mission-score"><b>${completedToday}</b><span>concluídas hoje</span></div></div><div class="move-mission-kpis"><div><span>OBRIGATÓRIAS</span><b>${required.length}</b></div><div><span>METAS</span><b>${meta.length}</b></div><div><span>ADIANTAMENTO</span><b>${advance.length}</b></div><div><span>REPROGRAMADAS HOJE</span><b>${postponedToday}</b></div></div><div class="move-mission-list">${cards||empty('Missão limpa. Use o tempo livre para adiantar estoque e proteger a próxima semana.')}</div></section>`;
 }
 function home(){
-  const p=D.contents.length,m=D.scheduled.length,pe=pend().length;
-  const today=moveTodayKey(),plannedThisWeek=(D.contents||[]).filter(x=>{const w=D.weeks.find(z=>z.id===x.weekId);return w&&w.inicio<=today&&w.fim>=today}).length;
-  const doneThisWeek=(D.contents||[]).filter(x=>{const w=D.weeks.find(z=>z.id===x.weekId);return w&&w.inicio<=today&&w.fim>=today&&moveContentDone(x)}).length;
-  const deferred=(D.executionLog||[]).filter(x=>x.action==='postponed'&&String(x.at||'').slice(0,10)>=movePPCycleInfo().currentMonday).length;
-  document.getElementById('p-home').innerHTML=moveEmployeeWelcome()+movePPCycleBanner()+moveMissionPanel()+head('Performance da semana','Planejamento só vira resultado quando a Produção executa.')+`<div class="grid kpis"><div class="card kpi"><i class="fa fa-list-check"></i><b>${plannedThisWeek}</b><span>demandas planejadas</span></div><div class="card kpi"><i class="fa fa-circle-check"></i><b>${doneThisWeek}</b><span>conteúdos finalizados</span></div><div class="card kpi"><i class="fa fa-calendar-plus"></i><b>${deferred}</b><span>reprogramações</span></div><div class="card kpi"><i class="fa fa-shield-halved"></i><b>${(D.contents||[]).filter(x=>x.isReserve&&!moveContentDone(x)).length}</b><span>reservas em produção</span></div></div>`+moveOperationalOverview();
+  const hasJSON=moveHasActiveImportedJSON();
+  const opContents=hasJSON?moveImportedOperationalContents():[];
+  const today=moveTodayKey();
+  const activeWeeks=hasJSON?moveImportedOperationalWeeks():[];
+  const activeWeekIds=new Set(activeWeeks.filter(w=>w.inicio<=today&&w.fim>=today).map(w=>w.id));
+  const plannedThisWeek=opContents.filter(x=>activeWeekIds.has(x.weekId)).length;
+  const doneThisWeek=opContents.filter(x=>activeWeekIds.has(x.weekId)&&moveContentDone(x)).length;
+  const deferred=hasJSON?(D.executionLog||[]).filter(x=>x.action==='postponed'&&String(x.at||'').slice(0,10)>=movePPCycleInfo().currentMonday).length:0;
+  const reserveOpen=opContents.filter(x=>x.isReserve&&!moveContentDone(x)).length;
+  document.getElementById('p-home').innerHTML=moveEmployeeWelcome()+movePPCycleBanner()+moveMissionPanel()+head('Performance da semana','Planejamento só vira resultado quando a Produção executa.')+`<div class="grid kpis"><div class="card kpi"><i class="fa fa-list-check"></i><b>${plannedThisWeek}</b><span>demandas planejadas</span></div><div class="card kpi"><i class="fa fa-circle-check"></i><b>${doneThisWeek}</b><span>conteúdos finalizados</span></div><div class="card kpi"><i class="fa fa-calendar-plus"></i><b>${deferred}</b><span>reprogramações</span></div><div class="card kpi"><i class="fa fa-shield-halved"></i><b>${reserveOpen}</b><span>reservas em produção</span></div></div>`+moveOperationalOverview();
 }
 function empresas(){
   document.getElementById('p-empresas').innerHTML=
@@ -1735,16 +1777,23 @@ function launchConfetti(){
 }
 
 function quadro(){
-  document.getElementById('p-quadro').innerHTML=
+  const page=document.getElementById('p-quadro');
+  if(!moveHasActiveImportedJSON()){
+    page.innerHTML=head('Produção','Demandas criativas recebidas do Setor de Planejamento.')+`<div class="notice"><b>Nenhum planejamento JSON importado.</b><br>Sem JSON ativo, não existem demandas, compromissos ou metas de produção.</div>${empty('Importe um JSON em Planejamento Criativo para iniciar a operação.')}`;
+    return;
+  }
+  const opContents=moveImportedOperationalContents();
+  page.innerHTML=
     head('Produção','Demandas criativas recebidas do Setor de Planejamento. Abra e execute.')
     +`<div class="grid companies">${D.companies.map(c=>{
-      const done=completedWeeksCount(c.id);
+      const total=opContents.filter(x=>x.companyId===c.id).length;
+      const done=moveImportedOperationalWeeks(c.id).filter(w=>weekProgress(w,c)>=100).length;
       return `<div class="card company">
         <div class="avatar">${ini(c.nome)}</div>
         <h3>${e(c.nome)}</h3>
-        <div class="meta">${D.contents.filter(x=>x.companyId===c.id).length} conteúdos planejados</div>
-        <div class="move-company-progress ${done===4?'is-complete':''}">
-          <i class="fa fa-check"></i> ${done}/4 semanas concluídas
+        <div class="meta">${total} conteúdos planejados</div>
+        <div class="move-company-progress ${total&&done===moveImportedOperationalWeeks(c.id).length?'is-complete':''}">
+          <i class="fa fa-check"></i> ${done}/${moveImportedOperationalWeeks(c.id).length} semanas concluídas
         </div>
         <div class="actions" style="margin-top:12px"><button class="btn primary" onclick="board('${c.id}')">Abrir quadro</button><button class="btn light" onclick="monthlyReport('${c.id}')"><i class="fa fa-chart-column"></i> Relatório</button></div>
       </div>`;
@@ -1848,7 +1897,7 @@ function boardDayName(d){
 }
 
 function productionSummary(cid){
-  const arr=D.contents.filter(x=>x.companyId===cid&&contentTeam(x)==='criativa');
+  const arr=moveImportedOperationalContents().filter(x=>x.companyId===cid&&contentTeam(x)==='criativa');
   const states=arr.map(productionDeadlineState);
   return {
     total:arr.length,
@@ -1862,16 +1911,17 @@ function productionSummary(cid){
 async function board(cid){
   CID=cid;
   R='quadro';
+  if(!moveHasActiveImportedJSON()){quadro();toast('Importe um JSON para gerar as demandas de Produção.');return;}
 
   const c=D.companies.find(x=>x.id===cid);
   if(!c)return quadro();
 
-  const ws=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>Number(a.numero)-Number(b.numero));
+  const ws=moveImportedOperationalWeeks(cid).sort((a,b)=>String(a.inicio||'').localeCompare(String(b.inicio||'')));
   const done=completedWeeksCount(cid);
 
   let weeksHTML=ws.map(w=>{
     const progress=weekProgress(w,c);
-    const contents=D.contents.filter(x=>x.weekId===w.id).sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0));
+    const contents=moveImportedOperationalContents().filter(x=>x.weekId===w.id).sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0));
     const days=boardDays(w);
     const withoutDate=contents.filter(x=>!x.postDate||!days.some(d=>boardDateKey(d)===x.postDate));
 
@@ -2000,7 +2050,7 @@ async function board(cid){
     </div>`;
   }
 
-  const prodItems=D.contents
+  const prodItems=moveImportedOperationalContents()
     .filter(x=>x.companyId===cid&&contentTeam(x)==='criativa')
     .sort((a,b)=>String(a.productionDeadline||a.postDate||'9999').localeCompare(String(b.productionDeadline||b.postDate||'9999')));
 
@@ -2150,8 +2200,8 @@ async function board(cid){
 function monthlyReportData(cid){
   const c=D.companies.find(x=>x.id===cid);
   if(!c)return null;
-  const weeks=D.weeks.filter(x=>x.companyId===cid).sort((a,b)=>Number(a.numero)-Number(b.numero));
-  const contents=D.contents.filter(x=>x.companyId===cid);
+  const weeks=moveImportedOperationalWeeks(cid).sort((a,b)=>String(a.inicio||'').localeCompare(String(b.inicio||'')));
+  const contents=moveImportedOperationalContents().filter(x=>x.companyId===cid);
   const scheduled=D.scheduled.filter(x=>x.companyId===cid);
   const expectedPerWeek=Number(c.reels||0)+Number(c.posts||0)+Number(c.stories||0);
   const expectedMonth=expectedPerWeek*4;
