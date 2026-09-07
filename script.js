@@ -162,10 +162,6 @@ function moveMondayOf(d=new Date()){
   const dow=x.getDay();
   const diff=dow===0?-6:1-dow;
   x.setDate(x.getDate()+diff);
-  if(dow===0||dow===6){
-    if(dow===6)x.setDate(x.getDate()+7);
-    if(dow===0)x.setDate(x.getDate()+7);
-  }
   return x;
 }
 function moveTargetOperationalPeriod(){
@@ -271,11 +267,12 @@ REGRAS OPERACIONAIS:
 1. Respeite a quantidade semanal contratada de Reels, Posts e Stories para a SEMANA OPERACIONAL.
 2. Conteúdos marcados como reserva não contam nesse volume semanal; são proteção da próxima semana.
 3. Se a empresa publica segunda-feira, crie no máximo a reserva mínima necessária para a próxima segunda, quando isso fizer sentido para manter a operação protegida.
-4. productionDate é o dia em que a equipe deve executar/captar/criar aquele conteúdo. Nunca coloque productionDate depois de postDate.
-5. Se postDate for segunda da semana atual, considere que ele deve estar protegido/pronto e marque productionStatusInicial="Pronto/Reservado" quando coerente.
-6. Conteúdos que precisam de gravação devem usar requiresCapture=true. Artes/posts estáticos normalmente false.
-7. prioridade deve ser "Obrigatória", "Meta" ou "Adiantamento". Reserva futura normalmente é "Adiantamento"; publicação próxima sem material é "Obrigatória".
-8. Preserve exatamente o companyId recebido.
+4. A operação é semanal e contínua: segunda planeja; terça prepara; quarta capta; quinta edita; sexta finaliza e revisa; sábado aprova e agenda; domingo apenas acompanha.
+5. productionDate é a data real de execução principal: quarta-feira para conteúdos que exigem captação; quinta-feira para artes e conteúdos sem captação. Nunca coloque productionDate depois de postDate.
+6. Se postDate for segunda da semana atual, considere que ele deve estar protegido/pronto e marque productionStatusInicial="Pronto/Reservado" quando coerente.
+7. Conteúdos que precisam de gravação devem usar requiresCapture=true. Artes/posts estáticos normalmente false.
+8. prioridade deve ser "Obrigatória", "Meta" ou "Adiantamento". Reserva futura normalmente é "Adiantamento"; publicação próxima sem material é "Obrigatória".
+9. Preserve exatamente o companyId recebido.
 
 SCHEMA OBRIGATÓRIO:
 {
@@ -989,9 +986,23 @@ function objMulti(f){
 
 
 
+const MOVE_DAILY_OPERATION={
+  1:{title:'SEGUNDA • PLANEJAMENTO',short:'Planejar',icon:'fa-lightbulb',cls:'planning',instruction:'Analisar a semana, conferir resultados, planejar os conteúdos da próxima semana e definir prioridades.',steps:[['analisar','Analisar resultados e pendências','home'],['planejar','Planejar os conteúdos da próxima semana','magicplanner'],['roteiros','Definir temas, roteiros e datas de publicação','magicplanner'],['confirmar','Confirmar informações e necessidades com os clientes','empresas']]},
+  2:{title:'TERÇA • PREPARAÇÃO',short:'Preparar',icon:'fa-list-check',cls:'planning',instruction:'Finalizar conteúdos urgentes da semana, fechar roteiros e deixar toda a captação de quarta-feira preparada.',steps:[['atuais','Preparar e finalizar conteúdos pendentes desta semana','quadro'],['revisar-plano','Revisar o planejamento da próxima semana','magicplanner'],['shotlist','Criar a lista de cenas, produtos, pessoas e locais','quadro'],['confirmar-captacao','Confirmar horários de captação com as empresas','agenda']]},
+  3:{title:'QUARTA • CAPTAÇÃO',short:'Captar',icon:'fa-camera',cls:'production',instruction:'Dia de executar as captações planejadas, gravar todos os roteiros e produzir material extra de segurança.',steps:[['captar','Realizar as captações programadas','agenda'],['roteiros-gravados','Gravar todos os roteiros planejados','quadro'],['banco','Captar imagens de apoio, bastidores e produtos','quadro'],['reserva','Produzir pelo menos um conteúdo reserva por empresa','quadro']]},
+  4:{title:'QUINTA • EDIÇÃO',short:'Editar',icon:'fa-scissors',cls:'production',instruction:'Organizar os arquivos da captação e transformar o material bruto em conteúdos prontos para revisão.',steps:[['organizar','Organizar arquivos e selecionar os melhores takes','quadro'],['editar-prioridades','Editar os conteúdos prioritários','quadro'],['artes','Produzir as artes e materiais complementares','quadro'],['legendas','Começar legendas e textos das publicações','textos']]},
+  5:{title:'SEXTA • FINALIZAÇÃO',short:'Finalizar',icon:'fa-circle-check',cls:'production',instruction:'Finalizar, revisar e preparar a entrega. Nada deve chegar ao sábado ainda incompleto.',steps:[['finalizar','Finalizar vídeos, artes e legendas','quadro'],['revisar','Revisar datas, preços, informações e chamadas','quadro'],['organizar-entrega','Organizar materiais por empresa e publicação','agendamento'],['pre-aprovacao','Enviar antecipadamente o que já estiver pronto','agendamento']]},
+  6:{title:'SÁBADO • APROVAÇÃO E AGENDAMENTO',short:'Aprovar',icon:'fa-calendar-check',cls:'transition',instruction:'Enviar o pacote final, executar ajustes rápidos e deixar a próxima semana agendada.',steps:[['enviar','Enviar conteúdos para aprovação','agendamento'],['ajustes','Executar ajustes rápidos solicitados','quadro'],['agendar','Agendar todos os conteúdos aprovados','agendamento'],['pendencias','Registrar pendências e garantir a próxima segunda-feira','pendencias']]},
+  0:{title:'DOMINGO • ACOMPANHAMENTO',short:'Acompanhar',icon:'fa-shield-heart',cls:'transition',instruction:'Sem produção pesada: acompanhar publicações, registrar oportunidades e preservar o descanso.',steps:[['acompanhar','Acompanhar publicações programadas','agendamento'],['oportunidades','Registrar tendências ou oportunidades da semana','curadoria']]}
+};
+function moveDailyOperation(now=new Date()){return MOVE_DAILY_OPERATION[now.getDay()]||MOVE_DAILY_OPERATION[1]}
+function moveRoutineDoneId(dayKey,stepId){return `routine:${dayKey}:${stepId}`}
+function moveRoutineIsDone(dayKey,stepId){return (D.executionLog||[]).some(x=>x.itemId===moveRoutineDoneId(dayKey,stepId)&&x.action==='completed')}
+
 function movePPCycleInfo(now=new Date()){
   const mon=moveMondayOf(now),fri=new Date(mon);fri.setDate(mon.getDate()+4),nextMon=new Date(mon);nextMon.setDate(mon.getDate()+7);
-  return {type:'SEMANA DE EXECUÇÃO',icon:'fa-bolt',cls:'production',weekNumber:magicWeekNumberFromDate(moveDateKeyLocal(mon)),currentMonday:moveDateKeyLocal(mon),nextType:'PRÓXIMA PUBLICAÇÃO PROTEGIDA',nextDate:moveDateKeyLocal(nextMon),instruction:'Planejamento e produção acontecem no mesmo ciclo. O que publica no começo da próxima semana deve ficar pronto ainda nesta semana.'};
+  const daily=moveDailyOperation(now);
+  return {type:daily.title,icon:daily.icon,cls:daily.cls,weekNumber:magicWeekNumberFromDate(moveDateKeyLocal(mon)),currentMonday:moveDateKeyLocal(mon),nextType:'PRÓXIMA PUBLICAÇÃO PROTEGIDA',nextDate:moveDateKeyLocal(nextMon),instruction:daily.instruction};
 }
 function movePPClock(){const el=document.getElementById('movePPClock');if(!el)return;const now=new Date();el.textContent=now.toLocaleString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 function movePPCycleBanner(){const c=movePPCycleInfo();setTimeout(()=>{movePPClock();if(window.__movePPClockTimer)clearInterval(window.__movePPClockTimer);window.__movePPClockTimer=setInterval(movePPClock,1000)},0);return `<section class="move-pp-cycle ${c.cls}"><div class="move-pp-main"><div class="move-pp-icon"><i class="fa ${c.icon}"></i></div><div class="move-pp-copy"><span class="move-pp-label">OPERAÇÃO SEMANAL CONTÍNUA</span><h2>${e(c.type)}</h2><div id="movePPClock" class="move-pp-clock">Carregando data e hora...</div><p>${e(c.instruction)}</p></div></div><div class="move-pp-next"><span>REGRA DE PROTEÇÃO</span><b>${e(c.nextType)}</b><small>Próxima segunda: ${date(c.nextDate)}</small></div><div class="move-pp-rule"><i class="fa fa-shield-halved"></i><div><b>PLANEJAR → EXECUTAR → PROTEGER</b><span>A semana não termina zerada: a primeira publicação da próxima semana deve ficar pronta quando a frequência da empresa exigir.</span></div></div></section>`;}
@@ -1121,7 +1132,7 @@ function moveOverviewSection(){
     <td><button class="btn light sm" onclick="board('${x.c.id}')">Abrir empresa</button></td>
   </tr>`).join('');
 
-  return movePPCycleBanner()+`<section class="move-op">
+  return `<section class="move-op">
     <div class="move-op-head">
       <div><span class="eyebrow">VISÃO GERAL DA OPERAÇÃO</span><h2>O que precisa da sua atenção agora</h2><p>Uma leitura rápida para você trabalhar por prioridade, sem procurar problema empresa por empresa.</p></div>
       <button class="btn light sm" onclick="home()"><i class="fa fa-rotate"></i> Atualizar</button>
@@ -1150,21 +1161,8 @@ function moveOverviewSection(){
 
 
 function movePPWeekTypeForDate(dateObj){
-  const d=new Date(dateObj.getFullYear(),dateObj.getMonth(),dateObj.getDate());
-  const transitionEnd=new Date(2026,7,16,23,59,59);
-  const cycleStart=new Date(2026,7,17,0,0,0);
-
-  if(d<=transitionEnd){
-    return {type:'TRANSIÇÃO',cls:'transition',label:'Transição'};
-  }
-
-  const days=Math.floor((d-cycleStart)/86400000);
-  const weekIndex=Math.floor(days/7);
-  const planning=weekIndex%2===0;
-
-  return planning
-    ?{type:'PLANEJAMENTO',cls:'planning',label:'Planejamento'}
-    :{type:'PRODUÇÃO',cls:'production',label:'Produção'};
+  const daily=moveDailyOperation(dateObj);
+  return {type:daily.title,cls:daily.cls,label:daily.short};
 }
 
 function movePPMonthCalendar(baseDate=new Date()){
@@ -1203,13 +1201,13 @@ function movePPMonthCalendar(baseDate=new Date()){
       <div>
         <span class="eyebrow">CALENDÁRIO OPERACIONAL</span>
         <h2>${monthName.charAt(0).toUpperCase()+monthName.slice(1)}</h2>
-        <p>As cores mostram automaticamente qual é o tipo de semana do ciclo P + P.</p>
+        <p>Cada dia tem uma missão fixa dentro da operação semanal contínua.</p>
       </div>
 
       <div class="move-real-calendar-legend">
-        <span class="legend-transition"><i></i> Transição</span>
         <span class="legend-planning"><i></i> Planejamento</span>
         <span class="legend-production"><i></i> Produção</span>
+        <span class="legend-transition"><i></i> Aprovação</span>
       </div>
     </div>
 
@@ -1221,7 +1219,7 @@ function movePPMonthCalendar(baseDate=new Date()){
 
     <div class="move-real-calendar-rule">
       <i class="fa fa-lock"></i>
-      <span>Ordem fixa: <b>Planejamento → Produção → Planejamento → Produção</b>. Atrasos não alteram o ciclo.</span>
+      <span>Ordem fixa: <b>Planejar → Preparar → Captar → Editar → Revisar → Aprovar e agendar</b>.</span>
     </div>
   </section>`;
 }
@@ -1595,8 +1593,11 @@ function moveTodayKey(){return moveDateKeyLocal(new Date())}
 function moveMissionPriorityWeight(p){return {'Obrigatória':3,'Meta':2,'Adiantamento':1}[p]||2}
 function moveContentDone(ct){return ['Finalizado','Agendado','Publicado'].includes(ct?.workflowStatus)}
 function moveTodayMissionItems(){
-  if(!moveHasActiveImportedJSON())return [];
   const today=moveTodayKey(),items=[];
+
+  moveDailyOperation(new Date()).steps.forEach(([stepId,title,route])=>{
+    if(!moveRoutineIsDone(today,stepId))items.push({kind:'routine',id:moveRoutineDoneId(today,stepId),company:'ROTINA FIXA',title,type:moveDailyOperation(new Date()).short,priority:'Obrigatória',date:today,late:false,route});
+  });
 
   moveImportedOperationalContents().forEach(ct=>{
     if(moveContentDone(ct))return;
@@ -1623,21 +1624,21 @@ function moveTodayMissionItems(){
   });
   return items.sort((a,b)=>Number(b.late)-Number(a.late)||moveMissionPriorityWeight(b.priority)-moveMissionPriorityWeight(a.priority)||String(a.date||'').localeCompare(String(b.date||'')));
 }
-function moveMissionOpen(kind,itemId){if(kind==='task'){TASK_SECTOR=taskSectorKey(D.tasks.find(x=>x.id===itemId)||{});go('tarefas');return;}const ct=D.contents.find(x=>x.id===itemId);if(ct)board(ct.companyId);}
+function moveMissionOpen(kind,itemId,route=''){if(kind==='routine'){go(route||'home');return;}if(kind==='task'){TASK_SECTOR=taskSectorKey(D.tasks.find(x=>x.id===itemId)||{});go('tarefas');return;}const ct=D.contents.find(x=>x.id===itemId);if(ct)board(ct.companyId);}
 function moveMissionDone(kind,itemId){
   if(kind==='task'){const t=D.tasks.find(x=>x.id===itemId);if(t){taskNormalize(t);t.feita=true;t.status='Concluída';t.completedAt=new Date().toISOString();}}
-  else{const ct=D.contents.find(x=>x.id===itemId);if(ct){ct.workflowStatus='Finalizado';ct.completedAt=new Date().toISOString();}}
+  else if(kind==='content'){const ct=D.contents.find(x=>x.id===itemId);if(ct){ct.workflowStatus='Finalizado';ct.completedAt=new Date().toISOString();}}
   D.executionLog=D.executionLog||[];D.executionLog.unshift({id:id(),at:new Date().toISOString(),action:'completed',kind,itemId});save();home();toast('Demanda concluída.');
 }
 function moveMissionPostpone(kind,itemId){
+  if(kind==='routine')return toast('A missão fixa do dia deve ser concluída hoje.');
   modal('Reprogramar demanda',`<form id="movePostponeForm" class="fg"><div class="field span"><label>Por que não será concluída hoje?</label><select name="reason"><option>Cliente não disponibilizou material</option><option>Captação não aconteceu</option><option>Dependência externa</option><option>Prioridade alterada</option><option>Não consegui concluir</option></select></div><div class="field span"><label>Nova data *</label><input type="date" name="newDate" required></div></form>`,()=>{const q=obj(document.getElementById('movePostponeForm'));if(!q.newDate)return toast('Escolha a nova data.');if(kind==='task'){const t=D.tasks.find(x=>x.id===itemId);if(t){t.data=q.newDate;t.prazo=q.newDate;t.postponeReason=q.reason;t.postponedCount=Number(t.postponedCount||0)+1;}}else{const ct=D.contents.find(x=>x.id===itemId);if(ct){ct.productionDate=q.newDate;ct.productionDeadline=q.newDate;ct.postponeReason=q.reason;ct.postponedCount=Number(ct.postponedCount||0)+1;}}D.executionLog=D.executionLog||[];D.executionLog.unshift({id:id(),at:new Date().toISOString(),action:'postponed',kind,itemId,reason:q.reason,newDate:q.newDate});closeM();save();home();toast('Demanda reprogramada e registrada.');});
 }
 function moveMissionPanel(){
-  if(!moveHasActiveImportedJSON())return `<section class="move-mission"><div class="move-mission-head"><div><span class="eyebrow">MISSÃO DO DIA</span><h2>Nenhum compromisso ativo</h2><p>Importe um JSON no Planejamento Criativo para gerar demandas, metas e compromissos da operação.</p></div><div class="move-mission-score"><b>0</b><span>compromissos</span></div></div></section>`;
   const items=moveTodayMissionItems(),required=items.filter(x=>x.priority==='Obrigatória'),meta=items.filter(x=>x.priority==='Meta'),advance=items.filter(x=>x.priority==='Adiantamento');
   const completedToday=(D.executionLog||[]).filter(x=>String(x.at||'').slice(0,10)===moveTodayKey()&&x.action==='completed').length;
   const postponedToday=(D.executionLog||[]).filter(x=>String(x.at||'').slice(0,10)===moveTodayKey()&&x.action==='postponed').length;
-  const cards=items.slice(0,12).map(x=>`<article class="move-mission-item ${x.late?'late':''}"><div class="move-mission-main"><div class="move-calendar-tags"><span class="badge ${x.priority==='Obrigatória'?'red':x.priority==='Adiantamento'?'ok':'warn'}">${e(x.priority)}</span><span class="badge">${e(x.type)}</span>${x.reserve?'<span class="badge ok">RESERVA</span>':''}</div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${x.date?`${x.late?'Atrasada • ':''}${date(x.date)}`:'Sem prazo • tarefa manual'}</small></div><div class="actions"><button class="btn light sm" onclick="moveMissionOpen('${x.kind}','${x.id}')"><i class="fa fa-eye"></i></button><button class="btn light sm" onclick="moveMissionPostpone('${x.kind}','${x.id}')"><i class="fa fa-calendar-plus"></i> Adiar</button><button class="btn primary sm" onclick="moveMissionDone('${x.kind}','${x.id}')"><i class="fa fa-check"></i> Concluir</button></div></article>`).join('');
+  const cards=items.slice(0,16).map(x=>`<article class="move-mission-item ${x.late?'late':''}"><div class="move-mission-main"><div class="move-calendar-tags"><span class="badge ${x.priority==='Obrigatória'?'red':x.priority==='Adiantamento'?'ok':'warn'}">${e(x.priority)}</span><span class="badge">${e(x.type)}</span>${x.reserve?'<span class="badge ok">RESERVA</span>':''}</div><strong>${e(x.company)} — ${e(x.title)}</strong><small>${x.kind==='routine'?'Etapa obrigatória da operação semanal':x.date?`${x.late?'Atrasada • ':''}${date(x.date)}`:'Sem prazo • tarefa manual'}</small></div><div class="actions"><button class="btn light sm" onclick="moveMissionOpen('${x.kind}','${x.id}','${x.route||''}')"><i class="fa fa-eye"></i> Abrir</button>${x.kind==='routine'?'':`<button class="btn light sm" onclick="moveMissionPostpone('${x.kind}','${x.id}')"><i class="fa fa-calendar-plus"></i> Adiar</button>`}<button class="btn primary sm" onclick="moveMissionDone('${x.kind}','${x.id}')"><i class="fa fa-check"></i> Concluir</button></div></article>`).join('');
   return `<section class="move-mission"><div class="move-mission-head"><div><span class="eyebrow">MISSÃO DO DIA</span><h2>Hoje tem ${items.length} compromisso${items.length===1?'':'s'} para executar</h2><p>Se entrou aqui, não some: conclua ou reprograma com motivo registrado.</p></div><div class="move-mission-score"><b>${completedToday}</b><span>concluídas hoje</span></div></div><div class="move-mission-kpis"><div><span>OBRIGATÓRIAS</span><b>${required.length}</b></div><div><span>METAS</span><b>${meta.length}</b></div><div><span>ADIANTAMENTO</span><b>${advance.length}</b></div><div><span>REPROGRAMADAS HOJE</span><b>${postponedToday}</b></div></div><div class="move-mission-list">${cards||empty('Missão limpa. Use o tempo livre para adiantar estoque e proteger a próxima semana.')}</div></section>`;
 }
 function home(){
@@ -1650,7 +1651,7 @@ function home(){
   const doneThisWeek=opContents.filter(x=>activeWeekIds.has(x.weekId)&&moveContentDone(x)).length;
   const deferred=hasJSON?(D.executionLog||[]).filter(x=>x.action==='postponed'&&String(x.at||'').slice(0,10)>=movePPCycleInfo().currentMonday).length:0;
   const reserveOpen=opContents.filter(x=>x.isReserve&&!moveContentDone(x)).length;
-  document.getElementById('p-home').innerHTML=moveEmployeeWelcome()+movePPCycleBanner()+moveMissionPanel()+head('Performance da semana','Planejamento só vira resultado quando a Produção executa.')+`<div class="grid kpis"><div class="card kpi"><i class="fa fa-list-check"></i><b>${plannedThisWeek}</b><span>demandas planejadas</span></div><div class="card kpi"><i class="fa fa-circle-check"></i><b>${doneThisWeek}</b><span>conteúdos finalizados</span></div><div class="card kpi"><i class="fa fa-calendar-plus"></i><b>${deferred}</b><span>reprogramações</span></div><div class="card kpi"><i class="fa fa-shield-halved"></i><b>${reserveOpen}</b><span>reservas em produção</span></div></div>`+moveOperationalOverview();
+  document.getElementById('p-home').innerHTML=moveEmployeeWelcome()+movePPCycleBanner()+moveMissionPanel()+head('Performance da semana','Planejamento só vira resultado quando a Produção executa.')+`<div class="grid kpis"><div class="card kpi"><i class="fa fa-list-check"></i><b>${plannedThisWeek}</b><span>demandas planejadas</span></div><div class="card kpi"><i class="fa fa-circle-check"></i><b>${doneThisWeek}</b><span>conteúdos finalizados</span></div><div class="card kpi"><i class="fa fa-calendar-plus"></i><b>${deferred}</b><span>reprogramações</span></div><div class="card kpi"><i class="fa fa-shield-halved"></i><b>${reserveOpen}</b><span>reservas em produção</span></div></div>`+moveOverviewSection();
 }
 function empresas(){
   document.getElementById('p-empresas').innerHTML=
@@ -3092,7 +3093,7 @@ function agendamento(){document.getElementById('p-agendamento').innerHTML=head('
     head(c.nome,'Materiais produzidos em cards estilo post, preservando o formato original.',`<button class="btn light" onclick="agendamento()">← Empresas</button> <button class="btn primary" onclick="upload('${cid}')">+ Material / Legenda</button> <button class="btn dark" onclick="approval('${cid}')">Baixar HTML aprovação</button>`)
     +`<div style="display:grid;gap:18px">${cards||empty('Nenhum material.')}</div>`;
 }
-function upload(cid,x=''){let s=D.scheduled.find(a=>a.id===x)||{},opts=D.contents.filter(a=>a.companyId===cid).map(c=>`<option value="${c.id}" ${s.contentId===c.id?'selected':''}>${e(c.tipo)} — ${e(c.titulo)}</option>`).join('');modal('Material / Legenda',`<form id="f" class="fg"><div class="field span"><label>Conteúdo</label><select name="contentId"><option value="">Sem vínculo</option>${opts}</select></div><div class="field span"><label>Imagem ou vídeo <small style="font-weight:400;color:#888">(opcional)</small></label><input type="file" id="file" accept="image/*,video/*"><small class="move-check-help">Você pode salvar somente a legenda, sem anexar mídia.</small></div><div class="field span"><label>Legenda</label><textarea name="legenda">${e(s.legenda||ct?.legenda||'')}</textarea></div><div class="field"><label>Data</label><input type="date" name="data" value="${s.data||''}"></div><div class="field"><label>Hora</label><input type="time" name="hora" value="${e(s.hora||'')}"></div><div class="field"><label>Status</label><select name="status">${['Aguardando aprovação','Aprovado','Ajustar','Agendado','Publicado'].map(v=>`<option ${s.status===v?'selected':''}>${v}</option>`).join('')}</select></div></form>`,async()=>{let q=obj(document.getElementById('f')),fl=document.getElementById('file').files[0],mid=s.mediaId||'';if(!x&&!fl&&!String(q.legenda||'').trim())return toast('Adicione uma legenda ou selecione um arquivo.');if(fl&&fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');if(fl){mid=mid||id();await mediaPut(mid,fl);q.mediaId=mid;q.mime=fl.type;q.fileName=fl.name}else{q.mediaId=s.mediaId||'';q.mime=s.mime||'';q.fileName=s.fileName||''}if(s.id)Object.assign(s,q);else D.scheduled.push({...q,id:id(),companyId:cid});closeM();save();materials(cid)})}
+function upload(cid,x=''){let s=D.scheduled.find(a=>a.id===x)||{},ct=D.contents.find(a=>a.id===s.contentId),opts=D.contents.filter(a=>a.companyId===cid).map(c=>`<option value="${c.id}" ${s.contentId===c.id?'selected':''}>${e(c.tipo)} — ${e(c.titulo)}</option>`).join('');modal('Material / Legenda',`<form id="f" class="fg"><div class="field span"><label>Conteúdo</label><select name="contentId"><option value="">Sem vínculo</option>${opts}</select></div><div class="field span"><label>Imagem ou vídeo <small style="font-weight:400;color:#888">(opcional)</small></label><input type="file" id="file" accept="image/*,video/*"><small class="move-check-help">Você pode salvar somente a legenda, sem anexar mídia.</small></div><div class="field span"><label>Legenda</label><textarea name="legenda">${e(s.legenda||ct?.legenda||'')}</textarea></div><div class="field"><label>Data</label><input type="date" name="data" value="${s.data||''}"></div><div class="field"><label>Hora</label><input type="time" name="hora" value="${e(s.hora||'')}"></div><div class="field"><label>Status</label><select name="status">${['Aguardando aprovação','Aprovado','Ajustar','Agendado','Publicado'].map(v=>`<option ${s.status===v?'selected':''}>${v}</option>`).join('')}</select></div></form>`,async()=>{let q=obj(document.getElementById('f')),fl=document.getElementById('file').files[0],mid=s.mediaId||'';if(!x&&!fl&&!String(q.legenda||'').trim())return toast('Adicione uma legenda ou selecione um arquivo.');if(fl&&fl.size>35*1024*1024)return toast('Use arquivo até 35 MB.');if(fl){mid=mid||id();await mediaPut(mid,fl);q.mediaId=mid;q.mime=fl.type;q.fileName=fl.name}else{q.mediaId=s.mediaId||'';q.mime=s.mime||'';q.fileName=s.fileName||''}if(s.id)Object.assign(s,q);else D.scheduled.push({...q,id:id(),companyId:cid});closeM();save();materials(cid)})}
 
 
 async function deleteScheduled(scheduledId,cid=''){
