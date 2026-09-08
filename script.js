@@ -135,7 +135,7 @@ function ensureMagicPlannerButton(){
       <button onclick="magicPickUpload();magicCloseMenu()"><i class="fa fa-file-arrow-up"></i><span><b>Importar planejamento</b><small>Criar automaticamente semanas, conteúdos e demandas</small></span></button>
       <button onclick="magicPlannerPage();magicCloseMenu()"><i class="fa fa-folder-open"></i><span><b>Ver planejamentos</b><small>Abrir o histórico do Setor de Planejamento</small></span></button>
     </div>
-    <input id="magicPlannerFile" type="file" accept=".json,application/json" class="hidden" onchange="magicImportFile(this.files?.[0]);this.value=''">
+    <input id="magicPlannerFile" type="file" accept=".json,application/json" multiple class="hidden" onchange="magicImportFiles(this.files);this.value=''">
   `;
   topActions.insertBefore(wrap,topActions.firstChild);
   magicInjectCSS();
@@ -375,7 +375,9 @@ function magicWeekBounds(dateStr){
 }
 function magicFindOrCreateWeek(companyId,dateStr,ep,planId){
   const b=magicWeekBounds(dateStr);
-  let w=(D.weeks||[]).find(x=>x.companyId===companyId&&x.inicio===b.inicio&&x.fim===b.fim);
+  // Cada planejamento mantém sua própria semana. Assim, dois JSONs do mesmo
+  // período podem coexistir sem que um assuma ou apague os dados do outro.
+  let w=(D.weeks||[]).find(x=>x.companyId===companyId&&x.inicio===b.inicio&&x.fim===b.fim&&x.magicSource===planId);
   if(!w){
     w={id:id(),companyId,numero:magicWeekNumberFromDate(b.inicio),inicio:b.inicio,fim:b.fim,objetivo:ep.objetivoSemana||'',linha:ep.linhaSemana||'',magicSource:planId,propostaSemana:ep.propostaSemana||''};
     D.weeks.push(w);
@@ -389,7 +391,9 @@ function magicImportIntoOperation(parsed,planId){
   parsed.empresas.forEach(ep=>{
     (ep.conteudos||[]).forEach((ct,idx)=>{
       const w=magicFindOrCreateWeek(ep.companyId,ct.postDate,ep,planId);
-      let item=(D.contents||[]).find(x=>x.magicContentId===ct.id&&x.companyId===ep.companyId);
+      // O id do conteúdo pode se repetir em arquivos diferentes. O plano de
+      // origem também faz parte da chave para impedir sobrescritas acidentais.
+      let item=(D.contents||[]).find(x=>x.magicSource===planId&&x.magicContentId===ct.id&&x.companyId===ep.companyId);
       const ready=String(ct.productionStatusInicial||'').toLowerCase().includes('pronto');
       const payload={companyId:ep.companyId,weekId:w.id,magicContentId:ct.id,magicSource:planId,ordem:idx+1,tipo:ct.tipo||'Post',titulo:ct.titulo||'',ideia:ct.ideia||'',descricao:ct.ideia||'',objetivo:ct.objetivo||'',linhaEditorial:ct.linhaEditorial||'',roteiro:ct.roteiro||'',legenda:ct.legenda||'',postDate:ct.postDate||'',postTime:ct.postTime||'',productionDate:ct.productionDate||ct.postDate||'',productionDeadline:ct.productionDate||ct.postDate||'',requiresCapture:!!ct.requiresCapture,missionPriority:ct.prioridade||'Meta',isReserve:!!ct.isReserve,direcaoCriativa:ct.direcaoCriativa||'',observacoes:ct.observacoes||'',workflowStatus:ready?'Finalizado':'Fila de produção',productionResponsible:'',productionBlocker:''};
       if(item){Object.assign(item,payload);updated++;}
@@ -452,27 +456,47 @@ function magicRemovePlanArtifacts(planId,{removePlanRecord=false}={}){
   };
 }
 
-async function magicImportFile(file){
+async function magicImportFile(file,{batch=false}={}){
   if(!file)return;
-  moveShowLoading('Montando a semana operacional...');
+  if(!batch)moveShowLoading('Salvando planejamento e montando a semana operacional...');
   try{
     const raw=await file.text();const parsed=JSON.parse(raw);magicValidatePlan(parsed);
-    const existing=(D.magicPlans||[]).find(x=>x.data?.plannerVersion==='MOVE_CREATIVE_V2'&&x.periodo?.inicio===parsed.periodo?.inicio);
-    const planId=existing?.id||id();
-
-    // Se já existir um JSON para o mesmo período, ele é SUBSTITUÍDO por completo.
-    // Primeiro apagamos somente tudo que o JSON anterior criou na operação.
-    // Conteúdos, tarefas e semanas manuais permanecem intactos.
-    if(existing)magicRemovePlanArtifacts(planId);
-
+    const planId=id();
     const plan={id:planId,importedAt:new Date().toISOString(),title:parsed.titulo||'Planejamento Criativo',periodo:parsed.periodo||{},sourceFile:file.name||'planner.json',data:parsed};
-    if(existing)Object.assign(existing,plan);else D.magicPlans.unshift(plan);
+    D.magicPlans=Array.isArray(D.magicPlans)?D.magicPlans:[];
+    D.magicPlans.unshift(plan);
     const result=magicImportIntoOperation(parsed,planId);
-    moveNormalizePlanningState();
-    save();await moveSleep(400);moveHideLoading();
-    toast(`Semana criada: ${result.created} novas demandas e ${result.updated} atualizadas.`);
-    magicPlannerPage(planId);
-  }catch(err){moveHideLoading();console.error(err);modal('Não foi possível importar',`<div class="notice red" style="white-space:pre-wrap">${e(err.message||String(err))}</div>`);}
+    if(!batch){
+      moveNormalizePlanningState();
+      save();await moveSleep(400);moveHideLoading();
+      toast(`Planejamento salvo: ${result.created} novas demandas.`);
+      magicPlannerPage(planId);
+    }
+    return {ok:true,planId,file:file.name||'planner.json',...result};
+  }catch(err){
+    if(!batch){moveHideLoading();console.error(err);modal('Não foi possível importar',`<div class="notice red" style="white-space:pre-wrap">${e(err.message||String(err))}</div>`);}
+    return {ok:false,file:file?.name||'arquivo.json',error:err};
+  }
+}
+async function magicImportFiles(fileList){
+  const files=Array.from(fileList||[]);
+  if(!files.length)return;
+  moveShowLoading(files.length>1?`Salvando ${files.length} planejamentos...`:'Salvando planejamento e montando a semana operacional...');
+  const results=[];
+  for(const file of files)results.push(await magicImportFile(file,{batch:true}));
+  moveNormalizePlanningState();
+  save();
+  await moveSleep(400);
+  moveHideLoading();
+  const ok=results.filter(x=>x.ok),failed=results.filter(x=>!x.ok);
+  if(failed.length){
+    const details=failed.map(x=>`${x.file}: ${x.error?.message||'arquivo inválido'}`).join('\n');
+    modal('Alguns arquivos não foram importados',`<div class="notice red" style="white-space:pre-wrap">${e(details)}</div>`);
+  }else{
+    const demands=ok.reduce((n,x)=>n+Number(x.created||0),0);
+    toast(`${ok.length} planejamento${ok.length!==1?'s':''} salvo${ok.length!==1?'s':''} • ${demands} demandas criadas.`);
+  }
+  magicPlannerPage(ok[0]?.planId||'');
 }
 function magicEnsurePage(){
   let page=document.getElementById('p-magicplanner');
@@ -492,7 +516,7 @@ function magicPlannerPage(openId=''){
     const totalContents=companies.reduce((n,c)=>n+(c.conteudos?.length||0),0);
     return `<article class="card magic-run-card ${openId===p.id?'active':''}"><div class="magic-run-top"><div><span class="badge warn"><i class="fa fa-brain"></i> SETOR DE PLANEJAMENTO</span><h3>${e(p.title)}</h3><div class="meta">${date(p.periodo?.inicio)} — ${date(p.periodo?.fim)} • Importado em ${new Date(p.importedAt).toLocaleString('pt-BR')}</div></div><div class="actions"><button class="btn primary sm" onclick="magicOpenPlan('${p.id}')"><i class="fa fa-eye"></i> Abrir</button><button class="btn light sm" onclick="magicDownload('${p.id}')"><i class="fa fa-download"></i> JSON</button><button class="btn danger sm" onclick="magicDelete('${p.id}')"><i class="fa fa-trash"></i></button></div></div><div class="stats magic-stats"><div class="mini"><b>${companies.length}</b><span>EMPRESAS</span></div><div class="mini"><b>${totalContents}</b><span>DEMANDAS</span></div><div class="mini"><b>${companies.reduce((n,c)=>n+(c.conteudos||[]).filter(x=>x.isReserve).length,0)}</b><span>RESERVAS</span></div><div class="mini"><b>${companies.reduce((n,c)=>n+(c.conteudos||[]).filter(x=>x.requiresCapture).length,0)}</b><span>CAPTAÇÕES</span></div></div></article>`;
   }).join('');
-  page.innerHTML=head('Planejamento Criativo','O cérebro da operação: cada JSON ativo alimenta a semana e a Produção. Excluir o JSON remove tudo que ele criou.',`<button class="btn light" onclick="magicCopyPrompt()"><i class="fa fa-copy"></i> Copiar prompt semanal</button><button class="btn primary" onclick="magicPickUpload()"><i class="fa fa-file-arrow-up"></i> Importar JSON</button>`)+`<div class="notice"><b>Fluxo operacional:</b> Planejamento Criativo → JSON → semana criada automaticamente → Produção executa → próxima publicação fica protegida.</div><div class="magic-runs">${runs||empty('Nenhum planejamento semanal importado ainda.')}</div>`;
+  page.innerHTML=head('Planejamento Criativo','Seus JSONs ficam salvos no painel e continuam disponíveis após atualizar ou entrar novamente. Você pode manter vários planejamentos, inclusive do mesmo período.',`<button class="btn light" onclick="magicCopyPrompt()"><i class="fa fa-copy"></i> Copiar prompt semanal</button><button class="btn primary" onclick="magicPickUpload()"><i class="fa fa-file-arrow-up"></i> Importar JSONs</button>`)+`<div class="notice"><b>Arquivos salvos:</b> você pode selecionar um ou vários JSONs no mesmo upload. Cada planejamento alimenta a Produção separadamente e só é removido quando você clicar em excluir.</div><div class="magic-runs">${runs||empty('Nenhum planejamento semanal importado ainda.')}</div>`;
 }
 function magicOpenPlan(planId){
   const p=(D.magicPlans||[]).find(x=>x.id===planId);if(!p)return toast('Planejamento não encontrado.');
